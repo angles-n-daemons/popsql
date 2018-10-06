@@ -37,4 +37,3 @@ To run the tests, run the following command:
 ```
 
 If you would like to test a specific file, simply replace `...` with the relative path to the file name.
-- 
