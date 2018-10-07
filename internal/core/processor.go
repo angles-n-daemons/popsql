@@ -9,6 +9,10 @@ func NewProcessor(c compiler) *Processor {
 	return &Processor{c}
 }
 
+/*
+Processor is the main entry point to the query parser and
+virtual machine. It is responsible for processing queries.
+*/
 type Processor struct {
 	compiler
 }
