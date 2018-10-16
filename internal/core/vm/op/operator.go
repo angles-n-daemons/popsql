@@ -11,4 +11,5 @@ const (
 	Init
 	Integer
 	ResultRow
+	String8
 )
