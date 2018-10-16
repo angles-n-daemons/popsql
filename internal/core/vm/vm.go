@@ -71,6 +71,9 @@ func (vm *VM) exec(ins *Instruction) ([]interface{}, error) {
 		// return the registers between P1 and P2 + 1
 		output = vm.registers[ins.P1 : ins.P2+1]
 
+	case op.String8:
+		// TODO: implement the String op code if necessary
+		vm.registers[ins.P2] = ins.P4
 	}
 
 	vm.counter = nextInstruction

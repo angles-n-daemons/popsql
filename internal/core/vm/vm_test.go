@@ -113,3 +113,25 @@ func TestInstructionHalt(t *testing.T) {
 		)
 	}
 }
+
+func TestInstructionString8(t *testing.T) {
+	vm := NewVM()
+	ins := Instruction{
+		OPCode: op.String8,
+		P2:     1,
+		P4:     "test",
+	}
+
+	_, err := vm.exec(&ins)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if vm.registers[ins.P2] != "test" {
+		t.Fatalf(
+			"Expected register 2 to be %s but got %v",
+			"test",
+			vm.registers[ins.P2],
+		)
+	}
+}
