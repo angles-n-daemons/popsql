@@ -31,29 +31,29 @@ type Pager struct {
 }
 
 /*
-	Get retrieves the data page at offset i after the header
+	Get retrieves the data page at the offset after the header
 */
-func (p *Pager) Get(i int) ([]byte, error) {
-	if i < 0 || i >= p.freelistIndex {
+func (p *Pager) GetPage(offset int) ([]byte, error) {
+	if offset < 0 || offset >= p.freelistIndex {
 		return nil, fmt.Errorf(
 			"cannot read page %d, index must be between 0 and %d",
-			i,
+			offset,
 			p.freelistIndex,
 		)
 	}
 
-	offset := (i * p.pageSize) + (RESERVED_HEADER_PAGE_COUNT * p.pageSize)
-	return p.fs.Read(offset, p.pageSize)
+	offsetBytes := (offset * p.pageSize) + (RESERVED_HEADER_PAGE_COUNT * p.pageSize)
+	return p.fs.Read(offsetBytes, p.pageSize)
 }
 
 /*
-	Set puts a data page at offset i with the bytes in content
+	Set puts a data page at the offset with the bytes in content
 */
-func (p *Pager) Set(i int, content []byte) error {
-	if i < 0 || i >= p.freelistIndex {
+func (p *Pager) SetPage(offset int, content []byte) error {
+	if offset < 0 || offset >= p.freelistIndex {
 		return fmt.Errorf(
 			"cannot write page %d, index must be between 0 and %d",
-			i,
+			offset,
 			p.freelistIndex,
 		)
 	}
@@ -66,6 +66,6 @@ func (p *Pager) Set(i int, content []byte) error {
 		)
 	}
 
-	offset := (i * p.pageSize) + (RESERVED_HEADER_PAGE_COUNT * p.pageSize)
-	return p.fs.Write(offset, content)
+	offsetBytes := (offset * p.pageSize) + (RESERVED_HEADER_PAGE_COUNT * p.pageSize)
+	return p.fs.Write(offsetBytes, content)
 }
