@@ -2,22 +2,15 @@
 
 ### dependencies
 
-- [golang](https://golang.org/doc/install)
-- [dep](https://github.com/golang/dep#installation)
+- [golang](https://golang.org/doc/install) 1.11 or higher
 
 
 ### cloning
 
-Before you clone this repo, create the appropriate directory for development by running the following command:
+Find an appropriate work directory, and clone this project accordingly:
 
 ```bash
- $ mkdir -p ~/go/src/github.com/angles-n-daemons
-```
-
-Then clone the repo to the created directory:
-
-```bash
- $ git clone https://github.com/angles-n-daemons/popsql.git ~/go/src/github.com/angles-n-daemons
+ $ git clone https://github.com/angles-n-daemons/popsql.git
 ```
 
 ### running
