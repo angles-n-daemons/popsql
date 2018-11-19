@@ -5,10 +5,6 @@ import (
 	"fmt"
 )
 
-type pager interface {
-	PageSize() int
-}
-
 /*
 	Node is the BTree logical implementation
 
