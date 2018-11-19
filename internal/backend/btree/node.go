@@ -1,6 +1,9 @@
 package btree
 
-import "fmt"
+import (
+	"encoding/binary"
+	"fmt"
+)
 
 type pager interface {
 	PageSize() int
@@ -14,10 +17,11 @@ type pager interface {
 	cells: key pointer pairs ordered by the key value
 */
 type Node struct {
-	NodeType
-	Order int
-	Cells []cell
-	Pager pager
+	nodeType
+	order        int
+	cells        []cell
+	rightPointer uint32
+	pageSize     int
 }
 
 /*
@@ -38,8 +42,6 @@ func (n *Node) UnmarshalBinary(data []byte) error {
 		)
 	}
 
-	n.pageSize = len(data)
-
 	/*
 		nodeHeader
 		0:   node type
@@ -49,29 +51,35 @@ func (n *Node) UnmarshalBinary(data []byte) error {
 	*/
 	nodeHeader := data[:8]
 	n.nodeType = nodeType(nodeHeader[0])
-	numCells := int16(nodeHeader[1:3])
-	n.rightPointer = int32(nodeHeader[3:7])
+	numCells := binary.LittleEndian.Uint16(nodeHeader[1:3])
+	n.rightPointer = binary.LittleEndian.Uint32(nodeHeader[3:7])
 
 	if n.nodeType != interior && n.nodeType != leaf {
 		return fmt.Errorf("Unknown node type: %d", n.nodeType)
 	}
 
-	n.cells = make([]cell, 0, numCells)
+	n.cells = make([]cell, numCells)
 
-	for i := 0; i < numCells; i++ {
+	for i := uint16(0); i < numCells; i++ {
 		// Read cells in 8 byte increments
 		offset := (i * 8) + 8
 		cellBytes := data[offset : offset+8]
 
-		n.cells[i] = cell{
-			key:     int32(cellBytes[:4]),
-			pointer: int32(cellBytes[4:8]),
+		c := cell{
+			key:     binary.LittleEndian.Uint32(cellBytes[:4]),
+			pointer: binary.LittleEndian.Uint32(cellBytes[4:8]),
 		}
+		n.cells[i] = c
 	}
 
 	// order is the number of pointers which is equal to
 	// the number of cells plus 1
-	n.order = ((data - 8) / 8) + 1
+	n.order = ((len(data) - 8) / 8) + 1
+
+	// pagesize stored for when the node is reserialized
+	n.pageSize = len(data)
+
+	return nil
 }
 
 /*
@@ -79,26 +87,36 @@ func (n *Node) UnmarshalBinary(data []byte) error {
 */
 func (n *Node) MarshalBinary() ([]byte, error) {
 	data := make([]byte, 0, n.pageSize)
-	data = append(data, n.nodeType)
+	data = append(data, byte(n.nodeType))
 
-	numCells := int16(len(n.cells))
 	// append the numCells bytes
-	data = append(data, []byte(numCells)...)
+	numCells16 := uint16(len(n.cells))
+	numCellsBytes := make([]byte, 2)
+	binary.LittleEndian.PutUint16(numCellsBytes, numCells16)
+	data = append(data, numCellsBytes...)
 	// append the right pointer
-	data = append(data, []byte(n.rightPointer)...)
+	rightPointerBytes := make([]byte, 4)
+	binary.LittleEndian.PutUint32(rightPointerBytes, n.rightPointer)
+	data = append(data, rightPointerBytes...)
 	// append the empty header byte
 	data = append(data, 0)
 
 	for _, cell := range n.cells {
-		data = append(data, []byte(cell.key)...)
-		data = append(data, []byte(cell.pointer)...)
+		keyBytes := make([]byte, 4)
+		pointerBytes := make([]byte, 4)
+		binary.LittleEndian.PutUint32(keyBytes, cell.key)
+		binary.LittleEndian.PutUint32(pointerBytes, cell.pointer)
+		data = append(data, keyBytes...)
+		data = append(data, pointerBytes...)
 	}
 
 	// fill the remaining space
 	data = append(
 		data,
-		make([]byte, cap(data)-len(data)),
+		make([]byte, cap(data)-len(data))...,
 	)
+
+	return data, nil
 }
 
 /*
@@ -122,6 +140,6 @@ const (
 	serialized it is laid out on disk [key, pointer]
 */
 type cell struct {
-	key     int32
-	pointer int32
+	key     uint32
+	pointer uint32
 }
