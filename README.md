@@ -2,7 +2,7 @@
 
 ### popsql 
 
-`popsql` is a golang port of [sqlite](https://www.sqlite.org/index.html). It is built in an effort to move the database to a simpler language.
+`popsql` is a golang port of [sqlite](https://www.sqlite.org/index.html). It is built in an effort to learn more about databases.
 
 - [Quickstart](documentation/quickstart.md)
 - [Contributing](documentation/contributing.md)
