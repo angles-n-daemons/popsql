@@ -35,9 +35,9 @@ type Node struct {
 	4. Set the page size for when the node needs to be serialized
 */
 func (n *Node) UnmarshalBinary(data []byte) error {
-	if len(data) < 6 {
+	if len(data) < 16 {
 		return fmt.Errorf(
-			"Unexpected length of Node page: %d",
+			"Node page too small: %d",
 			len(data),
 		)
 	}
