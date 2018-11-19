@@ -94,13 +94,16 @@ func (n *Node) MarshalBinary() ([]byte, error) {
 	numCellsBytes := make([]byte, 2)
 	binary.LittleEndian.PutUint16(numCellsBytes, numCells16)
 	data = append(data, numCellsBytes...)
+
 	// append the right pointer
 	rightPointerBytes := make([]byte, 4)
 	binary.LittleEndian.PutUint32(rightPointerBytes, n.rightPointer)
 	data = append(data, rightPointerBytes...)
+
 	// append the empty header byte
 	data = append(data, 0)
 
+	// add the cells
 	for _, cell := range n.cells {
 		keyBytes := make([]byte, 4)
 		pointerBytes := make([]byte, 4)
