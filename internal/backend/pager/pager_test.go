@@ -95,7 +95,7 @@ func TestPagerGet(t *testing.T) {
 				err:     test.fsError,
 			}
 
-			output, err := pager.GetPage(test.pageNumber)
+			output, err := pager.Get(test.pageNumber)
 			if test.returnsError {
 				is.True(err != nil)
 			} else {
@@ -185,7 +185,7 @@ func TestPagerSet(t *testing.T) {
 			}
 			pager.fs = m
 
-			err := pager.SetPage(test.pageNumber, test.content)
+			err := pager.Set(test.pageNumber, test.content)
 			if test.returnsError {
 				is.True(err != nil)
 			} else {

@@ -33,7 +33,7 @@ type Pager struct {
 /*
 	Get retrieves the data page at the offset after the header
 */
-func (p *Pager) GetPage(offset int) ([]byte, error) {
+func (p *Pager) Get(offset int) ([]byte, error) {
 	if offset < 0 || offset >= p.freelistIndex {
 		return nil, fmt.Errorf(
 			"cannot read page %d, index must be between 0 and %d",
@@ -49,7 +49,7 @@ func (p *Pager) GetPage(offset int) ([]byte, error) {
 /*
 	Set puts a data page at the offset with the bytes in content
 */
-func (p *Pager) SetPage(offset int, content []byte) error {
+func (p *Pager) Set(offset int, content []byte) error {
 	if offset < 0 || offset >= p.freelistIndex {
 		return fmt.Errorf(
 			"cannot write page %d, index must be between 0 and %d",
