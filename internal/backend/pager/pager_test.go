@@ -3,8 +3,6 @@ package pager
 import (
 	"errors"
 	"testing"
-
-	"github.com/matryer/is"
 )
 
 type mockFile struct {
@@ -38,8 +36,6 @@ const (
 )
 
 func TestPagerGet(t *testing.T) {
-	is := is.New(t)
-
 	tests := []struct {
 		name         string
 		pageNumber   int
@@ -96,16 +92,15 @@ func TestPagerGet(t *testing.T) {
 			}
 
 			output, err := pager.GetPage(test.pageNumber)
-			if test.returnsError {
-				is.True(err != nil)
-			} else {
-				is.NoErr(err)
+			if test.errors && err == nil {
+				t.Errorf("Expected error in test '%s' but received none", test.name)
+			} else if !test.errors && err != nil{
+				t.Errorf("Expected no error in test '%s' but got %v", test.name, err)
 			}
 
-			is.Equal(
-				string(test.expected),
-				string(output),
-			)
+			if test.expected != output {
+				t.Errorf("Test '%s' failed, expected: \n%s\nbut got\n%s", test.name, test.expected, output)
+			}
 		})
 	}
 }

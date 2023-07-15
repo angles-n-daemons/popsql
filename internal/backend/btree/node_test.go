@@ -4,13 +4,9 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
-
-	"github.com/matryer/is"
 )
 
 func TestSerialization(t *testing.T) {
-	is := is.New(t)
-
 	tests := []struct {
 		name     string
 		node     *Node
@@ -79,15 +75,17 @@ func TestSerialization(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			b, err := test.node.MarshalBinary()
 
-			is.NoErr(err)
+			if err != nil {
+				t.Errorf("Failed to unmarhshal value %v", err)
+			}
 
 			newNode := &Node{}
 			err = newNode.UnmarshalBinary(b)
 
-			if test.errors {
-				is.True(err != nil)
-			} else {
-				is.NoErr(err)
+			if test.errors && err == nil {
+				t.Errorf("Expected error in test '%s' but received none", test.name)
+			} else if !test.errors && err != nil{
+				t.Errorf("Expected no error in test '%s' but got %v", test.name, err)
 			}
 			isEqual := reflect.DeepEqual(test.node, newNode)
 
