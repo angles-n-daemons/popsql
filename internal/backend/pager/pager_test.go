@@ -1,6 +1,7 @@
 package pager
 
 import (
+	"bytes"
 	"errors"
 	"testing"
 )
@@ -41,7 +42,7 @@ func TestPagerGet(t *testing.T) {
 		pageNumber   int
 		expected     []byte
 		fsError      error
-		returnsError bool
+		errors bool
 	}{
 		{
 			name:       "read zeroth page",
@@ -59,22 +60,22 @@ func TestPagerGet(t *testing.T) {
 			name:         "read second page with fs error",
 			pageNumber:   2,
 			fsError:      errors.New("error"),
-			returnsError: true,
+			errors: true,
 		},
 		{
 			name:         "read negative page",
 			pageNumber:   -2,
-			returnsError: true,
+			errors: true,
 		},
 		{
 			name:         "read past freelist",
 			pageNumber:   4,
-			returnsError: true,
+			errors: true,
 		},
 		{
 			name:         "read page at freelist start",
 			pageNumber:   3,
-			returnsError: true,
+			errors: true,
 		},
 	}
 
@@ -92,13 +93,14 @@ func TestPagerGet(t *testing.T) {
 			}
 
 			output, err := pager.GetPage(test.pageNumber)
+
 			if test.errors && err == nil {
 				t.Errorf("Expected error in test '%s' but received none", test.name)
 			} else if !test.errors && err != nil{
 				t.Errorf("Expected no error in test '%s' but got %v", test.name, err)
 			}
 
-			if test.expected != output {
+			if !bytes.Equal(test.expected, output) {
 				t.Errorf("Test '%s' failed, expected: \n%s\nbut got\n%s", test.name, test.expected, output)
 			}
 		})
@@ -106,15 +108,13 @@ func TestPagerGet(t *testing.T) {
 }
 
 func TestPagerSet(t *testing.T) {
-	is := is.New(t)
-
 	tests := []struct {
 		name         string
 		pageNumber   int
 		content      []byte
 		expected     []byte
 		fsError      error
-		returnsError bool
+		errors bool
 	}{
 		{
 			name:       "write zeroth page",
@@ -135,33 +135,33 @@ func TestPagerSet(t *testing.T) {
 			pageNumber:   2,
 			fsError:      errors.New("error"),
 			content:      []byte("cd"),
-			returnsError: true,
+			errors: true,
 		},
 		{
 			name:         "write negative page",
 			pageNumber:   -2,
-			returnsError: true,
+			errors: true,
 		},
 		{
 			name:         "write past freelist",
 			pageNumber:   4,
-			returnsError: true,
+			errors: true,
 		},
 		{
 			name:         "write page at freelist start",
 			pageNumber:   3,
-			returnsError: true,
+			errors: true,
 		},
 		{
 			name:         "write with content larger than page size",
 			pageNumber:   0,
-			returnsError: true,
+			errors: true,
 			content:      []byte("abc"),
 		},
 		{
 			name:         "write with content smaller than page size",
 			pageNumber:   0,
-			returnsError: true,
+			errors: true,
 			content:      []byte("a"),
 		},
 	}
@@ -181,16 +181,18 @@ func TestPagerSet(t *testing.T) {
 			pager.fs = m
 
 			err := pager.SetPage(test.pageNumber, test.content)
-			if test.returnsError {
-				is.True(err != nil)
+			if test.errors {
+				if err == nil {
+				t.Errorf("Expected error in test '%s' but received none", test.name)
+				}
 			} else {
-				is.NoErr(err)
-				is.Equal(
-					string(test.expected),
-					string(m.content),
-				)
+				if err != nil {
+					t.Errorf("Expected no error in test '%s' but got %v", test.name, err)
+				}
+				if !bytes.Equal(test.expected, m.content) {
+					t.Errorf("Test '%s' failed, expected: \n%s\nbut got\n%s", test.name, test.expected, m.content)
+				}
 			}
-
 		})
 	}
 }
