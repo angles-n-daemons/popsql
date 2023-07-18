@@ -1,7 +1,24 @@
 package btree
 
+import (
+	"fmt"
+
+	"github.com/angles-n-daemons/popsql/internal/backend/pager"
+)
+
 type Cursor struct {
-	Node
+	pager pager.Pager
+}
+
+func (c *Cursor) Create(pageNum uint16) error {
+	_, ok := c.pager.ReadPage(pageNum)
+	if ok == nil {
+		return fmt.Errorf("cannot create b-tree at page %d, page is in use", pageNum)
+	}
+
+	// TODO: finish implementation
+
+	return nil
 }
 
 func (c *Cursor) Search(key uint32) (interface{}, error) {

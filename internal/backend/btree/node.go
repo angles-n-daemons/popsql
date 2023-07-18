@@ -5,15 +5,20 @@ import (
 	"fmt"
 )
 
+func NewNode(nodeType NodeType) {
+	return
+}
+
 /*
 	Node is the BTree logical implementation
 
 	order: btree order which is the same number of pointers
 	       in the node and the number of keys plus one
 	cells: key pointer pairs ordered by the key value
+	rightPointer: the page number of the node to the right
 */
 type Node struct {
-	nodeType
+	NodeType
 	order        int
 	cells        []cell
 	rightPointer uint32
@@ -22,7 +27,7 @@ type Node struct {
 
 /*
 	UnmarshalBinary reads in a page and attempts to return a typed
-	Node object. It accomplishes by doing the following things.
+	Node object. It accomplishes by executing the following steps.
 
 	1. Read the node header (8 or 12 bytes).
 	2. Set the node type
@@ -46,12 +51,12 @@ func (n *Node) UnmarshalBinary(data []byte) error {
 		7:   unused
 	*/
 	nodeHeader := data[:8]
-	n.nodeType = nodeType(nodeHeader[0])
+	n.NodeType = NodeType(nodeHeader[0])
 	numCells := binary.LittleEndian.Uint16(nodeHeader[1:3])
 	n.rightPointer = binary.LittleEndian.Uint32(nodeHeader[3:7])
 
-	if n.nodeType != interior && n.nodeType != leaf {
-		return fmt.Errorf("Unknown node type: %d", n.nodeType)
+	if n.NodeType != table_interior && n.NodeType != table_leaf {
+		return fmt.Errorf("Unknown node type: %d", n.NodeType)
 	}
 
 	n.cells = make([]cell, numCells)
@@ -62,8 +67,8 @@ func (n *Node) UnmarshalBinary(data []byte) error {
 		cellBytes := data[offset : offset+8]
 
 		c := cell{
-			key:     binary.LittleEndian.Uint32(cellBytes[:4]),
-			pointer: binary.LittleEndian.Uint32(cellBytes[4:8]),
+			key:  binary.LittleEndian.Uint32(cellBytes[:4]),
+			page: binary.LittleEndian.Uint32(cellBytes[4:8]),
 		}
 		n.cells[i] = c
 	}
@@ -83,7 +88,7 @@ func (n *Node) UnmarshalBinary(data []byte) error {
 */
 func (n *Node) MarshalBinary() ([]byte, error) {
 	data := make([]byte, 0, n.pageSize)
-	data = append(data, byte(n.nodeType))
+	data = append(data, byte(n.NodeType))
 
 	// append the numCells bytes
 	numCells16 := uint16(len(n.cells))
@@ -104,7 +109,7 @@ func (n *Node) MarshalBinary() ([]byte, error) {
 		keyBytes := make([]byte, 4)
 		pointerBytes := make([]byte, 4)
 		binary.LittleEndian.PutUint32(keyBytes, cell.key)
-		binary.LittleEndian.PutUint32(pointerBytes, cell.pointer)
+		binary.LittleEndian.PutUint32(pointerBytes, cell.page)
 		data = append(data, keyBytes...)
 		data = append(data, pointerBytes...)
 	}
@@ -119,26 +124,26 @@ func (n *Node) MarshalBinary() ([]byte, error) {
 }
 
 /*
-	nodeType describes whether a node is a leaf or not
+	NodeType describes whether a node is a leaf or not
 */
-type nodeType byte
+type NodeType byte
 
 const (
-	interior nodeType = 1
-	leaf
+	table_interior NodeType = 1
+	table_leaf
 )
 
 /*
 	cell is a key pointer pair in a btree node
 
-	key: corresponds to a value for comparison
-	pointer: left pointer for the key. all children's keys will
+	key: in a leaf node it's the exact value of the corresponding data. in an interior node, the key represents the left-most (lowest) key of the child that it points to.
+	page: page number for the key. all children's keys will
 	         be less than or equal to the key value
 
 
 	serialized it is laid out on disk [key, pointer]
 */
 type cell struct {
-	key     uint32
-	pointer uint32
+	key  uint32
+	page uint32
 }

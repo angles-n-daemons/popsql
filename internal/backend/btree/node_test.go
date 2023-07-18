@@ -16,7 +16,7 @@ func TestSerialization(t *testing.T) {
 		{
 			name: "simple test",
 			node: &Node{
-				nodeType: interior,
+				NodeType: table_interior,
 				pageSize: 32,
 				order:    4,
 				cells: []cell{
@@ -29,7 +29,7 @@ func TestSerialization(t *testing.T) {
 		{
 			name: "empty node",
 			node: &Node{
-				nodeType: leaf,
+				NodeType: table_leaf,
 				pageSize: 32,
 				order:    4,
 				cells:    []cell{},
@@ -38,7 +38,7 @@ func TestSerialization(t *testing.T) {
 		{
 			name: "obscure page size",
 			node: &Node{
-				nodeType: leaf,
+				NodeType: table_leaf,
 				pageSize: 37,
 				order:    4,
 				cells:    []cell{},
@@ -49,7 +49,7 @@ func TestSerialization(t *testing.T) {
 		{
 			name: "unrealistic order",
 			node: &Node{
-				nodeType: interior,
+				NodeType: table_interior,
 				pageSize: 32,
 				order:    6,
 				cells:    []cell{},
@@ -61,7 +61,7 @@ func TestSerialization(t *testing.T) {
 		{
 			name: "invalid node type",
 			node: &Node{
-				nodeType: nodeType(0),
+				NodeType: NodeType(0),
 				pageSize: 32,
 				order:    4,
 				cells:    []cell{},
@@ -84,7 +84,7 @@ func TestSerialization(t *testing.T) {
 
 			if test.errors && err == nil {
 				t.Errorf("Expected error in test '%s' but received none", test.name)
-			} else if !test.errors && err != nil{
+			} else if !test.errors && err != nil {
 				t.Errorf("Expected no error in test '%s' but got %v", test.name, err)
 			}
 			isEqual := reflect.DeepEqual(test.node, newNode)
