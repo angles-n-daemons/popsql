@@ -19,7 +19,7 @@ func NewNode(nodeType NodeType) {
 */
 type Node struct {
 	NodeType
-	order        int
+	capacity     uint16
 	cells        []cell
 	rightPointer uint32
 	pageSize     int
@@ -73,9 +73,9 @@ func (n *Node) UnmarshalBinary(data []byte) error {
 		n.cells[i] = c
 	}
 
-	// order is the number of pointers which is equal to
-	// the number of cells plus 1
-	n.order = ((len(data) - 8) / 8) + 1
+	if n.capacity == 0 {
+		return fmt.Errorf("need to set capacity")
+	}
 
 	// pagesize stored for when the node is reserialized
 	n.pageSize = len(data)
@@ -121,6 +121,16 @@ func (n *Node) MarshalBinary() ([]byte, error) {
 	)
 
 	return data, nil
+}
+
+func (n *Node) Len() uint16 {
+	// will give number of used cells, in the future will give the number of used bytes
+	return 0
+}
+
+func (n *Node) Capacity() uint16 {
+	// will give number of cells, in the future will give the number of bytes
+	return 0
 }
 
 /*
