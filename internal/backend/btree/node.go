@@ -52,8 +52,8 @@ func (n *Node) UnmarshalBinary(data []byte) error {
 	*/
 	nodeHeader := data[:8]
 	n.NodeType = NodeType(nodeHeader[0])
-	numCells := binary.LittleEndian.Uint16(nodeHeader[1:3])
-	n.rightPointer = binary.LittleEndian.Uint32(nodeHeader[3:7])
+	numCells := binary.BigEndian.Uint16(nodeHeader[1:3])
+	n.rightPointer = binary.BigEndian.Uint32(nodeHeader[3:7])
 
 	if n.NodeType != table_interior && n.NodeType != table_leaf {
 		return fmt.Errorf("Unknown node type: %d", n.NodeType)
@@ -67,8 +67,8 @@ func (n *Node) UnmarshalBinary(data []byte) error {
 		cellBytes := data[offset : offset+8]
 
 		c := cell{
-			key:  binary.LittleEndian.Uint32(cellBytes[:4]),
-			page: binary.LittleEndian.Uint32(cellBytes[4:8]),
+			key:  binary.BigEndian.Uint32(cellBytes[:4]),
+			page: binary.BigEndian.Uint32(cellBytes[4:8]),
 		}
 		n.cells[i] = c
 	}
@@ -93,12 +93,12 @@ func (n *Node) MarshalBinary() ([]byte, error) {
 	// append the numCells bytes
 	numCells16 := uint16(len(n.cells))
 	numCellsBytes := make([]byte, 2)
-	binary.LittleEndian.PutUint16(numCellsBytes, numCells16)
+	binary.BigEndian.PutUint16(numCellsBytes, numCells16)
 	data = append(data, numCellsBytes...)
 
 	// append the right pointer
 	rightPointerBytes := make([]byte, 4)
-	binary.LittleEndian.PutUint32(rightPointerBytes, n.rightPointer)
+	binary.BigEndian.PutUint32(rightPointerBytes, n.rightPointer)
 	data = append(data, rightPointerBytes...)
 
 	// append the empty header byte
@@ -108,8 +108,8 @@ func (n *Node) MarshalBinary() ([]byte, error) {
 	for _, cell := range n.cells {
 		keyBytes := make([]byte, 4)
 		pointerBytes := make([]byte, 4)
-		binary.LittleEndian.PutUint32(keyBytes, cell.key)
-		binary.LittleEndian.PutUint32(pointerBytes, cell.page)
+		binary.BigEndian.PutUint32(keyBytes, cell.key)
+		binary.BigEndian.PutUint32(pointerBytes, cell.page)
 		data = append(data, keyBytes...)
 		data = append(data, pointerBytes...)
 	}
@@ -124,7 +124,7 @@ func (n *Node) MarshalBinary() ([]byte, error) {
 }
 
 /*
-	NodeType describes whether a node is a leaf or not
+	NodeType describes what type of node the current node is, leaf vs interior, table vs index
 */
 type NodeType byte
 
