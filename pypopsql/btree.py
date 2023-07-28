@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Tuple
 
 def b2i(b: bytes) -> int:
@@ -37,6 +38,12 @@ def varint(b: bytes, start: int) -> Tuple[int, int]:
 
     return result, 9
 
+class NodeType(Enum):
+    INDEX_INTERIOR = 2
+    TABLE_INTERIOR = 5
+    INDEX_LEAF = 10
+    TABLE_LEAF = 13
+
 class Node:
     def __init__(
         self,
@@ -46,7 +53,7 @@ class Node:
         self.page_size = len(data)
         
         node_type_bytes = data[0:1]
-        self.node_type = b2i(node_type_bytes)
+        self.node_type = NodeType(b2i(node_type_bytes))
 
         num_cells_bytes = data[3:5]
         self.num_cells = b2i(num_cells_bytes)
