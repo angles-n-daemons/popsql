@@ -1,6 +1,6 @@
 from unittest import TestCase
 from dataclasses import dataclass
-from btree import varint
+from util import varint
 
 
 @dataclass

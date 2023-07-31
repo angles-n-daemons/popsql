@@ -5,13 +5,7 @@ def test_btree():
     p = Pager('test.db')
     data = p.get_page(2)
     n = Node(data)
-    cells = n.cells
-    for cell in cell:
-        print('row id: ', cell.row_id)
-        print('payload size: ', cell.payload_size)
-        print('payload: ', cell.payload)
-        print('cursor end: ', cell.cursor)
-        print('\n\n')
+    n._debug_print_cells()
 
 
 def test_pager():

@@ -27,9 +27,23 @@ class Node:
 
         self.cells = self.read_cells()
 
+        self.right_pointer = None
+        if not self.is_leaf():
+            right_pointer_bytes = data[8:12]
+            self.right_pointer = b2i(right_pointer_bytes)
+
+        """
+        The following fields (first_freeblock, num_fragmented_bytes) are omitted from
+        usage, but included for testing to assert that the parser is working correctly
+        """
+
+        first_freeblock_bytes = data[1:3]
+        self.first_freeblock = b2i(first_freeblock_bytes)
+
+        self.num_fragmented_bytes = data[7]
+
     def read_cells(self):
-        #TODO calculate actual starting offset
-        hdrlen =  8
+        hdrlen = 8 if self.is_leaf() else 12
 
         cells = []
 
@@ -40,6 +54,17 @@ class Node:
             cells.append(cell)
 
         return cells
+
+    def is_leaf(self):
+        return self.node_type in (NodeType.TABLE_LEAF, NodeType.INDEX_LEAF)
+
+    def _debug_print_cells(self):
+        for cell in self.cells:
+            print('row id: ', cell.row_id)
+            print('payload size: ', cell.payload_size)
+            print('payload: ', cell.payload.hex())
+            print('cursor end: ', cell.cursor)
+            print('\n\n')
 
 class TableLeafCell:
     def __init__(
