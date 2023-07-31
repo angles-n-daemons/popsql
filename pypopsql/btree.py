@@ -1,42 +1,6 @@
 from enum import Enum
-from typing import Tuple
 
-def b2i(b: bytes) -> int:
-    return int.from_bytes(b, 'big', signed=False)
-
-def varint(b: bytes, start: int) -> Tuple[int, int]:
-    """
-    varint reads a variable length int from some byte string
-    it takes the following parameters
-     - b: sequence of bytes, generally a full table page
-     - i: starting index of the varint
-
-    and returns a tuple including the value of the integer, and the
-    number of bytes read.
-    """
-
-    result = 0
-
-    for j in range(8):
-        i = start + j
-
-        # read the next byte into an integer
-        byte_num = b[i]
-
-        # result shifts left 7 bits, then the first 7 bits of byte_num are appended
-        result = (result << 7) | (byte_num & 0x7f)
-
-        # check the first bit of byte_num to see if we should continue reading
-        continue_reading = byte_num & 0x80
-
-        if not continue_reading:
-            return result, j+1
-
-    # read last byte, use all 8 bytes to fill the remaining spaces
-    byte_num = b[start + 8]
-    result = (result << 8) | byte_num
-
-    return result, 9
+from util import b2i, varint
 
 class NodeType(Enum):
     INDEX_INTERIOR = 2
@@ -61,22 +25,34 @@ class Node:
         cell_offset_bytes = data[5:7]
         self.cell_offset = b2i(cell_offset_bytes)
 
-    def test_read_cells(self):
+        self.cells = self.read_cells()
+
+    def read_cells(self):
         #TODO calculate actual starting offset
         hdrlen =  8
 
         cells = []
+
         for i in range(self.num_cells):
             offset = hdrlen + (i * 2)
             p = b2i(self.data[offset:offset + 2])
-            print(f'cell {i}, offset {p}')
+            cell = TableLeafCell(self.data, p)
+            cells.append(cell)
+
+        return cells
 
 class TableLeafCell:
     def __init__(
         self,
         data: bytes,
-        start: int,
+        cursor: int,
     ):
-        self.payload_size = None
-        self.row_id = None
-        self.payload = None
+        self.payload_size, num_read = varint(data, cursor)
+        cursor += num_read
+
+        self.row_id, num_read = varint(data, cursor)
+        cursor += num_read
+
+        # TODO: does not address overflow
+        self.payload = data[cursor:cursor+self.payload_size]
+        self.cursor = cursor + self.payload_size
