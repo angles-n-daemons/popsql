@@ -52,5 +52,9 @@ class TestBTree(TestCase):
         self.assertEquals(node.cells[1].payload, bytes([0x03, 0x11, 0x01, 0x79, 0x6f, 0x02]))
         self.assertEquals(node.cells[1].cursor, 25)
 
+    def test_schema_header_page(self):
+        raise Exception('not done')
+        pass
+
 if __name__ == '__main__':
     unittest.main()
