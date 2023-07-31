@@ -2,7 +2,7 @@ from btree import Node
 from unittest import TestCase
 
 class TestBTree(TestCase):
-    def test_table_leaf(self):
+    def test_table_leaf_parse(self):
         data = bytes([
             0x0d, # Node Type 13
             0x00, 0x00, # first_freeblock
