@@ -12,24 +12,28 @@ class Node:
     def __init__(
         self,
         data: bytes,
+        db_header: bool = False,
     ):
+        offset = 100 if db_header else 0
+
         self.data = data
+        self.db_header = db_header
         self.page_size = len(data)
         
-        node_type_bytes = data[0:1]
+        node_type_bytes = data[offset + 0: offset + 1]
         self.node_type = NodeType(b2i(node_type_bytes))
 
-        num_cells_bytes = data[3:5]
+        num_cells_bytes = data[offset + 3: offset + 5]
         self.num_cells = b2i(num_cells_bytes)
 
-        cell_offset_bytes = data[5:7]
+        cell_offset_bytes = data[offset + 5: offset + 7]
         self.cell_offset = b2i(cell_offset_bytes)
 
         self.cells = self.read_cells()
 
         self.right_pointer = None
         if not self.is_leaf():
-            right_pointer_bytes = data[8:12]
+            right_pointer_bytes = data[offset + 8: offset + 12]
             self.right_pointer = b2i(right_pointer_bytes)
 
         """
@@ -37,18 +41,19 @@ class Node:
         usage, but included for testing to assert that the parser is working correctly
         """
 
-        first_freeblock_bytes = data[1:3]
+        first_freeblock_bytes = data[offset + 1: offset + 3]
         self.first_freeblock = b2i(first_freeblock_bytes)
 
-        self.num_fragmented_bytes = data[7]
+        self.num_fragmented_bytes = data[offset + 7]
 
     def read_cells(self):
-        hdrlen = 8 if self.is_leaf() else 12
+        page_header_len = 8 if self.is_leaf() else 12
+        db_header_len = 100 if self.db_header else 0
 
         cells = []
 
         for i in range(self.num_cells):
-            offset = hdrlen + (i * 2)
+            offset = page_header_len + db_header_len + (i * 2)
             p = b2i(self.data[offset:offset + 2])
             cell = TableLeafCell(self.data, p)
             cells.append(cell)

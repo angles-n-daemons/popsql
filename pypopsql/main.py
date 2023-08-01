@@ -19,5 +19,11 @@ def test_header():
     header = Header(data[:100])
     header._debug_print_values()
 
+def test_schema_btree_page():
+    p = Pager('test.db')
+    data = p.get_page(1)
+    n = Node(data, True)
+    n._debug_print_cells()
+
 if __name__ == '__main__':
-    test_header()
+    test_schema_btree_page()
