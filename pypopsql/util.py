@@ -29,11 +29,10 @@ def varint(b: bytes, cursor: int) -> Tuple[int, int]:
         continue_reading = byte_num & 0x80
 
         if not continue_reading:
-            return result, j+1
+            return result, cursor + j + 1
 
     # read last byte, use all 8 bytes to fill the remaining spaces
     byte_num = b[cursor + 8]
     result = (result << 8) | byte_num
 
-    return result, 9
-
+    return result, cursor + 9

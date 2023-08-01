@@ -107,11 +107,9 @@ class TableLeafCell:
         data: bytes,
         cursor: int,
     ):
-        self.payload_size, num_read = varint(data, cursor)
-        cursor += num_read
+        self.payload_size, cursor = varint(data, cursor)
 
-        self.row_id, num_read = varint(data, cursor)
-        cursor += num_read
+        self.row_id, cursor = varint(data, cursor)
 
         # TODO: does not address overflow
         self.payload = data[cursor:cursor+self.payload_size]
