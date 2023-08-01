@@ -56,8 +56,6 @@ class Record:
         data: bytes,
         cursor: int,
     ):
-        # The header begins with a single varint which determines the total number of bytes in the header
-        # the varint value is the size of the header including the size varint itself
         column_types = []
         cursor_start = cursor
         num_bytes_header, cursor = varint(data, cursor)
