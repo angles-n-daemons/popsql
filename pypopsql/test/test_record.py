@@ -7,11 +7,22 @@ from record import Record, ColumnType
 @dataclass
 class ColumnTypeTestCase:
     value: int
+
     expected: ColumnType
     expected_length: Union[int, None]
     throws_error: bool
 
-class TestColumnType(TestCase):
+@dataclass
+class ReadValueTestCase:
+    column_type: ColumnType
+    data: bytes
+    cursor_start: int
+
+    expected: any
+    expected_cursor_end: int
+    throws_error: bool
+
+class TestRecord(TestCase):
     def test_column_type_values(self):
         tests = [
             # test 1-11
@@ -54,6 +65,144 @@ class TestColumnType(TestCase):
             except Exception as e:
                 if not test.throws_error:
                     self.fail(e)
+
+    def test_read_value(self):
+        # read each type of value
+        tests = [
+            ReadValueTestCase(
+                ColumnType.from_varint(0),
+                bytes([0x12, 0x34, 0x56]),
+                1,
+                None,
+                1,
+                False
+            ),
+            ReadValueTestCase(
+                ColumnType.from_varint(1),
+                bytes([0x12, 0x34, 0x56]),
+                1,
+                52, # 0x34
+                2,
+                False,
+            ),
+            ReadValueTestCase(
+                ColumnType.from_varint(2),
+                bytes([0x01, 0x02, 0x03, 0x04]),
+                1,
+                515, # 0x0203
+                3,
+                False,
+            ),
+            ReadValueTestCase(
+                ColumnType.from_varint(3),
+                bytes([0x01, 0x02, 0x03, 0x04, 0x05]),
+                1,
+                131844, # 0x020304
+                4,
+                False,
+            ),
+            ReadValueTestCase(
+                ColumnType.from_varint(4),
+                bytes([0x01, 0x02, 0x03, 0x04, 0x05, 0x06]),
+                1,
+                33752069, # 0x02030405
+                5,
+                False,
+            ),
+            ReadValueTestCase(
+                ColumnType.from_varint(5),
+                bytes([
+                    0x01, 0x02, 0x03, 0x04,
+                    0x05, 0x06, 0x07, 0x08,
+                    0x09, 0x10, 0x11, 0x12,
+                ]),
+                2,
+                3315799033608, # 0x030405060708
+                8,
+                False,
+            ),
+            ReadValueTestCase(
+                ColumnType.from_varint(6),
+                bytes([
+                    0x01, 0x02, 0x03, 0x04,
+                    0x05, 0x06, 0x07, 0x08,
+                    0x09, 0x10, 0x11, 0x12,
+                ]),
+                1,
+                144964032628459529,
+                9,
+                False,
+            ),
+            ReadValueTestCase(
+                ColumnType.from_varint(7),
+                bytes([0x12, 0x34, 0x56]),
+                1,
+                None,
+                None,
+                True,
+            ),
+            ReadValueTestCase(
+                ColumnType.from_varint(8),
+                bytes([0x12, 0x34, 0x56]),
+                1,
+                0,
+                1,
+                False,
+            ),
+            ReadValueTestCase(
+                ColumnType.from_varint(9),
+                bytes([0x12, 0x34, 0x56]),
+                1,
+                1,
+                1,
+                False,
+            ),
+            ReadValueTestCase(
+                ColumnType.from_varint(10),
+                bytes([0x12, 0x34, 0x56]),
+                1,
+                None,
+                None,
+                True,
+            ),
+            ReadValueTestCase(
+                ColumnType.from_varint(11),
+                bytes([0x12, 0x34, 0x56]),
+                1,
+                None,
+                None,
+                True,
+            ),
+            # ReadValueTestCase(
+            #     ColumnType.from_varint(),
+            #     bytes([0x12, 0x34, 0x56]),
+            #     1,
+            #     ,
+            #     ,
+            #     False,
+            # ),
+
+            # unknown column type
+        ]
+        for test in tests:
+            try:
+                value, cursor = Record.read_value(
+                    test.column_type,
+                    test.data,
+                    test.cursor_start,
+                )
+                self.assertEqual(value, test.expected)
+                self.assertEqual(cursor, test.expected_cursor_end)
+            except Exception as e:
+                if not test.throws_error:
+                    self.fail(e)
+        pass
+
+    def test_read_values(self):
+        pass
+        # read value with no cursor movement
+        # read value with string
+        # read value with integer
 
 if __name__ == '__main__':
     unittest.main()
