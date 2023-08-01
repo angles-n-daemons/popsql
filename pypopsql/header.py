@@ -34,8 +34,8 @@ class Header:
         
         self.page_size = b2i(data[16:18])
 
-        self.file_format_write_version = data[18]
-        self.file_format_read_version = data[19]
+        self.file_format_write_version = FileFormatVersion(data[18])
+        self.file_format_read_version = FileFormatVersion(data[19])
 
         self.page_end_reserved_space = data[20]
         
