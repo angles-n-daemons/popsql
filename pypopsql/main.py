@@ -8,7 +8,6 @@ def test_btree():
     n = Node(data)
     n._debug_print_cells()
 
-
 def test_pager():
     p = Pager('test.db')
     stuff = p.get_page(2)
@@ -26,4 +25,4 @@ def test_schema_btree_page():
     n._debug_print_cells()
 
 if __name__ == '__main__':
-    test_schema_btree_page()
+    test_btree()
