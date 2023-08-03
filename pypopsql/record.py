@@ -104,6 +104,6 @@ class Record:
             raise Exception(f'cannot parse column type {column_type}')
 
     def _debug_print_values(self):
-        for i, column in enumerate(self.column_types):
-            print('column type', column)
+        for i, column in enumerate(self.columns):
+            print('column type', column.type)
             print('value', self.values[i])
