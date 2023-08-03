@@ -30,15 +30,37 @@ class ColumnType(Enum):
             return cls(13)
 
 class Column:
-    def __init__(self, value: int):
-        self.type = ColumnType(value)
-        self.length = None
+    def __init__(self, column_type: ColumnType, length: int=None):
+        self.type = column_type
+        self.length = length
 
-        if value > 11:
-            if value % 2 == 0:
-                self.length = (value - 12) // 2
-            else:
-                self.length = (value - 13) // 2
+    def __repr__(self):
+        return f'column: {self.type}, {self.length}'
+
+    @classmethod
+    def from_int(cls, value: int):
+        column_type = ColumnType(value)
+        length = None
+
+        # calculate length for BLOB and TEXT types as documented
+        if column_type == ColumnType.BLOB:
+            length = (value - 12) // 2
+        elif column_type == ColumnType.TEXT:
+            length = (value - 13) // 2
+
+        return cls(column_type, length)
+
+    def to_int(self) -> int:
+        if self.type.value < 12:
+            return self.type.value
+        elif self.type == ColumnType.BLOB:
+            return 12 + (self.length * 2)
+        elif self.type == ColumnType.TEXT:
+            return 13 + (self.length * 2)
+
+
+def make_column(column_type: ColumnType, length: int=None) -> Column:
+    return Column(column_type.value + (length * 2))
 
 class Record:
     def __init__(

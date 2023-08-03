@@ -23,7 +23,7 @@ class ReadValueTestCase:
     throws_error: bool
 
 class TestRecord(TestCase):
-    def test_column_values(self):
+    def test_column_int_parsing(self):
         tests = [
             # test 1-11
             ColumnTestCase(0, ColumnType.NULL, None, False),
@@ -58,7 +58,7 @@ class TestRecord(TestCase):
         
         for test in tests:
             try:
-                column = Column(test.value)
+                column = Column.from_int(test.value)
                 self.assertEqual(column.type, test.expected)
                 self.assertEqual(column.length, test.expected_length)
                 self.assertEqual(test.throws_error, False)
@@ -67,11 +67,15 @@ class TestRecord(TestCase):
                     import pudb; pudb.set_trace()
                     self.fail(e)
 
+    def test_column_int_reading(self):
+        for i in range(-1, 127):
+            self.assertEqual(Column.from_int(i).to_int(), i)
+
     def test_read_value(self):
         # read each type of value
         tests = [
             ReadValueTestCase(
-                Column(0),
+                Column.from_int(0),
                 bytes([0x12, 0x34, 0x56]),
                 1,
                 None,
@@ -79,7 +83,7 @@ class TestRecord(TestCase):
                 False
             ),
             ReadValueTestCase(
-                Column(1),
+                Column.from_int(1),
                 bytes([0x12, 0x34, 0x56]),
                 1,
                 52, # 0x34
@@ -87,7 +91,7 @@ class TestRecord(TestCase):
                 False,
             ),
             ReadValueTestCase(
-                Column(2),
+                Column.from_int(2),
                 bytes([0x01, 0x02, 0x03, 0x04]),
                 1,
                 515, # 0x0203
@@ -95,7 +99,7 @@ class TestRecord(TestCase):
                 False,
             ),
             ReadValueTestCase(
-                Column(3),
+                Column.from_int(3),
                 bytes([0x01, 0x02, 0x03, 0x04, 0x05]),
                 1,
                 131844, # 0x020304
@@ -103,7 +107,7 @@ class TestRecord(TestCase):
                 False,
             ),
             ReadValueTestCase(
-                Column(4),
+                Column.from_int(4),
                 bytes([0x01, 0x02, 0x03, 0x04, 0x05, 0x06]),
                 1,
                 33752069, # 0x02030405
@@ -111,7 +115,7 @@ class TestRecord(TestCase):
                 False,
             ),
             ReadValueTestCase(
-                Column(5),
+                Column.from_int(5),
                 bytes([
                     0x01, 0x02, 0x03, 0x04,
                     0x05, 0x06, 0x07, 0x08,
@@ -123,7 +127,7 @@ class TestRecord(TestCase):
                 False,
             ),
             ReadValueTestCase(
-                Column(6),
+                Column.from_int(6),
                 bytes([
                     0x01, 0x02, 0x03, 0x04,
                     0x05, 0x06, 0x07, 0x08,
@@ -136,7 +140,7 @@ class TestRecord(TestCase):
             ),
             # IEEE754 int unsupported
             ReadValueTestCase(
-                Column(7),
+                Column.from_int(7),
                 bytes([0x12, 0x34, 0x56]),
                 1,
                 None,
@@ -145,7 +149,7 @@ class TestRecord(TestCase):
             ),
             # constant value 0 
             ReadValueTestCase(
-                Column(8),
+                Column.from_int(8),
                 bytes([0x12, 0x34, 0x56]),
                 1,
                 0,
@@ -154,7 +158,7 @@ class TestRecord(TestCase):
             ),
             # constant value 1  
             ReadValueTestCase(
-                Column(9),
+                Column.from_int(9),
                 bytes([0x12, 0x34, 0x56]),
                 1,
                 1,
@@ -163,7 +167,7 @@ class TestRecord(TestCase):
             ),
             # error if trying to use reserved column type
             ReadValueTestCase(
-                Column(10),
+                Column.from_int(10),
                 bytes([0x12, 0x34, 0x56]),
                 1,
                 None,
@@ -172,7 +176,7 @@ class TestRecord(TestCase):
             ),
             # error if trying to use reserved column type
             ReadValueTestCase(
-                Column(11),
+                Column.from_int(11),
                 bytes([0x12, 0x34, 0x56]),
                 1,
                 None,
@@ -181,7 +185,7 @@ class TestRecord(TestCase):
             ),
             # read string example
             ReadValueTestCase(
-                Column(107),
+                Column.from_int(107),
                 bytes([0x12, 0x34, 0x56]) + bytes('it was the faintest 小战俘 one had ever seen', 'utf-8') + bytes([0x11]),
                 3,
                 'it was the faintest 小战俘 one had ever seen',
@@ -190,7 +194,7 @@ class TestRecord(TestCase):
             ),
             # read blob
             ReadValueTestCase(
-                Column(18),
+                Column.from_int(18),
                 bytes([0x12, 0x34, 0x56, 0x78, 0x90]),
                 1,
                 bytes([0x34, 0x56, 0x78]),
@@ -200,7 +204,7 @@ class TestRecord(TestCase):
 
             # unknown column type
             ReadValueTestCase(
-                Column(-1),
+                Column.from_int(-1),
                 bytes([0x12, 0x34, 0x56]),
                 1,
                 None,
@@ -221,7 +225,6 @@ class TestRecord(TestCase):
             except Exception as e:
                 if not test.throws_error:
                     self.fail(e)
-        pass
 
 if __name__ == '__main__':
     unittest.main()
