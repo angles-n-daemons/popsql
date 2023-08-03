@@ -57,6 +57,10 @@ class TestBTree(TestCase):
 
     def test_schema_header_page(self):
         # test using example database written by sqlite
+        # to recreate use the following commands
+        # $ sqlite3 test/test.db
+        # > CREATE TABLE test(col1 VARCHAR(2), col2 INT);
+
         p = Pager('./test/test.db')
         data = p.get_page(1)
         node = Node(data, True)

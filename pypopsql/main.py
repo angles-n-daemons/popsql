@@ -25,4 +25,4 @@ def test_schema_btree_page():
     n._debug_print_cells()
 
 if __name__ == '__main__':
-    test_schema_btree_page()
+    test_btree()
