@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Tuple
+from dataclasses import dataclass
 
 from util import b2i, varint
 
@@ -29,6 +30,7 @@ class ColumnType(Enum):
         else:
             return cls(13)
 
+@dataclass
 class Column:
     def __init__(self, column_type: ColumnType, length: int=None):
         self.type = column_type
@@ -69,10 +71,11 @@ class Record:
         cursor: int,
     ):
         self.data = data
-        self.cursor = cursor
 
         self.columns, cursor = self.read_column_types(data, cursor)
         self.values, cursor = self.read_values(data, cursor)
+
+        self.cursor = cursor
 
     def read_column_types(
         self,
@@ -85,7 +88,7 @@ class Record:
 
         while cursor - cursor_start < num_bytes_header:
             column_type_int, cursor = varint(data, cursor)
-            columns.append(Column(column_type_int))
+            columns.append(Column.from_int(column_type_int))
 
         return columns, cursor
 

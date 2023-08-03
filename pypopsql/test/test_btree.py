@@ -80,7 +80,7 @@ class TestBTree(TestCase):
             Column(ColumnType.TINYINT),
             Column(ColumnType.TEXT, 44),
         ])
-        self.assertEquals(cell.record.values, [])
+        self.assertEquals(cell.record.values, ['table', 'test', 'test', 2, 'CREATE TABLE test(col1 varchar(2), col2 int)'])
         self.assertEquals(cell.record.cursor, 4084)
 
 if __name__ == '__main__':
