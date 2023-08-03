@@ -85,6 +85,7 @@ class Header:
 
         print('page of largest btree root', self.largest_btree_root_page)
         print('user version', self.user_version)
+        print('text encoding', self.text_encoding)
         print('incremental_vacuum_mode', self.incremental_vacuum_mode)
 
         print('application id', self.application_id)

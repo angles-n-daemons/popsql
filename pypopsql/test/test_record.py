@@ -133,6 +133,7 @@ class TestRecord(TestCase):
                 9,
                 False,
             ),
+            # IEEE754 int unsupported
             ReadValueTestCase(
                 ColumnType.from_varint(7),
                 bytes([0x12, 0x34, 0x56]),
@@ -141,6 +142,7 @@ class TestRecord(TestCase):
                 None,
                 True,
             ),
+            # constant value 0 
             ReadValueTestCase(
                 ColumnType.from_varint(8),
                 bytes([0x12, 0x34, 0x56]),
@@ -149,6 +151,7 @@ class TestRecord(TestCase):
                 1,
                 False,
             ),
+            # constant value 1  
             ReadValueTestCase(
                 ColumnType.from_varint(9),
                 bytes([0x12, 0x34, 0x56]),
@@ -157,6 +160,7 @@ class TestRecord(TestCase):
                 1,
                 False,
             ),
+            # error if trying to use reserved column type
             ReadValueTestCase(
                 ColumnType.from_varint(10),
                 bytes([0x12, 0x34, 0x56]),
@@ -165,6 +169,7 @@ class TestRecord(TestCase):
                 None,
                 True,
             ),
+            # error if trying to use reserved column type
             ReadValueTestCase(
                 ColumnType.from_varint(11),
                 bytes([0x12, 0x34, 0x56]),
@@ -173,16 +178,34 @@ class TestRecord(TestCase):
                 None,
                 True,
             ),
-            # ReadValueTestCase(
-            #     ColumnType.from_varint(),
-            #     bytes([0x12, 0x34, 0x56]),
-            #     1,
-            #     ,
-            #     ,
-            #     False,
-            # ),
+            # read string example
+            ReadValueTestCase(
+                ColumnType.from_varint(107),
+                bytes([0x12, 0x34, 0x56]) + bytes('it was the faintest 小战俘 one had ever seen', 'utf-8') + bytes([0x11]),
+                3,
+                'it was the faintest 小战俘 one had ever seen',
+                50,
+                False,
+            ),
+            # read blob
+            ReadValueTestCase(
+                ColumnType.from_varint(18),
+                bytes([0x12, 0x34, 0x56, 0x78, 0x90]),
+                1,
+                bytes([0x34, 0x56, 0x78]),
+                4,
+                False,
+            ),
 
             # unknown column type
+            ReadValueTestCase(
+                ColumnType.from_varint(-1),
+                bytes([0x12, 0x34, 0x56]),
+                1,
+                None,
+                None,
+                True,
+            ),
         ]
         for test in tests:
             try:

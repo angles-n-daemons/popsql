@@ -73,7 +73,7 @@ class Record:
     ):
         values = []
         for column_type in self.column_types:
-            value, cursor = slelf.read_value(column_type, data, cursor)
+            value, cursor = self.read_value(column_type, data, cursor)
             values.append(value)
         return values, cursor
     
@@ -101,9 +101,16 @@ class Record:
             return 0, cursor
         elif column_type == ColumnType.ONE:
             return 1, cursor
+        elif column_type == ColumnType.BLOB:
+            length = column_type.length
+            return data[cursor: cursor + length], cursor + length
+        elif column_type == ColumnType.TEXT:
+            length = column_type.length
+            return data[cursor: cursor + length].decode('utf-8'), cursor + length
         else:
             raise Exception(f'cannot parse column type {column_type}')
 
     def _debug_print_values(self):
-        for column in self.column_types:
+        for i, column in enumerate(self.column_types):
             print('column type', column)
+            print('value', self.values[i])
