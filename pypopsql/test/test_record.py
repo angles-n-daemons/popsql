@@ -64,6 +64,7 @@ class TestRecord(TestCase):
                 self.assertEqual(test.throws_error, False)
             except Exception as e:
                 if not test.throws_error:
+                    import pudb; pudb.set_trace()
                     self.fail(e)
 
     def test_read_value(self):

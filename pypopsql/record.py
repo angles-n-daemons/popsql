@@ -20,18 +20,25 @@ class ColumnType(Enum):
     BLOB = 12
     TEXT = 13
 
+    @classmethod
+    def _missing_(cls, value: int):
+        if value < 12:
+            return cls(value)
+        elif value % 2 == 0:
+            return cls(12)
+        else:
+            return cls(13)
+
 class Column:
     def __init__(self, value: int):
+        self.type = ColumnType(value)
         self.length = None
 
-        if value < 12:
-            self.type = ColumnType(value)
-        elif value % 2 == 0:
-            self.type = ColumnType(12)
-            self.length = (value - 12) // 2
-        else:
-            self.type = ColumnType(13)
-            self.length = (value - 13) // 2
+        if value > 11:
+            if value % 2 == 0:
+                self.length = (value - 12) // 2
+            else:
+                self.length = (value - 13) // 2
 
 class Record:
     def __init__(
