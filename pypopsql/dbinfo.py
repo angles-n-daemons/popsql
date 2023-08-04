@@ -23,7 +23,7 @@ class Version:
     minor: int
     patch: int
 
-class Header:
+class DBInfo:
     def __init__(
         self,
         data: bytes,
@@ -62,9 +62,13 @@ class Header:
         self.version_valid_for = b2i(data[92:96])
         vb = b2i(data[96:100])
         major = vb // 1000000
-        minor = (vb % 1000000) // 1000
+        minor = (vb // 1000) % 1000
         patch = vb % 1000
         self.version = Version(major, minor, patch)
+
+    def to_bytes(self):
+
+        pass
 
 
     def _debug_print_values(self):
