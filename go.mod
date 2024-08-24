@@ -1,3 +1,3 @@
 module github.com/angles-n-daemons/popsql
 
-go 1.14
+go 1.22.6
