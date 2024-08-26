@@ -1,31 +1,139 @@
 package data_test
 
 import (
+	"fmt"
 	"math/rand"
 	"testing"
 
 	"github.com/angles-n-daemons/popsql/internal/data"
 )
 
-// create a benchmark simulating likely usage
+func skiplistFromArray(vals [][]int) (*data.Skiplist[int, int], error) {
+	list := data.NewSkiplist[int, int]()
+	for _, val := range vals {
+		err := list.Put(val[0], val[1])
+		if err != nil {
+			return nil, fmt.Errorf(
+				"list raised an error on Put: %v",
+				err,
+			)
+		}
+	}
+	return list, nil
+}
 
-// test using a single head which is always the height of the tree
-// -- report how many nodes of each height there are
-// -- test alternative where there are multiple heads
-// -- check insert performance
-// -- check lookup performance
+// helper function which asserts that the size of the vals array matches the
+// skiplist, and that the elements found in the vals array can be found
+// in the skiplist
+func assertCreatesEquivalent(t *testing.T, vals [][]int, list *data.Skiplist[int, int]) error {
+	if len(vals) != int(list.Size) {
+		t.Fatalf(
+			"expected list length to match vals %d but got length %d",
+			len(vals), list.Size,
+		)
+	}
+	for _, val := range vals {
+		node := list.Get(val[0])
+		if node == nil {
+			t.Fatalf("expected to find key %d in list", val[0])
+		}
+		if node.Val != val[1] {
+			t.Fatalf(
+				"expected val %d for key %d, but got %d",
+				val[1], val[0], node.Val,
+			)
+		}
+	}
+	return nil
+}
 
-// test performance using generics vs not generics
+// test very simple skiplist use cases
+func TestSkiplistBasic(t *testing.T) {
+	vals := [][]int{
+		{5, 1},
+		{10, 3},
+		{20, 100},
+		{2, 50},
+	}
+	list, err := skiplistFromArray(vals)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertCreatesEquivalent(t, vals, list)
+}
 
-// add unit tests
+// test skiplist inserting incrementally larger values
+func TestSkiplistIncreasing(t *testing.T) {
+	vals := [][]int{}
+	for i := 0; i < 32; i++ {
+		vals = append(vals, []int{i, i})
+	}
+	list, err := skiplistFromArray(vals)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertCreatesEquivalent(t, vals, list)
+}
 
-// question around heights
-// oh if I use the approach where I always insert new head nodes if the node is smaller, does it drastically increase the size of the lists, number of nodes per level?
-// I can use a random seed to figure this out
+// test skiplist with decreasing values
+func TestSkiplistDecreasing(t *testing.T) {
+	vals := [][]int{}
+	for i := 31; i >= 0; i-- {
+		vals = append(vals, []int{i, i})
+	}
+	list, err := skiplistFromArray(vals)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertCreatesEquivalent(t, vals, list)
+}
 
-// test skiplist byte key, byte string
+// test skiplist with random values
+func TestSkiplistRandom(t *testing.T) {
+	for i := 0; i < 32; i++ {
 
-// what if I use int8 for height (performance for code writability)
+	}
+}
+
+// test skiplist heights work appropriately
+func TestSkiplistHeight(t *testing.T) {
+
+}
+
+// test size fluctuations
+func TestSkiplistSize(t *testing.T) {
+	// test start 0
+	// test normal inserts
+	// test if overwriting value
+	// test deleting values
+	// test miss deleting valuess
+}
+
+// test overwriting an existing value
+func TestSkiplistPutOverwrite(t *testing.T) {
+
+}
+
+// test finding values at random points
+func TestSkiplistInsertPoints(t *testing.T) {
+	// before list
+	// after end of list
+	// in middle
+}
+
+func TestSkiplistGetPoints(t *testing.T) {
+	// key before first
+	// first element
+	// key exists in middle
+	// key doesnt exist in middle
+	// last element
+	// key beyond last element
+}
+
+func TestSkiplistDelete(t *testing.T) {
+	// deleting element that exists
+	// deleting element which doesn't exist
+}
 
 // Things to test
 // -- overwriting a value
@@ -34,14 +142,13 @@ import (
 //    - elements at the head
 //    - elements at the tail
 //    - elements in the middle
+// -- test height functionality works
+//    - injecting randomness
 // -- correctly returns nil for
 //    - values in between values
 //    - values before the list
 //    - values at the end of the list
-
-func TestPutBasic(t *testing.T) {
-
-}
+// -- support delete as well
 
 // Failure modes
 // -- Puting into list with no value

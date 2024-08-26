@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const MAX_UINT32 = ^uint32(0)
@@ -35,12 +36,24 @@ type Skiplist[K cmp.Ordered, V any] struct {
 	Size   uint32
 	height int8
 	heads  []*SkiplistNode[K, V]
+	rng    *rand.Rand
 }
 
 func NewSkiplist[K cmp.Ordered, V any]() *Skiplist[K, V] {
 	return &Skiplist[K, V]{
+		Size:   0,
 		height: MAX_HEIGHT,
 		heads:  make([]*SkiplistNode[K, V], MAX_HEIGHT),
+		rng:    rand.New(rand.NewSource(time.Now().UnixNano())),
+	}
+}
+
+func NewSkiplistWithRand[K cmp.Ordered, V any](rng *rand.Rand) *Skiplist[K, V] {
+	return &Skiplist[K, V]{
+		Size:   0,
+		height: MAX_HEIGHT,
+		heads:  make([]*SkiplistNode[K, V], MAX_HEIGHT),
+		rng:    rng,
 	}
 }
 
@@ -52,14 +65,16 @@ func (s *Skiplist[K, V]) Put(key K, val V) error {
 		return errors.New("cannot put element in skiplist, at maximum size.")
 	}
 
-	found, updates := s.search(key)
-	if found {
-		return errors.New("cannot put element in skiplist, element already exists")
+	node, updates := s.search(key)
+	if node != nil {
+		// if the node already exists, we change its value
+		node.Val = val
+		return nil
 	}
 
 	// create the new node with a randomized height
 	height := genHeight(MAX_HEIGHT)
-	node := &SkiplistNode[K, V]{
+	node = &SkiplistNode[K, V]{
 		Key:  key,
 		Val:  val,
 		next: make([]*SkiplistNode[K, V], height),
@@ -89,25 +104,21 @@ func (s *Skiplist[K, V]) Put(key K, val V) error {
 
 // Get finds the element in the skiplist if it exists, otherwise returns nil
 func (s *Skiplist[K, V]) Get(key K) *SkiplistNode[K, V] {
-	found, nodes := s.search(key)
-	if found {
-		return nodes[0]
-	} else {
-		return nil
-	}
+	node, _ := s.search(key)
+	return node
 }
 
 // search is an internal function, leveraged by both Put and Get
 // it searches through the list for a value, returning a search array
 // of nodes preceeding or equal to the node value.
-// if val exists in the list, it will be in the returned slice.
-func (s *Skiplist[K, V]) search(key K) (bool, []*SkiplistNode[K, V]) {
+// if the key exists, it will be returned in addition to the search array
+func (s *Skiplist[K, V]) search(key K) (*SkiplistNode[K, V], []*SkiplistNode[K, V]) {
 	// Find the highest head which is less than val
 	level := s.height - 1
 	var search *SkiplistNode[K, V]
 	for level >= 0 {
 		cand := s.heads[level]
-		if cand != nil && cand.Key < key {
+		if cand != nil && cand.Key <= key {
 			search = cand
 			break
 		}
@@ -139,8 +150,13 @@ func (s *Skiplist[K, V]) search(key K) (bool, []*SkiplistNode[K, V]) {
 		search = next
 	}
 
-	found := nodes[0] != nil && nodes[0].Key == key
-	return found, nodes
+	// if the node at the lowest level of the search has the search
+	// key, we return it so the caller knows it was found
+	var node *SkiplistNode[K, V]
+	if nodes[0] != nil && nodes[0].Key == key {
+		node = nodes[0]
+	}
+	return node, nodes
 }
 
 func genHeight(maxHeight int) int {
