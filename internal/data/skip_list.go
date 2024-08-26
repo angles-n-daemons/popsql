@@ -151,6 +151,19 @@ func genHeight(maxHeight int) int {
 	return height
 }
 
+func (s *Skiplist[K, V]) DebugGetRow(level int) ([]*SkiplistNode[K, V], error) {
+	if level > len(s.heads) {
+		return nil, fmt.Errorf("cannot get level %d of skiplist with height %d", level, len(s.heads))
+	}
+	list := []*SkiplistNode[K, V]{}
+	node := s.heads[level]
+	for node != nil {
+		list = append(list, node)
+		node = node.next[level]
+	}
+	return list, nil
+}
+
 // DebugPrint is a simple helper function for visualizing the skiplist
 // Its output looks like the below example:
 // [- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 95 --- --- --- --- --- --- --- --- --- --- --- 156 --- --- --- --- --- ---]

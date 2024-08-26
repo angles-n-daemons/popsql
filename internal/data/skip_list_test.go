@@ -39,6 +39,10 @@ import (
 //    - values before the list
 //    - values at the end of the list
 
+func TestPutBasic(t *testing.T) {
+
+}
+
 // Failure modes
 // -- Puting into list with no value
 
