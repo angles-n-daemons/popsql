@@ -59,7 +59,25 @@ func TestSkiplistBasic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// verify list size is correct
+	if list.Size != 4 {
+		t.Fatalf(
+			"expected list to be size %d, but got size %d",
+			4, list.Size,
+		)
+	}
+	// verify list matches original array
 	assertCreatesEquivalent(t, vals, list)
+
+	// verify looking for node which doesn't exist returns nil
+	node := list.Get(7)
+	if node != nil {
+		t.Fatalf(
+			"found unexpected node on Get using key %d: [%d, %d]",
+			7, node.Key, node.Val,
+		)
+	}
+
 }
 
 // test skiplist inserting incrementally larger values
