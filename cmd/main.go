@@ -11,13 +11,13 @@ import (
 func main() {
 	// test skiplist first
 	rng := rand.New(rand.NewSource(1))
-	list := data.NewSkiplist()
+	list := data.NewSkiplist[int, int]()
 	start := time.Now()
 	for i := 0; i < 50; i++ {
 		val := rng.Intn(200)
-		list.Put(val)
+		list.Put(val, val)
 	}
-	list.DebugPrint(5)
+	data.DebugPrintIntList(list, 5)
 	for i := 0; i < 20; i++ {
 		val := rng.Intn(200)
 		list.Get(val)

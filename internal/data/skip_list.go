@@ -1,6 +1,7 @@
 package data
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -11,51 +12,57 @@ import (
 const MAX_UINT32 = ^uint32(0)
 const MAX_HEIGHT = 32
 
-type skiplistnode struct {
-	val  int
-	next []*skiplistnode
+type SkiplistNode[K cmp.Ordered, V any] struct {
+	Key  K
+	Val  V
+	next []*SkiplistNode[K, V]
 }
 
-type Skiplist struct {
-	Size   uint32
-	height int8
-	heads  []*skiplistnode
-	// curmaxheight int
-}
+/*
+ * A Skiplist is an efficiently sorted data structure.
+ * It's desirable because it's performance is similar to that
+ * of a balanced tree, but it's simple to reason about and impl.
+ */
 
-func NewSkiplist() *Skiplist {
-	return &Skiplist{
-		height: MAX_HEIGHT,
-		heads:  make([]*skiplistnode, MAX_HEIGHT),
-	}
-}
-
-// Important properties of a skip list
+// Important properties of a skip list:
 //   - The ith head is always >= the i-1th
 //   - If the ith head is not nil, the i-1th head is also not nil
 //   - While searching, if we set a node to update at i, we will
 //     then set a node to update at i - 1
 //   - If a head is nil at level i, the update value at i will also
 //     be nil
+type Skiplist[K cmp.Ordered, V any] struct {
+	Size   uint32
+	height int8
+	heads  []*SkiplistNode[K, V]
+}
+
+func NewSkiplist[K cmp.Ordered, V any]() *Skiplist[K, V] {
+	return &Skiplist[K, V]{
+		height: MAX_HEIGHT,
+		heads:  make([]*SkiplistNode[K, V], MAX_HEIGHT),
+	}
+}
 
 /* Put takes a value and tries to insert it into the skiplist.
- * It can error if the skiplist is full or if the value already exists in the list.
+ * It can error if the skiplist is full.
  */
-func (s *Skiplist) Put(val int) error {
+func (s *Skiplist[K, V]) Put(key K, val V) error {
 	if s.Size >= MAX_UINT32 {
 		return errors.New("cannot put element in skiplist, at maximum size.")
 	}
 
-	found, updates := s.search(val)
+	found, updates := s.search(key)
 	if found {
 		return errors.New("cannot put element in skiplist, element already exists")
 	}
 
 	// create the new node with a randomized height
 	height := genHeight(MAX_HEIGHT)
-	node := &skiplistnode{
-		val:  val,
-		next: make([]*skiplistnode, height),
+	node := &SkiplistNode[K, V]{
+		Key:  key,
+		Val:  val,
+		next: make([]*SkiplistNode[K, V], height),
 	}
 
 	// for each level in the nodes height, insert the node
@@ -81,8 +88,8 @@ func (s *Skiplist) Put(val int) error {
 }
 
 // Get finds the element in the skiplist if it exists, otherwise returns nil
-func (s *Skiplist) Get(val int) *skiplistnode {
-	found, nodes := s.search(val)
+func (s *Skiplist[K, V]) Get(key K) *SkiplistNode[K, V] {
+	found, nodes := s.search(key)
 	if found {
 		return nodes[0]
 	} else {
@@ -94,13 +101,13 @@ func (s *Skiplist) Get(val int) *skiplistnode {
 // it searches through the list for a value, returning a search array
 // of nodes preceeding or equal to the node value.
 // if val exists in the list, it will be in the returned slice.
-func (s *Skiplist) search(val int) (bool, []*skiplistnode) {
+func (s *Skiplist[K, V]) search(key K) (bool, []*SkiplistNode[K, V]) {
 	// Find the highest head which is less than val
 	level := s.height - 1
-	var search *skiplistnode
+	var search *SkiplistNode[K, V]
 	for level >= 0 {
 		cand := s.heads[level]
-		if cand != nil && cand.val < val {
+		if cand != nil && cand.Key < key {
 			search = cand
 			break
 		}
@@ -108,7 +115,7 @@ func (s *Skiplist) search(val int) (bool, []*skiplistnode) {
 	}
 
 	// Keep a list of which directly preceed val or are equal to it
-	nodes := make([]*skiplistnode, s.height)
+	nodes := make([]*SkiplistNode[K, V], s.height)
 	// Run the search at each subsequent level below
 	// For each level, continue traversing the list until either:
 	//   * the next node is greater than val
@@ -119,7 +126,7 @@ func (s *Skiplist) search(val int) (bool, []*skiplistnode) {
 		next := search.next[level]
 		// if the next value is greater at this level, or it is nil
 		// we can continue the search one level down
-		if next == nil || next.val > val {
+		if next == nil || next.Key > key {
 			nodes[level] = search
 			// reached the bottom of the list
 			if level == 0 {
@@ -132,7 +139,7 @@ func (s *Skiplist) search(val int) (bool, []*skiplistnode) {
 		search = next
 	}
 
-	found := nodes[0] != nil && nodes[0].val == val
+	found := nodes[0] != nil && nodes[0].Key == key
 	return found, nodes
 }
 
@@ -151,7 +158,7 @@ func genHeight(maxHeight int) int {
 // [8 -- -- -- -- -- -- -- -- 37 -- 47 56 -- -- -- -- -- -- -- -- -- -- -- 94 95 --- 106 --- 118 124 --- --- --- 141 --- --- 156 --- --- --- --- --- ---]
 // [8 -- 13 -- -- -- -- 31 33 37 45 47 56 -- -- -- -- -- 81 85 -- -- -- -- 94 95 --- 106 --- 118 124 --- --- 140 141 --- --- 156 --- --- --- --- 190 ---]
 // [8 11 13 15 25 26 29 31 33 37 45 47 56 58 59 66 74 78 81 85 87 88 89 90 94 95 100 106 111 118 124 128 137 140 141 147 153 156 159 162 163 187 190 194]
-func (s *Skiplist) DebugPrint(levels int) {
+func DebugPrintIntList(s *Skiplist[int, int], levels int) {
 	lists := make([][]string, 5)
 	for i := 0; i < levels; i++ {
 		lists[i] = []string{}
@@ -160,7 +167,7 @@ func (s *Skiplist) DebugPrint(levels int) {
 	node := s.heads[0]
 	for node != nil {
 		height := len(node.next)
-		str := strconv.Itoa(node.val)
+		str := strconv.Itoa(node.Key)
 		for i := 0; i < levels; i++ {
 			if i < height {
 				lists[i] = append(lists[i], str)
