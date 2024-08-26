@@ -2,7 +2,10 @@ package data
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
+	"strconv"
+	"strings"
 )
 
 const MAX_UINT32 = ^uint32(0)
@@ -13,15 +16,15 @@ type skiplistnode struct {
 	next []*skiplistnode
 }
 
-type SkipList struct {
+type Skiplist struct {
 	Size   uint32
-	height int
+	height int8
 	heads  []*skiplistnode
 	// curmaxheight int
 }
 
-func NewSkipList() *SkipList {
-	return &SkipList{
+func NewSkiplist() *Skiplist {
+	return &Skiplist{
 		height: MAX_HEIGHT,
 		heads:  make([]*skiplistnode, MAX_HEIGHT),
 	}
@@ -35,62 +38,28 @@ func NewSkipList() *SkipList {
 //   - If a head is nil at level i, the update value at i will also
 //     be nil
 
-/*
-Insert is broken into three sections:
- 1. Start the search with the highest head node which is less than val.
- 2. For each level, add the greatest node which less than val to an update list.
- 3. Determine a height for the node and insert it after each update relevant.
-*/
-func (s *SkipList) Insert(val int) error {
+/* Put takes a value and tries to insert it into the skiplist.
+ * It can error if the skiplist is full or if the value already exists in the list.
+ */
+func (s *Skiplist) Put(val int) error {
 	if s.Size >= MAX_UINT32 {
-		return errors.New("cannot insert element to skiplist, at maximum size.")
+		return errors.New("cannot put element in skiplist, at maximum size.")
 	}
 
-	// Start the search at the highest level where the head is
-	// less than val
-	level := s.height - 1
-	var search *skiplistnode
-	for level >= 0 {
-		cand := s.heads[level]
-		if cand != nil && cand.val < val {
-			search = cand
-			break
-		}
-		level--
+	found, updates := s.search(val)
+	if found {
+		return errors.New("cannot put element in skiplist, element already exists")
 	}
 
-	// create an updates array for tracking the last seen node at each level
-	// at each level starting here, we will add nodes less than val
-	// if a node is the largest node less than val at multiple levels
-	// that same node will be added multiple times to the updates array
-	updates := make([]*skiplistnode, s.height)
-	for search != nil {
-		next := search.next[level]
-		// if the next value is greater at this level, or it is nil
-		// we can continue the search one level down
-		if next == nil || next.val > val {
-			updates[level] = search
-			// reached the bottom of the list
-			if level == 0 {
-				break
-			} else {
-				level--
-				continue
-			}
-		}
-		if next.val == val {
-			return errors.New("cannot insert into list, value already exists")
-		}
-		search = next
-	}
-
-	// insert the node in the various levels
+	// create the new node with a randomized height
 	height := genHeight(MAX_HEIGHT)
 	node := &skiplistnode{
 		val:  val,
 		next: make([]*skiplistnode, height),
 	}
 
+	// for each level in the nodes height, insert the node
+	// into that level's list
 	for i := 0; i < height; i++ {
 		if s.heads[i] == nil {
 			// if the head is nil at this level, the level is empty
@@ -111,43 +80,60 @@ func (s *SkipList) Insert(val int) error {
 	return nil
 }
 
-func (s *SkipList) Search(val int) *skiplistnode {
-	level := s.height - 1
-	for level >= 0 && s.heads[level] == nil {
-		level--
-	}
-	if level == -1 {
+// Get finds the element in the skiplist if it exists, otherwise returns nil
+func (s *Skiplist) Get(val int) *skiplistnode {
+	found, nodes := s.search(val)
+	if found {
+		return nodes[0]
+	} else {
 		return nil
 	}
+}
 
-	var search *skiplistnode = s.heads[level]
+// search is an internal function, leveraged by both Put and Get
+// it searches through the list for a value, returning a search array
+// of nodes preceeding or equal to the node value.
+// if val exists in the list, it will be in the returned slice.
+func (s *Skiplist) search(val int) (bool, []*skiplistnode) {
+	// Find the highest head which is less than val
+	level := s.height - 1
+	var search *skiplistnode
+	for level >= 0 {
+		cand := s.heads[level]
+		if cand != nil && cand.val < val {
+			search = cand
+			break
+		}
+		level--
+	}
+
+	// Keep a list of which directly preceed val or are equal to it
+	nodes := make([]*skiplistnode, s.height)
+	// Run the search at each subsequent level below
+	// For each level, continue traversing the list until either:
+	//   * the next node is greater than val
+	//   * the next node is nil
+	// On these conditions, drop to the next level down and continue
+	// If the level is 0, exit the loop
 	for search != nil {
 		next := search.next[level]
+		// if the next value is greater at this level, or it is nil
+		// we can continue the search one level down
 		if next == nil || next.val > val {
+			nodes[level] = search
+			// reached the bottom of the list
 			if level == 0 {
-				return nil
+				break
 			} else {
 				level--
 				continue
 			}
 		}
-		if next.val == val {
-			return next
-		}
 		search = next
 	}
 
-	return nil
-}
-
-func (s *SkipList) GetLevelSlice(level int) []int {
-	node := s.heads[level]
-	result := []int{}
-	for node != nil {
-		result = append(result, node.val)
-		node = node.next[level]
-	}
-	return result
+	found := nodes[0] != nil && nodes[0].val == val
+	return found, nodes
 }
 
 func genHeight(maxHeight int) int {
@@ -158,43 +144,34 @@ func genHeight(maxHeight int) int {
 	return height
 }
 
-type linkedlistnode struct {
-	val  int
-	next *linkedlistnode
-}
-
-type LinkedList struct {
-	head *linkedlistnode
-}
-
-func (l *LinkedList) Insert(val int) error {
-	node := &linkedlistnode{val: val, next: nil}
-	if l.head == nil {
-		l.head = node
-		return nil
+// DebugPrint is a simple helper function for visualizing the skiplist
+// Its output looks like the below example:
+// [- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 95 --- --- --- --- --- --- --- --- --- --- --- 156 --- --- --- --- --- ---]
+// [8 -- -- -- -- -- -- -- -- -- -- -- 56 -- -- -- -- -- -- -- -- -- -- -- 94 95 --- 106 --- --- --- --- --- --- 141 --- --- 156 --- --- --- --- --- ---]
+// [8 -- -- -- -- -- -- -- -- 37 -- 47 56 -- -- -- -- -- -- -- -- -- -- -- 94 95 --- 106 --- 118 124 --- --- --- 141 --- --- 156 --- --- --- --- --- ---]
+// [8 -- 13 -- -- -- -- 31 33 37 45 47 56 -- -- -- -- -- 81 85 -- -- -- -- 94 95 --- 106 --- 118 124 --- --- 140 141 --- --- 156 --- --- --- --- 190 ---]
+// [8 11 13 15 25 26 29 31 33 37 45 47 56 58 59 66 74 78 81 85 87 88 89 90 94 95 100 106 111 118 124 128 137 140 141 147 153 156 159 162 163 187 190 194]
+func (s *Skiplist) DebugPrint(levels int) {
+	lists := make([][]string, 5)
+	for i := 0; i < levels; i++ {
+		lists[i] = []string{}
 	}
 
-	search := l.head
-	next := search.next
-	for next != nil && next.val < val {
-		search = search.next
-		next = search.next
-	}
-	if search.val == val {
-		return errors.New("cannot insert into list, value already exists")
-	}
-	node.next = search.next
-	search.next = node
-	return nil
-}
-
-func (l *LinkedList) Search(val int) *linkedlistnode {
-	search := l.head
-	for search != nil {
-		if search.val == val {
-			return search
+	node := s.heads[0]
+	for node != nil {
+		height := len(node.next)
+		str := strconv.Itoa(node.val)
+		for i := 0; i < levels; i++ {
+			if i < height {
+				lists[i] = append(lists[i], str)
+			} else {
+				lists[i] = append(lists[i], strings.Repeat("-", len(str)))
+			}
 		}
-		search = search.next
+		node = node.next[0]
 	}
-	return nil
+
+	for i := levels - 1; i >= 0; i-- {
+		fmt.Println(lists[i])
+	}
 }
