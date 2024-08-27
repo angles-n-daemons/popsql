@@ -172,7 +172,7 @@ func TestSkiplistDelete(t *testing.T) {
 // -- Puting into list with no value
 
 // NON GENERIC
-// cpu: Intel(R) Core(TM) i5-8257U CPU @ 1.40GHz
+// cpu: Intel(R) Core(TM) i5-8257U CPU @ 1.40GHz (home laptop)
 // BenchmarkSkiplistPerformance-8           1000000              3149 ns/op
 // BenchmarkSkiplistReadHeavy-8              738738              5487 ns/op
 // BenchmarkSkiplistWriteHeavy-8             522088              7030 ns/op
@@ -185,6 +185,21 @@ func TestSkiplistDelete(t *testing.T) {
 // BenchmarkSkiplistWriteHeavy-8             477907              6719 ns/op
 // BenchmarkSkiplistReadHits-8              1000000              1956 ns/op
 // BenchmarkSkiplistReadMisses-8            1000000              1974 ns/op
+
+// FIXED HEIGHT NEXTS
+// goarch: arm64 (work laptop)
+// BenchmarkSkiplistPerformance-11          1000000              1396 ns/op
+// BenchmarkSkiplistReadHeavy-11            1000000              2482 ns/op
+// BenchmarkSkiplistWriteHeavy-11           1000000              3265 ns/op
+// BenchmarkSkiplistReadHits-11             1363813               917.7 ns/op
+// BenchmarkSkiplistReadMisses-11           1378286               916.4 ns/op
+
+// VARIABLE HEIGHT NEXTS
+// BenchmarkSkiplistPerformance-11          1000000              1280 ns/op
+BenchmarkSkiplistReadHeavy-11            1000000              2409 ns/op
+BenchmarkSkiplistWriteHeavy-11           1000000              3804 ns/op
+BenchmarkSkiplistReadHits-11             1398126               997.9 ns/op
+BenchmarkSkiplistReadMisses-11           1410793               970.8 ns/op
 
 func BenchmarkSkiplistPerformance(b *testing.B) {
 	list := data.NewSkiplist[int, int]()
