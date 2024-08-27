@@ -19,15 +19,6 @@ type SkiplistNode[K cmp.Ordered, V any] struct {
 	next []*SkiplistNode[K, V]
 }
 
-func NewSkiplistNode[K cmp.Ordered, V any](key K, val V, height int) *SkiplistNode[K, V] {
-	return &SkiplistNode[K, V]{
-		Key:  key,
-		Val:  val,
-		next: make([]*SkiplistNode[K, V], height),
-	}
-
-}
-
 /*
  * A Skiplist is an efficiently sorted data structure.
  * It's desirable because it's performance is similar to that
