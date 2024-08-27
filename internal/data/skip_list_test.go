@@ -196,10 +196,10 @@ func TestSkiplistDelete(t *testing.T) {
 
 // VARIABLE HEIGHT NEXTS
 // BenchmarkSkiplistPerformance-11          1000000              1280 ns/op
-BenchmarkSkiplistReadHeavy-11            1000000              2409 ns/op
-BenchmarkSkiplistWriteHeavy-11           1000000              3804 ns/op
-BenchmarkSkiplistReadHits-11             1398126               997.9 ns/op
-BenchmarkSkiplistReadMisses-11           1410793               970.8 ns/op
+// BenchmarkSkiplistReadHeavy-11            1000000              2409 ns/op
+// BenchmarkSkiplistWriteHeavy-11           1000000              3804 ns/op
+// BenchmarkSkiplistReadHits-11             1398126               997.9 ns/op
+// BenchmarkSkiplistReadMisses-11           1410793               970.8 ns/op
 
 func BenchmarkSkiplistPerformance(b *testing.B) {
 	list := data.NewSkiplist[int, int]()
