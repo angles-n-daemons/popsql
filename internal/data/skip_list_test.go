@@ -201,6 +201,22 @@ func TestSkiplistDelete(t *testing.T) {
 // BenchmarkSkiplistReadHits-11             1398126               997.9 ns/op
 // BenchmarkSkiplistReadMisses-11           1410793               970.8 ns/op
 
+// 15% speedup with multiple heads
+// likely similar memory improvement
+// MULTIPLE HEADS
+// BenchmarkSkiplistPerformance-11          1000000              1192 ns/op
+// BenchmarkSkiplistReadHeavy-11            1000000              2275 ns/op
+// BenchmarkSkiplistWriteHeavy-11           1000000              3448 ns/op
+// BenchmarkSkiplistReadHits-11             1442425               940.7 ns/op
+// BenchmarkSkiplistReadMisses-11           1505054               918.5 ns/op
+//
+// SINGLE HEAD
+// BenchmarkSkiplistPerformance-11          1000000              1400 ns/op
+// BenchmarkSkiplistReadHeavy-11            1000000              2674 ns/op
+// BenchmarkSkiplistWriteHeavy-11            956762              3879 ns/op
+// BenchmarkSkiplistReadHits-11             1250410              1036 ns/op
+// BenchmarkSkiplistReadMisses-11           1305763              1015 ns/op
+
 func BenchmarkSkiplistPerformance(b *testing.B) {
 	list := data.NewSkiplist[int, int]()
 	rng := rand.New(rand.NewSource(1))
