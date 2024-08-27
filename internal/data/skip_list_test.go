@@ -108,9 +108,16 @@ func TestSkiplistDecreasing(t *testing.T) {
 
 // test skiplist with random values
 func TestSkiplistRandom(t *testing.T) {
+	rng := rand.New(rand.NewSource(1))
+	vals := [][]int{}
 	for i := 0; i < 32; i++ {
-
+		vals = append(vals, []int{rng.Int(), rng.Int()})
 	}
+	list, err := skiplistFromArray(vals)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertCreatesEquivalent(t, vals, list)
 }
 
 // test skiplist heights work appropriately
