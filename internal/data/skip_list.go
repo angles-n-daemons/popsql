@@ -65,7 +65,7 @@ func (s *Skiplist[K, V]) Put(key K, val V) error {
 		return errors.New("cannot put element in skiplist, at maximum size.")
 	}
 
-	node, updates := s.search(key)
+	node, prevs := s.search(key)
 	if node != nil {
 		// if the node already exists, we change its value
 		node.Val = val
@@ -86,15 +86,15 @@ func (s *Skiplist[K, V]) Put(key K, val V) error {
 		if s.heads[i] == nil {
 			// if the head is nil at this level, the level is empty
 			s.heads[i] = node
-		} else if updates[i] == nil {
-			// if the update value is nil, we never found a value
-			// < val so we insert the node before the head
+		} else if prevs[i] == nil {
+			// if the previous value is nil, we never found a
+			// value < val so we insert the node before the head
 			node.next[i] = s.heads[i]
 			s.heads[i] = node
 		} else {
 			// otherwise, we insert the node after update
-			node.next[i] = updates[i].next[i]
-			updates[i].next[i] = node
+			node.next[i] = prevs[i].next[i]
+			prevs[i].next[i] = node
 		}
 	}
 
