@@ -8,6 +8,54 @@ import (
 	"github.com/angles-n-daemons/popsql/internal/data/memtable"
 )
 
+const (
+	randTo0 = 0
+	randTo1 = -1
+)
+
+// source for which rand.Rand.Intn(2) returns 1
+// height - 1 times before each 0
+// useful for setting the height of a skiplist node manually
+type mockHeightRandSource struct {
+	height   int
+	numCalls int
+	seed     int64
+}
+
+func (m *mockHeightRandSource) Int63() int64 {
+	m.numCalls++
+	if m.height == 0 {
+		return randTo0
+	}
+
+	if m.numCalls%m.height == 0 {
+		return randTo0
+	} else {
+		return randTo1
+	}
+}
+func (m *mockHeightRandSource) Seed(seed int64) {}
+
+func TestMockRandHeight(t *testing.T) {
+	for i := 1; i < 10; i++ {
+		height := 1
+		rng := rand.New(&mockHeightRandSource{height: i})
+		for rng.Intn(2) == 1 {
+			height++
+			if height > 50 {
+				break
+			}
+		}
+		if i != height {
+			t.Fatalf(
+				"expected random height generator to return %d - 1 1s, but got %d",
+				i,
+				height,
+			)
+		}
+	}
+}
+
 func skiplistFromArray(vals [][]int) (*memtable.Skiplist[int, int], error) {
 	list := memtable.NewSkiplist[int, int]()
 	for _, val := range vals {
@@ -24,30 +72,56 @@ func skiplistFromArray(vals [][]int) (*memtable.Skiplist[int, int], error) {
 
 // helper function which asserts that the size of the vals array matches the
 // skiplist, and that the elements found in the vals array can be found
-// in the skiplist
-func assertCreatesEquivalent(t *testing.T, vals [][]int, list *memtable.Skiplist[int, int]) error {
+// in the skiplist, and then deletes the elements when finished
+func assertCreatesEquivalent(t *testing.T, vals [][]int, list *memtable.Skiplist[int, int]) {
 	if len(vals) != int(list.Size) {
 		t.Fatalf(
 			"expected list length to match vals %d but got length %d",
 			len(vals), list.Size,
 		)
 	}
-	// memtable.DebugPrintIntList(list, 5)
-	// memtable.DebugPrintLevels(list, 5)
 	for _, val := range vals {
 		node := list.Get(val[0])
 		if node == nil {
-			t.Fatalf("expected to find key %d in list", val[0])
+			t.Fatalf("expected Get to find key %d in list", val[0])
 		}
 		if node.Val != val[1] {
 			t.Fatalf(
-				"expected val %d for key %d, but got %d",
+				"expected val %d for key %d on Get, but got %d",
 				val[1], val[0], node.Val,
 			)
 		}
 	}
 	// delete all elements
-	return nil
+	for _, val := range vals {
+		node := list.Delete(val[0])
+		if node == nil {
+			t.Fatalf("expected Delete to find key %d in list", val[0])
+		}
+		if node.Val != val[1] {
+			t.Fatalf(
+				"expected val %d for key %d on Delete, but got %d",
+				val[1], val[0], node.Val,
+			)
+		}
+	}
+	// check elements deleted
+	for _, val := range vals {
+		node := list.Get(val[0])
+		if node != nil {
+			t.Fatalf("expected Get to return nil on after deletion")
+		}
+		node = list.Delete(val[0])
+		if node != nil {
+			t.Fatalf("expected Delete to return nil on second attempt")
+		}
+	}
+	if list.Size != 0 {
+		t.Fatalf(
+			"expected list to be empty after deleting elements, but got size %d",
+			list.Size,
+		)
+	}
 }
 
 // test very simple skiplist use cases
@@ -62,42 +136,7 @@ func TestSkiplistBasic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// verify list size is correct
-	if list.Size != 4 {
-		t.Fatalf(
-			"expected list to be size %d, but got size %d",
-			4, list.Size,
-		)
-	}
-	// verify list matches original array
 	assertCreatesEquivalent(t, vals, list)
-
-	// verify looking for node which doesn't exist returns nil
-	node := list.Get(7)
-	if node != nil {
-		t.Fatalf(
-			"found unexpected node on Get using key %d: [%d, %d]",
-			7, node.Key, node.Val,
-		)
-	}
-
-	memtable.DebugPrintLevels(list, 5)
-
-	node = list.Delete(10)
-	if node == nil {
-		t.Fatalf("expected Delete to return the deleted node")
-	}
-	memtable.DebugPrintLevels(list, 5)
-
-	node = list.Get(10)
-	if node != nil {
-		t.Fatalf("expected Get to return nil, not %d after element is deleted", node.Key)
-	}
-
-	node = list.Delete(7)
-	if node != nil {
-		t.Fatalf("expected Delete to return nil, not %d on the nonexistent node", node.Key)
-	}
 }
 
 // test skiplist inserting incrementally larger values

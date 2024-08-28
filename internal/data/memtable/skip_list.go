@@ -48,12 +48,12 @@ func NewSkiplist[K cmp.Ordered, V any]() *Skiplist[K, V] {
 	}
 }
 
-func NewSkiplistWithRand[K cmp.Ordered, V any](rng *rand.Rand) *Skiplist[K, V] {
+func NewSkiplistWithRandSource[K cmp.Ordered, V any](source rand.Source) *Skiplist[K, V] {
 	return &Skiplist[K, V]{
 		Size:   0,
 		height: MAX_HEIGHT,
 		heads:  make([]*SkiplistNode[K, V], MAX_HEIGHT),
-		rng:    rng,
+		rng:    rand.New(source),
 	}
 }
 
@@ -126,6 +126,8 @@ func (list *Skiplist[K, V]) Delete(key K) *SkiplistNode[K, V] {
 			prevs[i].next[i] = node.next[i]
 		}
 	}
+
+	list.Size--
 	return node
 }
 
