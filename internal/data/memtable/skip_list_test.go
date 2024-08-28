@@ -19,7 +19,6 @@ const (
 type mockHeightRandSource struct {
 	height   int
 	numCalls int
-	seed     int64
 }
 
 func (m *mockHeightRandSource) Int63() int64 {
@@ -35,6 +34,11 @@ func (m *mockHeightRandSource) Int63() int64 {
 	}
 }
 func (m *mockHeightRandSource) Seed(seed int64) {}
+
+func (m *mockHeightRandSource) changeHeight(height int) {
+	m.height = height
+	m.numCalls = 0
+}
 
 func TestMockRandHeight(t *testing.T) {
 	for i := 1; i < 10; i++ {
