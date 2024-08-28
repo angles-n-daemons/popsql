@@ -108,6 +108,7 @@ func (s *Skiplist[K, V]) Get(key K) *SkiplistNode[K, V] {
 	return node
 }
 
+// Delete removes the element with the specified key from the list if it exists
 func (s *Skiplist[K, V]) Delete(key K) *SkiplistNode[K, V] {
 	node, prevs := s.search(key)
 	// If we didn't find the node, return nil
