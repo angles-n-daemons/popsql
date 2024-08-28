@@ -32,6 +32,8 @@ func assertCreatesEquivalent(t *testing.T, vals [][]int, list *data.Skiplist[int
 			len(vals), list.Size,
 		)
 	}
+	// data.DebugPrintIntList(list, 5)
+	// data.DebugPrintLevels(list, 5)
 	for _, val := range vals {
 		node := list.Get(val[0])
 		if node == nil {
@@ -78,6 +80,23 @@ func TestSkiplistBasic(t *testing.T) {
 		)
 	}
 
+	data.DebugPrintLevels(list, 5)
+
+	node = list.Delete(10)
+	if node == nil {
+		t.Fatalf("expected Delete to return the deleted node")
+	}
+	data.DebugPrintLevels(list, 5)
+
+	node = list.Get(10)
+	if node != nil {
+		t.Fatalf("expected Get to return nil, not %d after element is deleted", node.Key)
+	}
+
+	node = list.Delete(7)
+	if node != nil {
+		t.Fatalf("expected Delete to return nil, not %d on the nonexistent node", node.Key)
+	}
 }
 
 // test skiplist inserting incrementally larger values
@@ -280,5 +299,21 @@ func BenchmarkSkiplistReadMisses(b *testing.B) {
 		list.Put(val, val)
 		val = rng.Intn(1000000) + 1000000
 		list.Get(val)
+	}
+}
+
+func BenchmarkSkiplistWithDeletes(b *testing.B) {
+	list := data.NewSkiplist[int, int]()
+	rng := rand.New(rand.NewSource(1))
+	last := 0
+	for i := 0; i < b.N; i++ {
+		val := rng.Intn(1000000)
+		list.Put(val, val)
+		last = val
+		val = rng.Intn(1000000) + 1000000
+		list.Get(val)
+		if val < 1000000/2 {
+			list.Delete(last)
+		}
 	}
 }

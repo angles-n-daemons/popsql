@@ -108,6 +108,25 @@ func (s *Skiplist[K, V]) Get(key K) *SkiplistNode[K, V] {
 	return node
 }
 
+func (s *Skiplist[K, V]) Delete(key K) *SkiplistNode[K, V] {
+	node, prevs := s.search(key)
+	// If we didn't find the node, return nil
+	if node == nil {
+		return nil
+	}
+
+	// set the next pointer for the previous nodes
+	// to the node's next pointer (where applicable)
+	for i := 0; i < len(node.next); i++ {
+		if prevs[i] == nil {
+			s.heads[i] = node.next[i]
+		} else {
+			prevs[i].next[i] = node.next[i]
+		}
+	}
+	return node
+}
+
 // search is an internal function, leveraged by both Put and Get
 // it searches through the list for a value, returning a search array
 // of nodes preceeding or equal to the node value.
@@ -116,17 +135,25 @@ func (s *Skiplist[K, V]) search(key K) (*SkiplistNode[K, V], []*SkiplistNode[K, 
 	// Find the highest head which is less than val
 	level := s.height - 1
 	var search *SkiplistNode[K, V]
+	// Keep a list of which directly preceed val or are equal to it
+	prevs := make([]*SkiplistNode[K, V], s.height)
+
+	// Special case for when the head is the node we're looking for
+	if s.heads[0] != nil && s.heads[0].Key == key {
+		return s.heads[0], prevs
+	}
+
+	// Start the search at the first head whose key is less than
+	// the one we are looking for
 	for level >= 0 {
 		cand := s.heads[level]
-		if cand != nil && cand.Key <= key {
+		if cand != nil && cand.Key < key {
 			search = cand
 			break
 		}
 		level--
 	}
 
-	// Keep a list of which directly preceed val or are equal to it
-	nodes := make([]*SkiplistNode[K, V], s.height)
 	// Run the search at each subsequent level below
 	// For each level, continue traversing the list until either:
 	//   * the next node is greater than val
@@ -137,10 +164,16 @@ func (s *Skiplist[K, V]) search(key K) (*SkiplistNode[K, V], []*SkiplistNode[K, 
 		next := search.next[level]
 		// if the next value is greater at this level, or it is nil
 		// we can continue the search one level down
-		if next == nil || next.Key > key {
-			nodes[level] = search
+		if next == nil || next.Key >= key {
+			prevs[level] = search
 			// reached the bottom of the list
 			if level == 0 {
+				// If we found the right node, return it
+				// We do this at the bottom level so that
+				// all the previous values can be properly set
+				if next != nil && next.Key == key {
+					return next, prevs
+				}
 				break
 			} else {
 				level--
@@ -150,13 +183,7 @@ func (s *Skiplist[K, V]) search(key K) (*SkiplistNode[K, V], []*SkiplistNode[K, 
 		search = next
 	}
 
-	// if the node at the lowest level of the search has the search
-	// key, we return it so the caller knows it was found
-	var node *SkiplistNode[K, V]
-	if nodes[0] != nil && nodes[0].Key == key {
-		node = nodes[0]
-	}
-	return node, nodes
+	return nil, prevs
 }
 
 func genHeight(maxHeight int) int {
@@ -167,14 +194,14 @@ func genHeight(maxHeight int) int {
 	return height
 }
 
-func (s *Skiplist[K, V]) DebugGetRow(level int) ([]*SkiplistNode[K, V], error) {
+func (s *Skiplist[K, V]) DebugGetRow(level int) ([]K, error) {
 	if level > len(s.heads) {
 		return nil, fmt.Errorf("cannot get level %d of skiplist with height %d", level, len(s.heads))
 	}
-	list := []*SkiplistNode[K, V]{}
+	list := []K{}
 	node := s.heads[level]
 	for node != nil {
-		list = append(list, node)
+		list = append(list, node.Key)
 		node = node.next[level]
 	}
 	return list, nil
@@ -209,5 +236,11 @@ func DebugPrintIntList(s *Skiplist[int, int], levels int) {
 
 	for i := levels - 1; i >= 0; i-- {
 		fmt.Println(lists[i])
+	}
+}
+
+func DebugPrintLevels[K cmp.Ordered, V any](s *Skiplist[K, V], levels int) {
+	for i := levels - 1; i >= 0; i-- {
+		fmt.Println(s.DebugGetRow(i))
 	}
 }
