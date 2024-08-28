@@ -1,4 +1,4 @@
-package data
+package memtable
 
 import (
 	"cmp"
@@ -58,18 +58,19 @@ func NewSkiplistWithRand[K cmp.Ordered, V any](rng *rand.Rand) *Skiplist[K, V] {
 }
 
 /* Put takes a value and tries to insert it into the skiplist.
+ * This function returns a boolean which is true if the element is new.
  * It can error if the skiplist is full.
  */
-func (list *Skiplist[K, V]) Put(key K, val V) error {
+func (list *Skiplist[K, V]) Put(key K, val V) (bool, error) {
 	if list.Size >= MAX_UINT32 {
-		return errors.New("cannot put element in skiplist, at maximum size.")
+		return false, errors.New("cannot put element in skiplist, at maximum size.")
 	}
 
 	node, prevs := list.search(key)
 	if node != nil {
 		// if the node already exists, we change its value
 		node.Val = val
-		return nil
+		return false, nil
 	}
 
 	// create the new node with a randomized height
@@ -99,7 +100,7 @@ func (list *Skiplist[K, V]) Put(key K, val V) error {
 	}
 
 	list.Size++
-	return nil
+	return true, nil
 }
 
 // Get finds the element in the skiplist if it exists, otherwise returns nil
@@ -128,7 +129,7 @@ func (list *Skiplist[K, V]) Delete(key K) *SkiplistNode[K, V] {
 	return node
 }
 
-// search is an internal function, leveraged by both Put and Get
+// search is an internal function, leveraged by Put, Get and Delete
 // it searches through the list for a value, returning a search array
 // of nodes preceeding or equal to the node value.
 // if the key exists, it will be returned in addition to the search array

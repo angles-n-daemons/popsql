@@ -1,17 +1,17 @@
-package data_test
+package memtable_test
 
 import (
 	"fmt"
 	"math/rand"
 	"testing"
 
-	"github.com/angles-n-daemons/popsql/internal/data"
+	"github.com/angles-n-daemons/popsql/internal/data/memtable"
 )
 
-func skiplistFromArray(vals [][]int) (*data.Skiplist[int, int], error) {
-	list := data.NewSkiplist[int, int]()
+func skiplistFromArray(vals [][]int) (*memtable.Skiplist[int, int], error) {
+	list := memtable.NewSkiplist[int, int]()
 	for _, val := range vals {
-		err := list.Put(val[0], val[1])
+		_, err := list.Put(val[0], val[1])
 		if err != nil {
 			return nil, fmt.Errorf(
 				"list raised an error on Put: %v",
@@ -25,15 +25,15 @@ func skiplistFromArray(vals [][]int) (*data.Skiplist[int, int], error) {
 // helper function which asserts that the size of the vals array matches the
 // skiplist, and that the elements found in the vals array can be found
 // in the skiplist
-func assertCreatesEquivalent(t *testing.T, vals [][]int, list *data.Skiplist[int, int]) error {
+func assertCreatesEquivalent(t *testing.T, vals [][]int, list *memtable.Skiplist[int, int]) error {
 	if len(vals) != int(list.Size) {
 		t.Fatalf(
 			"expected list length to match vals %d but got length %d",
 			len(vals), list.Size,
 		)
 	}
-	// data.DebugPrintIntList(list, 5)
-	// data.DebugPrintLevels(list, 5)
+	// memtable.DebugPrintIntList(list, 5)
+	// memtable.DebugPrintLevels(list, 5)
 	for _, val := range vals {
 		node := list.Get(val[0])
 		if node == nil {
@@ -46,6 +46,7 @@ func assertCreatesEquivalent(t *testing.T, vals [][]int, list *data.Skiplist[int
 			)
 		}
 	}
+	// delete all elements
 	return nil
 }
 
@@ -80,13 +81,13 @@ func TestSkiplistBasic(t *testing.T) {
 		)
 	}
 
-	data.DebugPrintLevels(list, 5)
+	memtable.DebugPrintLevels(list, 5)
 
 	node = list.Delete(10)
 	if node == nil {
 		t.Fatalf("expected Delete to return the deleted node")
 	}
-	data.DebugPrintLevels(list, 5)
+	memtable.DebugPrintLevels(list, 5)
 
 	node = list.Get(10)
 	if node != nil {
@@ -244,7 +245,7 @@ func TestSkiplistDelete(t *testing.T) {
 // BenchmarkSkiplistReadMisses-11           1305763              1015 ns/op
 
 func BenchmarkSkiplistPerformance(b *testing.B) {
-	list := data.NewSkiplist[int, int]()
+	list := memtable.NewSkiplist[int, int]()
 	rng := rand.New(rand.NewSource(1))
 	for i := 0; i < b.N; i++ {
 		val := rng.Intn(1000000)
@@ -255,7 +256,7 @@ func BenchmarkSkiplistPerformance(b *testing.B) {
 }
 
 func BenchmarkSkiplistReadHeavy(b *testing.B) {
-	list := data.NewSkiplist[int, int]()
+	list := memtable.NewSkiplist[int, int]()
 	rng := rand.New(rand.NewSource(1))
 	for i := 0; i < b.N; i++ {
 		val := rng.Intn(1000000)
@@ -268,7 +269,7 @@ func BenchmarkSkiplistReadHeavy(b *testing.B) {
 }
 
 func BenchmarkSkiplistWriteHeavy(b *testing.B) {
-	list := data.NewSkiplist[int, int]()
+	list := memtable.NewSkiplist[int, int]()
 	rng := rand.New(rand.NewSource(1))
 	for i := 0; i < b.N; i++ {
 		var val int
@@ -282,7 +283,7 @@ func BenchmarkSkiplistWriteHeavy(b *testing.B) {
 }
 
 func BenchmarkSkiplistReadHits(b *testing.B) {
-	list := data.NewSkiplist[int, int]()
+	list := memtable.NewSkiplist[int, int]()
 	rng := rand.New(rand.NewSource(1))
 	for i := 0; i < b.N; i++ {
 		val := rng.Intn(1000000)
@@ -292,7 +293,7 @@ func BenchmarkSkiplistReadHits(b *testing.B) {
 }
 
 func BenchmarkSkiplistReadMisses(b *testing.B) {
-	list := data.NewSkiplist[int, int]()
+	list := memtable.NewSkiplist[int, int]()
 	rng := rand.New(rand.NewSource(1))
 	for i := 0; i < b.N; i++ {
 		val := rng.Intn(1000000)
@@ -303,7 +304,7 @@ func BenchmarkSkiplistReadMisses(b *testing.B) {
 }
 
 func BenchmarkSkiplistWithDeletes(b *testing.B) {
-	list := data.NewSkiplist[int, int]()
+	list := memtable.NewSkiplist[int, int]()
 	rng := rand.New(rand.NewSource(1))
 	last := 0
 	for i := 0; i < b.N; i++ {
