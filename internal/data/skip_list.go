@@ -21,7 +21,7 @@ type SkiplistNode[K cmp.Ordered, V any] struct {
 
 /*
  * A Skiplist is an efficiently sorted data structure.
- * It's desirable because it's performance is similar to that
+ * It's desirable because its performance is similar to that
  * of a balanced tree, but it's simple to reason about and impl.
  */
 
