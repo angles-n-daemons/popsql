@@ -60,12 +60,12 @@ func NewSkiplistWithRand[K cmp.Ordered, V any](rng *rand.Rand) *Skiplist[K, V] {
 /* Put takes a value and tries to insert it into the skiplist.
  * It can error if the skiplist is full.
  */
-func (s *Skiplist[K, V]) Put(key K, val V) error {
-	if s.Size >= MAX_UINT32 {
+func (list *Skiplist[K, V]) Put(key K, val V) error {
+	if list.Size >= MAX_UINT32 {
 		return errors.New("cannot put element in skiplist, at maximum size.")
 	}
 
-	node, prevs := s.search(key)
+	node, prevs := list.search(key)
 	if node != nil {
 		// if the node already exists, we change its value
 		node.Val = val
@@ -73,7 +73,7 @@ func (s *Skiplist[K, V]) Put(key K, val V) error {
 	}
 
 	// create the new node with a randomized height
-	height := genHeight(MAX_HEIGHT)
+	height := list.genHeight(MAX_HEIGHT)
 	node = &SkiplistNode[K, V]{
 		Key:  key,
 		Val:  val,
@@ -83,14 +83,14 @@ func (s *Skiplist[K, V]) Put(key K, val V) error {
 	// for each level in the nodes height, insert the node
 	// into that level's list
 	for i := 0; i < height; i++ {
-		if s.heads[i] == nil {
+		if list.heads[i] == nil {
 			// if the head is nil at this level, the level is empty
-			s.heads[i] = node
+			list.heads[i] = node
 		} else if prevs[i] == nil {
-			// if the previous value is nil, we never found a
-			// value < val so we insert the node before the head
-			node.next[i] = s.heads[i]
-			s.heads[i] = node
+			// if the update value is nil, we never found a value
+			// < val so we insert the node before the head
+			node.next[i] = list.heads[i]
+			list.heads[i] = node
 		} else {
 			// otherwise, we insert the node after update
 			node.next[i] = prevs[i].next[i]
@@ -98,19 +98,19 @@ func (s *Skiplist[K, V]) Put(key K, val V) error {
 		}
 	}
 
-	s.Size++
+	list.Size++
 	return nil
 }
 
 // Get finds the element in the skiplist if it exists, otherwise returns nil
-func (s *Skiplist[K, V]) Get(key K) *SkiplistNode[K, V] {
-	node, _ := s.search(key)
+func (list *Skiplist[K, V]) Get(key K) *SkiplistNode[K, V] {
+	node, _ := list.search(key)
 	return node
 }
 
 // Delete removes the element with the specified key from the list if it exists
-func (s *Skiplist[K, V]) Delete(key K) *SkiplistNode[K, V] {
-	node, prevs := s.search(key)
+func (list *Skiplist[K, V]) Delete(key K) *SkiplistNode[K, V] {
+	node, prevs := list.search(key)
 	// If we didn't find the node, return nil
 	if node == nil {
 		return nil
@@ -120,7 +120,7 @@ func (s *Skiplist[K, V]) Delete(key K) *SkiplistNode[K, V] {
 	// to the node's next pointer (where applicable)
 	for i := 0; i < len(node.next); i++ {
 		if prevs[i] == nil {
-			s.heads[i] = node.next[i]
+			list.heads[i] = node.next[i]
 		} else {
 			prevs[i].next[i] = node.next[i]
 		}
@@ -132,22 +132,22 @@ func (s *Skiplist[K, V]) Delete(key K) *SkiplistNode[K, V] {
 // it searches through the list for a value, returning a search array
 // of nodes preceeding or equal to the node value.
 // if the key exists, it will be returned in addition to the search array
-func (s *Skiplist[K, V]) search(key K) (*SkiplistNode[K, V], []*SkiplistNode[K, V]) {
+func (list *Skiplist[K, V]) search(key K) (*SkiplistNode[K, V], []*SkiplistNode[K, V]) {
 	// Find the highest head which is less than val
-	level := s.height - 1
+	level := list.height - 1
 	var search *SkiplistNode[K, V]
 	// Keep a list of which directly preceed val or are equal to it
-	prevs := make([]*SkiplistNode[K, V], s.height)
+	prevs := make([]*SkiplistNode[K, V], list.height)
 
 	// Special case for when the head is the node we're looking for
-	if s.heads[0] != nil && s.heads[0].Key == key {
-		return s.heads[0], prevs
+	if list.heads[0] != nil && list.heads[0].Key == key {
+		return list.heads[0], prevs
 	}
 
 	// Start the search at the first head whose key is less than
 	// the one we are looking for
 	for level >= 0 {
-		cand := s.heads[level]
+		cand := list.heads[level]
 		if cand != nil && cand.Key < key {
 			search = cand
 			break
@@ -187,25 +187,25 @@ func (s *Skiplist[K, V]) search(key K) (*SkiplistNode[K, V], []*SkiplistNode[K, 
 	return nil, prevs
 }
 
-func genHeight(maxHeight int) int {
+func (list *Skiplist[K, V]) genHeight(maxHeight int) int {
 	var height int = 1
-	for rand.Intn(2) == 1 && height < maxHeight {
+	for list.rng.Intn(2) == 1 && height < maxHeight {
 		height++
 	}
 	return height
 }
 
-func (s *Skiplist[K, V]) DebugGetRow(level int) ([]K, error) {
-	if level > len(s.heads) {
-		return nil, fmt.Errorf("cannot get level %d of skiplist with height %d", level, len(s.heads))
+func (list *Skiplist[K, V]) DebugGetRow(level int) ([]K, error) {
+	if level > len(list.heads) {
+		return nil, fmt.Errorf("cannot get level %d of skiplist with height %d", level, len(list.heads))
 	}
-	list := []K{}
-	node := s.heads[level]
+	keys := []K{}
+	node := list.heads[level]
 	for node != nil {
-		list = append(list, node.Key)
+		keys = append(keys, node.Key)
 		node = node.next[level]
 	}
-	return list, nil
+	return keys, nil
 }
 
 // DebugPrint is a simple helper function for visualizing the skiplist
@@ -215,13 +215,13 @@ func (s *Skiplist[K, V]) DebugGetRow(level int) ([]K, error) {
 // [8 -- -- -- -- -- -- -- -- 37 -- 47 56 -- -- -- -- -- -- -- -- -- -- -- 94 95 --- 106 --- 118 124 --- --- --- 141 --- --- 156 --- --- --- --- --- ---]
 // [8 -- 13 -- -- -- -- 31 33 37 45 47 56 -- -- -- -- -- 81 85 -- -- -- -- 94 95 --- 106 --- 118 124 --- --- 140 141 --- --- 156 --- --- --- --- 190 ---]
 // [8 11 13 15 25 26 29 31 33 37 45 47 56 58 59 66 74 78 81 85 87 88 89 90 94 95 100 106 111 118 124 128 137 140 141 147 153 156 159 162 163 187 190 194]
-func DebugPrintIntList(s *Skiplist[int, int], levels int) {
+func DebugPrintIntList(list *Skiplist[int, int], levels int) {
 	lists := make([][]string, 5)
 	for i := 0; i < levels; i++ {
 		lists[i] = []string{}
 	}
 
-	node := s.heads[0]
+	node := list.heads[0]
 	for node != nil {
 		height := len(node.next)
 		str := strconv.Itoa(node.Key)
