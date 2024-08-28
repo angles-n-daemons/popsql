@@ -74,16 +74,7 @@ func skiplistFromArray(vals [][]int) (*memtable.Skiplist[int, int], error) {
 	return list, nil
 }
 
-// helper function which asserts that the size of the vals array matches the
-// skiplist, and that the elements found in the vals array can be found
-// in the skiplist, and then deletes the elements when finished
-func assertCreatesEquivalent(t *testing.T, vals [][]int, list *memtable.Skiplist[int, int]) {
-	if len(vals) != int(list.Size) {
-		t.Fatalf(
-			"expected list length to match vals %d but got length %d",
-			len(vals), list.Size,
-		)
-	}
+func assertListsEquivalent(t *testing.T, vals [][]int, list *memtable.Skiplist[int, int]) {
 	for _, val := range vals {
 		node := list.Get(val[0])
 		if node == nil {
@@ -96,19 +87,9 @@ func assertCreatesEquivalent(t *testing.T, vals [][]int, list *memtable.Skiplist
 			)
 		}
 	}
-	// delete all elements
-	for _, val := range vals {
-		node := list.Delete(val[0])
-		if node == nil {
-			t.Fatalf("expected Delete to find key %d in list", val[0])
-		}
-		if node.Val != val[1] {
-			t.Fatalf(
-				"expected val %d for key %d on Delete, but got %d",
-				val[1], val[0], node.Val,
-			)
-		}
-	}
+}
+
+func assertDeleteFromList(t *testing.T, vals [][]int, list *memtable.Skiplist[int, int]) {
 	// check elements deleted
 	for _, val := range vals {
 		node := list.Get(val[0])
@@ -120,6 +101,24 @@ func assertCreatesEquivalent(t *testing.T, vals [][]int, list *memtable.Skiplist
 			t.Fatalf("expected Delete to return nil on second attempt")
 		}
 	}
+}
+
+// helper function which asserts that the size of the vals array matches the
+// skiplist, and that the elements found in the vals array can be found
+// in the skiplist, and then deletes the elements when finished
+func assertPutGetDelete(t *testing.T, vals [][]int) {
+	list, err := skiplistFromArray(vals)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(vals) != int(list.Size) {
+		t.Fatalf(
+			"expected list length to match vals %d but got length %d",
+			len(vals), list.Size,
+		)
+	}
+	assertListsEquivalent(t, vals, list)
+	assertDeleteFromList(t, vals, list)
 	if list.Size != 0 {
 		t.Fatalf(
 			"expected list to be empty after deleting elements, but got size %d",
@@ -136,11 +135,7 @@ func TestSkiplistBasic(t *testing.T) {
 		{20, 100},
 		{2, 50},
 	}
-	list, err := skiplistFromArray(vals)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assertCreatesEquivalent(t, vals, list)
+	assertPutGetDelete(t, vals)
 }
 
 // test skiplist inserting incrementally larger values
@@ -149,11 +144,7 @@ func TestSkiplistIncreasing(t *testing.T) {
 	for i := 0; i < 32; i++ {
 		vals = append(vals, []int{i, i})
 	}
-	list, err := skiplistFromArray(vals)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assertCreatesEquivalent(t, vals, list)
+	assertPutGetDelete(t, vals)
 }
 
 // test skiplist with decreasing values
@@ -162,11 +153,7 @@ func TestSkiplistDecreasing(t *testing.T) {
 	for i := 31; i >= 0; i-- {
 		vals = append(vals, []int{i, i})
 	}
-	list, err := skiplistFromArray(vals)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assertCreatesEquivalent(t, vals, list)
+	assertPutGetDelete(t, vals)
 }
 
 // test skiplist with random values
@@ -176,11 +163,7 @@ func TestSkiplistRandom(t *testing.T) {
 	for i := 0; i < 32; i++ {
 		vals = append(vals, []int{rng.Int(), rng.Int()})
 	}
-	list, err := skiplistFromArray(vals)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assertCreatesEquivalent(t, vals, list)
+	assertPutGetDelete(t, vals)
 }
 
 // test skiplist heights work appropriately
@@ -198,8 +181,31 @@ func TestSkiplistSize(t *testing.T) {
 }
 
 // test overwriting an existing value
-func TestSkiplistPutOverwrite(t *testing.T) {
+func TestPutDifferentPositions(t *testing.T) {
+	vals := [][]int{
+		{5, 5},  // from empty
+		{10, 5}, // with one after
+		{15, 5},
+		{0, 5},  // before the head
+		{2, 5},  // right after head
+		{6, 5},  // in the middle of the list
+		{12, 5}, // before the tail
+		{20, 5}, // after the tail
 
+		{0, -1},  // overwrite head
+		{20, -1}, // overwrite tail
+		{10, -1}, // overwrite middle of list
+		{2, -1},  // overwrite element after head
+		{15, -1}, // overwrite element after tail
+	}
+	list, err := skiplistFromArray(vals)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// splice out elements that were overwritten
+	// 1 (10), 2 (15), 3 (0), 4 (2), 7 (20)
+	vals = append(append(vals[0:1], vals[4:7]...), vals[8:]...)
+	assertListsEquivalent(t, vals, list)
 }
 
 // test finding values at random points
