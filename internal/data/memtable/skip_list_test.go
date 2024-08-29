@@ -60,10 +60,10 @@ func TestMockRandHeight(t *testing.T) {
 	}
 }
 
-func skiplistFromArray(vals [][]int) (*memtable.Skiplist[int, int], error) {
+func skiplistFromArray(elems [][]int) (*memtable.Skiplist[int, int], error) {
 	list := memtable.NewSkiplist[int, int]()
-	for _, val := range vals {
-		_, err := list.Put(val[0], val[1])
+	for _, elem := range elems {
+		_, err := list.Put(elem[0], elem[1])
 		if err != nil {
 			return nil, fmt.Errorf(
 				"list raised an error on Put: %v",
@@ -74,51 +74,57 @@ func skiplistFromArray(vals [][]int) (*memtable.Skiplist[int, int], error) {
 	return list, nil
 }
 
-func assertListsEquivalent(t *testing.T, vals [][]int, list *memtable.Skiplist[int, int]) {
-	for _, val := range vals {
-		node := list.Get(val[0])
+func assertListsEquivalent(t *testing.T, elems [][]int, list *memtable.Skiplist[int, int]) {
+	for _, elem := range elems {
+		node := list.Get(elem[0])
 		if node == nil {
-			t.Fatalf("expected Get to find key %d in list", val[0])
+			t.Fatalf("expected Get to find key %d in list", elem[0])
 		}
-		if node.Val != val[1] {
+		if node.Val != elem[1] {
 			t.Fatalf(
 				"expected val %d for key %d on Get, but got %d",
-				val[1], val[0], node.Val,
+				elem[1], elem[0], node.Val,
 			)
 		}
 	}
 }
 
-func assertDeleteFromList(t *testing.T, vals [][]int, list *memtable.Skiplist[int, int]) {
+func assertDeleteFromList(t *testing.T, elems [][]int, list *memtable.Skiplist[int, int]) {
 	// check elements deleted
-	for _, val := range vals {
-		node := list.Get(val[0])
-		if node != nil {
-			t.Fatalf("expected Get to return nil on after deletion")
+	for _, elem := range elems {
+		node := list.Delete(elem[0])
+		if node == nil {
+			t.Fatalf("expected Delete to return node when deleting")
 		}
-		node = list.Delete(val[0])
+	}
+	for _, elem := range elems {
+		node := list.Get(elem[0])
+		if node != nil {
+			t.Fatalf("expected Get to return nil after deletion")
+		}
+		node = list.Delete(elem[0])
 		if node != nil {
 			t.Fatalf("expected Delete to return nil on second attempt")
 		}
 	}
 }
 
-// helper function which asserts that the size of the vals array matches the
-// skiplist, and that the elements found in the vals array can be found
+// helper function which asserts that the size of the elems array matches the
+// skiplist, and that the elements found in the elems array can be found
 // in the skiplist, and then deletes the elements when finished
-func assertPutGetDelete(t *testing.T, vals [][]int) {
-	list, err := skiplistFromArray(vals)
+func assertPutGetDelete(t *testing.T, elems [][]int) {
+	list, err := skiplistFromArray(elems)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(vals) != int(list.Size) {
+	if len(elems) != int(list.Size) {
 		t.Fatalf(
-			"expected list length to match vals %d but got length %d",
-			len(vals), list.Size,
+			"expected list length to match elems %d but got length %d",
+			len(elems), list.Size,
 		)
 	}
-	assertListsEquivalent(t, vals, list)
-	assertDeleteFromList(t, vals, list)
+	assertListsEquivalent(t, elems, list)
+	assertDeleteFromList(t, elems, list)
 	if list.Size != 0 {
 		t.Fatalf(
 			"expected list to be empty after deleting elements, but got size %d",
@@ -129,46 +135,91 @@ func assertPutGetDelete(t *testing.T, vals [][]int) {
 
 // test very simple skiplist use cases
 func TestSkiplistBasic(t *testing.T) {
-	vals := [][]int{
+	elems := [][]int{
 		{5, 1},
 		{10, 3},
 		{20, 100},
 		{2, 50},
 	}
-	assertPutGetDelete(t, vals)
+	assertPutGetDelete(t, elems)
 }
 
 // test skiplist inserting incrementally larger values
 func TestSkiplistIncreasing(t *testing.T) {
-	vals := [][]int{}
+	elems := [][]int{}
 	for i := 0; i < 32; i++ {
-		vals = append(vals, []int{i, i})
+		elems = append(elems, []int{i, i})
 	}
-	assertPutGetDelete(t, vals)
+	assertPutGetDelete(t, elems)
 }
 
 // test skiplist with decreasing values
 func TestSkiplistDecreasing(t *testing.T) {
-	vals := [][]int{}
+	elems := [][]int{}
 	for i := 31; i >= 0; i-- {
-		vals = append(vals, []int{i, i})
+		elems = append(elems, []int{i, i})
 	}
-	assertPutGetDelete(t, vals)
+	assertPutGetDelete(t, elems)
 }
 
 // test skiplist with random values
 func TestSkiplistRandom(t *testing.T) {
 	rng := rand.New(rand.NewSource(1))
-	vals := [][]int{}
+	elems := [][]int{}
 	for i := 0; i < 32; i++ {
-		vals = append(vals, []int{rng.Int(), rng.Int()})
+		elems = append(elems, []int{rng.Int(), rng.Int()})
 	}
-	assertPutGetDelete(t, vals)
+	assertPutGetDelete(t, elems)
 }
 
 // test skiplist heights work appropriately
 func TestSkiplistHeight(t *testing.T) {
-
+	elems := [][]int{
+		// { key, val, height }
+		{8, 2, 3},
+		{3, 1, 1},
+		{6, 3, 3},
+		{2, 10, 3},
+		{4, 8, 2},
+		{7, 1, 4},
+	}
+	heightSource := &mockHeightRandSource{}
+	list := memtable.NewSkiplistWithRandSource[int, int](heightSource)
+	for _, elem := range elems {
+		heightSource.changeHeight(elem[2])
+		list.Put(elem[0], elem[1])
+	}
+	expected := [][]int{
+		{2, 3, 4, 6, 7, 8},
+		{2, 4, 6, 7, 8},
+		{2, 6, 7, 8},
+		{7},
+	}
+	for i, expectedRow := range expected {
+		row, err := list.DebugGetRow(i)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(expectedRow) != len(row) {
+			t.Fatalf(
+				"checking row %d, expected length %d, got length %d",
+				i,
+				len(expectedRow),
+				len(row),
+			)
+		}
+		for j, key := range expectedRow {
+			if key != row[j] {
+				t.Fatalf(
+					"expected key %d at row %d depth %d, got %d",
+					key,
+					i,
+					j,
+					row[j],
+				)
+			}
+		}
+	}
 }
 
 // test size fluctuations
@@ -182,7 +233,7 @@ func TestSkiplistSize(t *testing.T) {
 
 // test overwriting an existing value
 func TestPutDifferentPositions(t *testing.T) {
-	vals := [][]int{
+	elems := [][]int{
 		{5, 5},  // from empty
 		{10, 5}, // with one after
 		{15, 5},
@@ -198,14 +249,14 @@ func TestPutDifferentPositions(t *testing.T) {
 		{2, -1},  // overwrite element after head
 		{15, -1}, // overwrite element after tail
 	}
-	list, err := skiplistFromArray(vals)
+	list, err := skiplistFromArray(elems)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// splice out elements that were overwritten
 	// 1 (10), 2 (15), 3 (0), 4 (2), 7 (20)
-	vals = append(append(vals[0:1], vals[4:7]...), vals[8:]...)
-	assertListsEquivalent(t, vals, list)
+	expected := append(append(elems[0:1], elems[5:7]...), elems[8:]...)
+	assertListsEquivalent(t, expected, list)
 }
 
 // test finding values at random points
@@ -297,10 +348,10 @@ func BenchmarkSkiplistPerformance(b *testing.B) {
 	list := memtable.NewSkiplist[int, int]()
 	rng := rand.New(rand.NewSource(1))
 	for i := 0; i < b.N; i++ {
-		val := rng.Intn(1000000)
-		list.Put(val, val)
-		val = rng.Intn(1000000)
-		list.Get(val)
+		elem := rng.Intn(1000000)
+		list.Put(elem, elem)
+		elem = rng.Intn(1000000)
+		list.Get(elem)
 	}
 }
 
@@ -308,11 +359,11 @@ func BenchmarkSkiplistReadHeavy(b *testing.B) {
 	list := memtable.NewSkiplist[int, int]()
 	rng := rand.New(rand.NewSource(1))
 	for i := 0; i < b.N; i++ {
-		val := rng.Intn(1000000)
-		list.Put(val, val)
+		elem := rng.Intn(1000000)
+		list.Put(elem, elem)
 		for j := 0; j < 3; j++ {
-			val = rng.Intn(1000000)
-			list.Get(val)
+			elem = rng.Intn(1000000)
+			list.Get(elem)
 		}
 	}
 }
@@ -321,13 +372,13 @@ func BenchmarkSkiplistWriteHeavy(b *testing.B) {
 	list := memtable.NewSkiplist[int, int]()
 	rng := rand.New(rand.NewSource(1))
 	for i := 0; i < b.N; i++ {
-		var val int
+		var elem int
 		for j := 0; j < 3; j++ {
-			val = rng.Intn(1000000)
-			list.Put(val, val)
+			elem = rng.Intn(1000000)
+			list.Put(elem, elem)
 		}
-		val = rng.Intn(1000000)
-		list.Get(val)
+		elem = rng.Intn(1000000)
+		list.Get(elem)
 	}
 }
 
@@ -335,9 +386,9 @@ func BenchmarkSkiplistReadHits(b *testing.B) {
 	list := memtable.NewSkiplist[int, int]()
 	rng := rand.New(rand.NewSource(1))
 	for i := 0; i < b.N; i++ {
-		val := rng.Intn(1000000)
-		list.Put(val, val)
-		list.Get(val)
+		elem := rng.Intn(1000000)
+		list.Put(elem, elem)
+		list.Get(elem)
 	}
 }
 
@@ -345,10 +396,10 @@ func BenchmarkSkiplistReadMisses(b *testing.B) {
 	list := memtable.NewSkiplist[int, int]()
 	rng := rand.New(rand.NewSource(1))
 	for i := 0; i < b.N; i++ {
-		val := rng.Intn(1000000)
-		list.Put(val, val)
-		val = rng.Intn(1000000) + 1000000
-		list.Get(val)
+		elem := rng.Intn(1000000)
+		list.Put(elem, elem)
+		elem = rng.Intn(1000000) + 1000000
+		list.Get(elem)
 	}
 }
 
@@ -357,12 +408,12 @@ func BenchmarkSkiplistWithDeletes(b *testing.B) {
 	rng := rand.New(rand.NewSource(1))
 	last := 0
 	for i := 0; i < b.N; i++ {
-		val := rng.Intn(1000000)
-		list.Put(val, val)
-		last = val
-		val = rng.Intn(1000000) + 1000000
-		list.Get(val)
-		if val < 1000000/2 {
+		elem := rng.Intn(1000000)
+		list.Put(elem, elem)
+		last = elem
+		elem = rng.Intn(1000000) + 1000000
+		list.Get(elem)
+		if elem < 1000000/2 {
 			list.Delete(last)
 		}
 	}
