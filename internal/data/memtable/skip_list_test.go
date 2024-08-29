@@ -257,27 +257,130 @@ func TestPutDifferentPositions(t *testing.T) {
 	// 1 (10), 2 (15), 3 (0), 4 (2), 7 (20)
 	expected := append(append(elems[0:1], elems[5:7]...), elems[8:]...)
 	assertListsEquivalent(t, expected, list)
-}
-
-// test finding values at random points
-func TestSkiplistInsertPoints(t *testing.T) {
-	// before list
-	// after end of list
-	// in middle
+	// expect deduplication on count
+	if list.Size != 8 {
+		t.Fatalf(
+			"expected list size to be %d after Puts, got %d",
+			8,
+			list.Size,
+		)
+	}
 }
 
 func TestSkiplistGetPoints(t *testing.T) {
-	// key before first
-	// first element
-	// key exists in middle
-	// key doesnt exist in middle
-	// last element
-	// key beyond last element
+	elems := [][]int{
+		{5, 10},
+		{10, 20},
+		{15, 5},
+		{0, 15},
+		{20, 0},
+	}
+	list, err := skiplistFromArray(elems)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, test := range []struct {
+		key    int
+		val    int
+		inList bool
+	}{
+		// key, val, inList
+		{-5, -1, false}, // before head
+		{0, 15, true},   // head
+		{2, -1, false},  // in between head and next node
+		{5, 10, true},   // value after head
+		{8, -1, false},  // value missing in the middle
+		{10, 20, true},  // value in middle of list
+		{15, 5, true},   // last value before tail
+		{20, 0, true},   // tail
+		{25, -1, false}, // after tail
+	} {
+		node := list.Get(test.key)
+		if node == nil {
+			if !test.inList {
+				continue
+			} else {
+				t.Fatalf("expected Get key %d to return value, but returned nil", test.key)
+			}
+		}
+		if !test.inList {
+			t.Fatalf("expected Get key %d to return nil, but returned key %d", test.key, node.Key)
+		}
+		if node.Key != test.key {
+			t.Fatalf("Get return incorrect key %d for key %d", node.Key, test.key)
+		}
+		if node.Val != test.val {
+			t.Fatalf("Get return incorrect val %d, expected %d", node.Val, test.val)
+		}
+	}
+	if list.Size != 5 {
+		t.Fatalf(
+			"expected list size to be %d after Gets, got %d",
+			5,
+			list.Size,
+		)
+	}
 }
 
 func TestSkiplistDelete(t *testing.T) {
-	// deleting element that exists
-	// deleting element which doesn't exist
+	elems := [][]int{
+		{0, 0},
+		{5, 5},
+		{10, 10},
+		{15, 15},
+		{20, 20},
+		{25, 25},
+		{30, 30},
+		{35, 35},
+	}
+	list, err := skiplistFromArray(elems)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, test := range []struct {
+		key    int
+		val    int
+		inList bool
+	}{
+		// key, val, inList
+		{-5, -1, false}, // before head
+		{0, 0, true},    // head
+		{2, -1, false},  // in between head and next node
+		{5, 5, true},    // value after head
+		{8, -1, false},  // value missing in the middle
+		{10, 10, true},  // value in middle of list
+		{30, 30, true},  // last value before tail
+		{35, 35, true},  // tail
+		{40, -1, false}, // after tail
+	} {
+		node := list.Delete(test.key)
+		if node == nil {
+			if !test.inList {
+				continue
+			} else {
+				t.Fatalf("expected Get key %d to return value, but returned nil", test.key)
+			}
+		}
+		if !test.inList {
+			t.Fatalf("expected Get key %d to return nil, but returned key %d", test.key, node.Key)
+		}
+		if node.Key != test.key {
+			t.Fatalf("Get return incorrect key %d for key %d", node.Key, test.key)
+		}
+		if node.Val != test.val {
+			fmt.Println(node.Key, test.key)
+			t.Fatalf("Get return incorrect val %d, expected %d", node.Val, test.val)
+		}
+	}
+	if list.Size != 3 {
+		t.Fatalf(
+			"expected list size to be %d after Deletes, got %d",
+			3,
+			list.Size,
+		)
+	}
 }
 
 // Things to test
