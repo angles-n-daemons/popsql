@@ -2,27 +2,14 @@ package scanner
 
 import "fmt"
 
-func recurse(tk Token, source string) ([]Token, error) {
-	switch tokens, err := Scan(source); err {
-	case nil:
-		return append([]Token{tk}, tokens...), nil
-	default:
-		return nil, err
-	}
-}
-
-func scanStr(s string, source string) ([]Token, error) {
-	if len(source) == 0 {
-		return nil, fmt.Errorf("reached end of input parsing string.")
-	}
-
-	switch c := source[0:1]; c {
-	case "'":
-		return recurse(NewToken(STRING, s, s), source[1:])
-	default:
-		return scanStr(s+c, source[1:])
-	}
-}
+/*
+NUMBER         → DIGIT+ ( "." DIGIT+ )? ;
+STRING         → "\"" <any char except "\"">* "\"" ;
+IDENTIFIER     → ALPHA ( ALPHA | DIGIT )* ;
+ALPHA          → "a" ... "z" | "A" ... "Z" | "_" ;
+DIGIT          → "0" ... "9" ;
+KEYWORDS       → "SELECT" | "FROM" | "WHERE" | "GROUP BY" | "OFFSET" | "LIMIT"
+*/
 
 func Scan(source string) ([]Token, error) {
 	if len(source) == 0 {
@@ -49,9 +36,32 @@ func Scan(source string) ([]Token, error) {
 	}
 }
 
+func recurse(tk Token, source string) ([]Token, error) {
+	switch tokens, err := Scan(source); err {
+	case nil:
+		return append([]Token{tk}, tokens...), nil
+	default:
+		return nil, err
+	}
+}
+
+func scanStr(s string, source string) ([]Token, error) {
+	if len(source) == 0 {
+		return nil, fmt.Errorf("reached end of input parsing string.")
+	}
+
+	switch c := source[0:1]; c {
+	case "'":
+		return recurse(NewToken(STRING, s, s), source[1:])
+	default:
+		return scanStr(s+c, source[1:])
+	}
+}
+
 func check(source string, keyword string) bool {
 	if len(source) < len(keyword) {
 		return false
 	}
+	// TODO check case insensitive
 	return source[:len(keyword)] == keyword
 }
