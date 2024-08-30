@@ -1,12 +1,28 @@
-package scanner_test
+package scanner
 
 import (
+	"fmt"
+	"math/rand"
+	"strings"
 	"testing"
-
-	scanner "github.com/angles-n-daemons/popsql/internal/sql/parser/scanner"
 )
 
-func assertTokensEqual(t *testing.T, expected scanner.Token, actual scanner.Token) {
+func athousandrandomtokens() string {
+	rng := rand.New(rand.NewSource(0))
+	keys := []string{}
+	poem := make([]string, 1000)
+	for key := range keywordLookup {
+		keys = append(keys, key)
+	}
+	for i := 0; i < 1000; i++ {
+		poem[i] = keys[rng.Intn(len(keys))]
+	}
+	return strings.Join(poem, " ")
+}
+
+var tokenpoem = athousandrandomtokens()
+
+func assertTokensEqual(t *testing.T, expected Token, actual Token) {
 	if expected.Type != actual.Type {
 		t.Fatalf(
 			"tokens unequal, expected type %s, got %s",
@@ -31,16 +47,45 @@ func assertTokensEqual(t *testing.T, expected scanner.Token, actual scanner.Toke
 }
 
 func TestScannerBasic(t *testing.T) {
-	tokens, err := scanner.Scan("SELECT 'hi', 'bye'")
+	tokens, err := Scan("SELECT 'hi', 'bye'")
 	if err != nil {
 		t.Fatal(err)
 	}
-	for i, expected := range []scanner.Token{
-		scanner.SimpleToken(scanner.SELECT, "SELECT"),
-		scanner.NewToken(scanner.STRING, "hi", "hi"),
-		scanner.SimpleToken(scanner.COMMA, ","),
-		scanner.NewToken(scanner.STRING, "bye", "bye"),
+	for i, expected := range []Token{
+		SimpleToken(SELECT, "SELECT"),
+		NewToken(STRING, "hi", "hi"),
+		SimpleToken(COMMA, ","),
+		NewToken(STRING, "bye", "bye"),
 	} {
 		assertTokensEqual(t, expected, tokens[i])
+	}
+}
+
+func TestScanningMethods(t *testing.T) {
+	ergnorelen := func(tokens []Token, err error) int {
+		return len(tokens)
+	}
+	fmt.Println("Scan", ergnorelen(Scan(tokenpoem)))
+	fmt.Println("ScanWithMap", ergnorelen(ScanWithMap(tokenpoem)))
+	fmt.Println("ScanWithTrie", ergnorelen(ScanWithTrie(tokenpoem)))
+	keywordtrie.walk(0)
+
+}
+
+func BenchmarkScanIfStatements(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Scan(tokenpoem)
+	}
+}
+
+func BenchmarkScanWithMap(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		ScanWithMap(tokenpoem)
+	}
+}
+
+func BenchmarkScanWithTrie(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		ScanWithTrie(tokenpoem)
 	}
 }

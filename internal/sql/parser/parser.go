@@ -20,9 +20,10 @@ insert          → "INSERT INTO " table parameters
 column          → identifier type
 type            → "integer" | "varchar" | "boolean"
 
-expression      → or
-or              → and "OR" and
-and             → equality "AND" equality
+expression      → logic_or
+assignment      → (identifier ".")* identifier "=" logic_or
+logic_or        → logic_and "OR" and
+logic_and       → equality "AND" equality
 equality        → comparison ( ( "!=" | "==" ) comparison)*
 comparison      → term ( ( ">" | ">=" | "<" | "<=" ) term)*
 term            → factor ( ( "-" | "+" ) factor )*
