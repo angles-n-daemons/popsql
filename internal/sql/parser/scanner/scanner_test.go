@@ -73,6 +73,16 @@ func TestScanningMethods(t *testing.T) {
 
 }
 
+// BenchmarkScanIfStatements
+// BenchmarkScanIfStatements-11                 354           3179018 ns/op
+// BenchmarkScanWithMap
+// BenchmarkScanWithMap-11                      564           2066271 ns/op
+// BenchmarkScanWithTrie
+// BenchmarkScanWithTrie-11                     580           2080027 ns/op
+// BenchmarkScanSequential
+// BenchmarkScanSequential-11                 21890             54766 ns/op
+// PASS
+
 func BenchmarkScanIfStatements(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		Scan(tokenpoem)
