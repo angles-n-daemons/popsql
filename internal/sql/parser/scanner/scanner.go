@@ -150,6 +150,180 @@ func Scan(s string) ([]Token, error) {
 	}
 }
 
+func ScanSequential(s string) ([]Token, error) {
+	checkSeq := func(source string, i int, keyword string) bool {
+		if len(source) < i+len(keyword) {
+			return false
+		}
+		// TODO check case insensitive
+		return source[:len(keyword)] == keyword
+	}
+	i := 0
+	tokens := []Token{}
+	for i < len(s) {
+		switch c := s[0:1]; c {
+		case ",":
+			i++
+			tokens = append(tokens, SimpleToken(COMMA, s[:1]))
+		case "(":
+			i++
+			tokens = append(tokens, SimpleToken(LEFT_PAREN, s[:1]))
+		case ")":
+			i++
+			tokens = append(tokens, SimpleToken(RIGHT_PAREN, s[:1]))
+		case ".":
+			i++
+			tokens = append(tokens, SimpleToken(DOT, s[:1]))
+		case "-":
+			i++
+			tokens = append(tokens, SimpleToken(MINUS, s[:1]))
+		case "+":
+			i++
+			tokens = append(tokens, SimpleToken(PLUS, s[:1]))
+		case "*":
+			i++
+			tokens = append(tokens, SimpleToken(STAR, s[:1]))
+		case "/":
+			i++
+			tokens = append(tokens, SimpleToken(SLASH, s[:1]))
+		case ";":
+			i++
+			tokens = append(tokens, SimpleToken(SEMICOLON, s[:1]))
+		case "!":
+			if len(s) > i+1 && s[1:2] == "=" {
+				i += 2
+				tokens = append(tokens, SimpleToken(BANG_EQUAL, s[:2]))
+			} else {
+				i++
+				tokens = append(tokens, SimpleToken(BANG, s[:1]))
+			}
+		case "=":
+			if len(s) > i+1 && s[1:2] == "=" {
+				i += 2
+				tokens = append(tokens, SimpleToken(EQUAL_EQUAL, s[:2]))
+			} else {
+				i++
+				tokens = append(tokens, SimpleToken(EQUAL, s[:1]))
+			}
+		case ">":
+			if len(s) > i+1 && s[1:2] == "=" {
+				i += 2
+				tokens = append(tokens, SimpleToken(GREATER_EQUAL, s[:2]))
+			} else {
+				i++
+				tokens = append(tokens, SimpleToken(GREATER, s[:1]))
+			}
+		case "<":
+			if len(s) > i+1 && s[1:2] == "=" {
+				i += 2
+				tokens = append(tokens, SimpleToken(LESS_EQUAL, s[:2]))
+			} else {
+				i++
+				tokens = append(tokens, SimpleToken(LESS, s[:1]))
+			}
+		case "D":
+			switch {
+			case checkSeq(s, i, "DELETE"):
+				i += 6
+				tokens = append(tokens, SimpleToken(DELETE, s[:6]))
+			default:
+				return nil, fmt.Errorf("unmatched character 'D'")
+			}
+		case "V":
+			switch {
+			case checkSeq(s, i, "VALUES"):
+				i += 6
+				tokens = append(tokens, SimpleToken(VALUES, s[:6]))
+			default:
+				return nil, fmt.Errorf("unmatched character 'L'")
+			}
+		case "N":
+			switch {
+			case checkSeq(s, i, "NOT"):
+				i += 3
+				tokens = append(tokens, SimpleToken(NOT, s[:3]))
+			default:
+				return nil, fmt.Errorf("unmatched character 'L'")
+			}
+		case "L":
+			switch {
+			case checkSeq(s, i, "LIMIT"):
+				i += 5
+				tokens = append(tokens, SimpleToken(LIMIT, s[:6]))
+			default:
+				return nil, fmt.Errorf("unmatched character 'L'")
+			}
+		case "O":
+			switch {
+			case checkSeq(s, i, "OFFSET"):
+				i += 6
+				tokens = append(tokens, SimpleToken(OFFSET, s[:6]))
+			default:
+				return nil, fmt.Errorf("unmatched character 'O'")
+			}
+		case "G":
+			switch {
+			case checkSeq(s, i, "GROUP"):
+				i += 5
+				tokens = append(tokens, SimpleToken(GROUP, s[:5]))
+			default:
+				return nil, fmt.Errorf("unmatched character 'G'")
+			}
+		case "W":
+			switch {
+			case checkSeq(s, i, "WHERE"):
+				i += 5
+				tokens = append(tokens, SimpleToken(WHERE, s[:5]))
+			default:
+				return nil, fmt.Errorf("unmatched character 'W'")
+			}
+		case "C":
+			switch {
+			case checkSeq(s, i, "CREATE"):
+				tokens = append(tokens, SimpleToken(CREATE, s[:6]))
+			default:
+				return nil, fmt.Errorf("unmatched character 'C'")
+			}
+		case "F":
+			switch {
+			case checkSeq(s, i, "FROM"):
+				tokens = append(tokens, SimpleToken(FROM, s[:4]))
+			default:
+				return nil, fmt.Errorf("unmatched character 'F'")
+			}
+		case "I":
+			switch {
+			case checkSeq(s, i, "INSERT"):
+				tokens = append(tokens, SimpleToken(INSERT, s[:6]))
+			default:
+				return nil, fmt.Errorf("unmatched character 'I'")
+			}
+		case "S":
+			switch {
+			case checkSeq(s, i, "SELECT"):
+				tokens = append(tokens, SimpleToken(SELECT, s[:6]))
+			case checkSeq(s, i, "SET"):
+				tokens = append(tokens, SimpleToken(SET, s[:3]))
+			default:
+				return nil, fmt.Errorf("unmatched character 'S'")
+			}
+		case "U":
+			switch {
+			case check(s, "UPDATE"):
+				tokens = append(tokens, SimpleToken(UPDATE, s[:6]))
+			default:
+				return nil, fmt.Errorf("unmatched character 'U'")
+			}
+		case " ", "\n", "\t":
+			i++
+			return Scan(s[1:])
+		default:
+			return nil, fmt.Errorf("unexpected character '%s'.", c)
+		}
+	}
+	return tokens, nil
+}
+
 func ScanWithMap(s string) ([]Token, error) {
 	if len(s) == 0 {
 		return []Token{}, nil
@@ -176,15 +350,16 @@ func ScanWithTrie(s string) ([]Token, error) {
 	}
 	switch s[:1] {
 	case " ", "\n", "\t":
-		return ScanWithMap(s[1:])
+		return ScanWithTrie(s[1:])
 	default:
 		if token := keywordtrie.get(s, 0); token != nil {
 			fwd := len(token.Lexeme)
 			return recurse(*token, ScanWithTrie, s[fwd:])
+		} else {
+			return nil, fmt.Errorf("Unseen character '%s'", s[:1])
 		}
 
 	}
-	return nil, fmt.Errorf("unexpected character '%s'.", s[:1])
 }
 
 func recurse(tk Token, f func(string) ([]Token, error), source string) ([]Token, error) {

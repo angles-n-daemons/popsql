@@ -162,12 +162,14 @@ func (t *trie) walk(i int) {
 func (t *trie) get(search string, i int) *Token {
 	// if the character has a child, look at the child
 	if i < len(search) {
+		// if the child
 		if child, ok := t.children[search[i]]; ok {
 			if token := child.get(search, i+1); token != nil {
 				return token
 			}
 		}
-	} else if t.ttype != NONE {
+	}
+	if t.ttype != NONE {
 		token := SimpleToken(
 			t.ttype,
 			search[:i],

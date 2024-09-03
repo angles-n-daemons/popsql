@@ -63,6 +63,7 @@ func TestScannerBasic(t *testing.T) {
 
 func TestScanningMethods(t *testing.T) {
 	ergnorelen := func(tokens []Token, err error) int {
+		fmt.Println(err)
 		return len(tokens)
 	}
 	fmt.Println("Scan", ergnorelen(Scan(tokenpoem)))
@@ -87,5 +88,11 @@ func BenchmarkScanWithMap(b *testing.B) {
 func BenchmarkScanWithTrie(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		ScanWithTrie(tokenpoem)
+	}
+}
+
+func BenchmarkScanSequential(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		ScanSequential(tokenpoem)
 	}
 }
