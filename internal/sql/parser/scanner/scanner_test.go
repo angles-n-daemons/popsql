@@ -1,7 +1,6 @@
 package scanner
 
 import (
-	"fmt"
 	"math/rand"
 	"strings"
 	"testing"
@@ -22,7 +21,7 @@ func athousandrandomtokens() string {
 
 var tokenpoem = athousandrandomtokens()
 
-func assertTokensEqual(t *testing.T, expected Token, actual Token) {
+func assertTokensEqual(t *testing.T, expected *Token, actual *Token) {
 	if expected.Type != actual.Type {
 		t.Fatalf(
 			"tokens unequal, expected type %s, got %s",
@@ -51,7 +50,7 @@ func TestScannerBasic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for i, expected := range []Token{
+	for i, expected := range []*Token{
 		SimpleToken(SELECT, "SELECT"),
 		NewToken(STRING, "hi", "hi"),
 		SimpleToken(COMMA, ","),
@@ -59,18 +58,6 @@ func TestScannerBasic(t *testing.T) {
 	} {
 		assertTokensEqual(t, expected, tokens[i])
 	}
-}
-
-func TestScanningMethods(t *testing.T) {
-	ergnorelen := func(tokens []Token, err error) int {
-		fmt.Println(err)
-		return len(tokens)
-	}
-	fmt.Println("Scan", ergnorelen(Scan(tokenpoem)))
-	fmt.Println("ScanWithMap", ergnorelen(ScanWithMap(tokenpoem)))
-	fmt.Println("ScanWithTrie", ergnorelen(ScanWithTrie(tokenpoem)))
-	keywordtrie.walk(0)
-
 }
 
 // BenchmarkScanIfStatements
@@ -83,26 +70,12 @@ func TestScanningMethods(t *testing.T) {
 // BenchmarkScanSequential-11                 21890             54766 ns/op
 // PASS
 
-func BenchmarkScanIfStatements(b *testing.B) {
+// pkg: github.com/angles-n-daemons/popsql/internal/sql/parser/scanner
+// BenchmarkScanTokenPoem
+// BenchmarkScanTokenPoem-11          15246             76651 ns/op
+
+func BenchmarkScanTokenPoem(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		Scan(tokenpoem)
-	}
-}
-
-func BenchmarkScanWithMap(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		ScanWithMap(tokenpoem)
-	}
-}
-
-func BenchmarkScanWithTrie(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		ScanWithTrie(tokenpoem)
-	}
-}
-
-func BenchmarkScanSequential(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		ScanSequential(tokenpoem)
 	}
 }
