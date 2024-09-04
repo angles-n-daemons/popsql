@@ -1,4 +1,4 @@
-package scanner
+package parser
 
 import "fmt"
 
@@ -11,8 +11,8 @@ DIGIT          → "0" ... "9" ;
 KEYWORDS       → "SELECT" | "FROM" | "WHERE" | "GROUP BY" | "OFFSET" | "LIMIT"
 */
 
-func Scan(s string) ([]*Token, error) {
-	tokens := []*Token{}
+func Scan(s string) ([]*token, error) {
+	tokens := []*token{}
 	i := 0
 
 	for !isAtEnd(s, i+1) {
@@ -23,7 +23,7 @@ func Scan(s string) ([]*Token, error) {
 			}
 			word := s[i:j]
 			if ttype, ok := keywordLookup[word]; ok {
-				tokens = append(tokens, SimpleToken(ttype, word))
+				tokens = append(tokens, simpleToken(ttype, word))
 				i += len(word)
 				continue
 			}
@@ -39,7 +39,6 @@ func Scan(s string) ([]*Token, error) {
 			}
 			tokens = append(tokens, token)
 			i += len(token.Lexeme) + 2
-
 		default:
 			fmt.Println(s[i : i+6])
 			return nil, fmt.Errorf("unknown character '%s'", c)
@@ -52,12 +51,12 @@ func isAtEnd(s string, i int) bool {
 	return len(s) <= i
 }
 
-func scanStr(s string, start int) (*Token, error) {
+func scanStr(s string, start int) (*token, error) {
 	i := start
 	for !isAtEnd(s, i) {
 		switch c := s[i : i+1]; c {
 		case "'":
-			return NewToken(STRING, s[start:i], s[start:i]), nil
+			return newToken(STRING, s[start:i], s[start:i]), nil
 		default:
 			i++
 

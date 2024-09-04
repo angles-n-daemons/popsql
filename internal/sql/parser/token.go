@@ -1,10 +1,10 @@
-package scanner
+package parser
 
-type TokenType int
+type tokenType int
 
 const (
 	// single character tokens
-	NONE TokenType = iota
+	NONE tokenType = iota
 	COMMA
 	LEFT_PAREN
 	RIGHT_PAREN
@@ -54,7 +54,7 @@ const (
 	VALUES
 )
 
-var keywordLookup = map[string]TokenType{
+var keywordLookup = map[string]tokenType{
 	",":      COMMA,
 	"(":      LEFT_PAREN,
 	")":      RIGHT_PAREN,
@@ -90,16 +90,16 @@ var keywordLookup = map[string]TokenType{
 	"VALUES": VALUES,
 }
 
-type Token struct {
-	Type    TokenType
+type token struct {
+	Type    tokenType
 	Lexeme  string
 	Literal any
 }
 
-func SimpleToken(ttype TokenType, lexeme string) *Token {
-	return NewToken(ttype, lexeme, nil)
+func simpleToken(ttype tokenType, lexeme string) *token {
+	return newToken(ttype, lexeme, nil)
 }
 
-func NewToken(ttype TokenType, lexeme string, literal any) *Token {
-	return &Token{ttype, lexeme, literal}
+func newToken(ttype tokenType, lexeme string, literal any) *token {
+	return &token{ttype, lexeme, literal}
 }

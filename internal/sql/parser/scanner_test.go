@@ -1,4 +1,4 @@
-package scanner
+package parser
 
 import (
 	"math/rand"
@@ -21,7 +21,7 @@ func athousandrandomtokens() string {
 
 var tokenpoem = athousandrandomtokens()
 
-func assertTokensEqual(t *testing.T, expected *Token, actual *Token) {
+func assertTokensEqual(t *testing.T, expected *token, actual *token) {
 	if expected.Type != actual.Type {
 		t.Fatalf(
 			"tokens unequal, expected type %s, got %s",
@@ -50,11 +50,11 @@ func TestScannerBasic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for i, expected := range []*Token{
-		SimpleToken(SELECT, "SELECT"),
-		NewToken(STRING, "hi", "hi"),
-		SimpleToken(COMMA, ","),
-		NewToken(STRING, "bye", "bye"),
+	for i, expected := range []*token{
+		simpleToken(SELECT, "SELECT"),
+		newToken(STRING, "hi", "hi"),
+		simpleToken(COMMA, ","),
+		newToken(STRING, "bye", "bye"),
 	} {
 		assertTokensEqual(t, expected, tokens[i])
 	}
