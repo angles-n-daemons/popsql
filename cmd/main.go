@@ -2,26 +2,20 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
-
-	"github.com/angles-n-daemons/popsql/internal/data/memtable"
+	"os"
 )
 
 func main() {
-	// test skiplist first
-	rng := rand.New(rand.NewSource(1))
-	list := memtable.NewSkiplist[int, int]()
-	start := time.Now()
-	for i := 0; i < 50; i++ {
-		val := rng.Intn(200)
-		list.Put(val, val)
+	if len(os.Args) == 1 {
+		os.Args = append(os.Args, "help")
 	}
-	memtable.DebugPrintIntList(list, 5)
-	for i := 0; i < 20; i++ {
-		val := rng.Intn(200)
-		list.Get(val)
+
+	switch command := os.Args[1]; command {
+	case "help":
+		fmt.Println("popsql <command>")
+		os.Exit(0)
+	default:
+		fmt.Printf("unknown command %s", command)
+		os.Exit(1)
 	}
-	duration := time.Since(start).Milliseconds()
-	fmt.Printf("skiplist took %d ms\n", duration)
 }

@@ -1,0 +1,41 @@
+// Statements
+
+statement       → insert | select | update | delete | create;
+
+create          → "CREATE" "TABLE" table "("
+		   column_spec ( "," column_spec)*
+                   ")";
+
+select          → "SELECT" expression_list
+                  ( "FROM" table_expr)?
+                  ( "WHERE" logic_or)?
+                  ( "GROUP BY" expression_list)?
+                  ( "OFFSET" expression)?
+                  ( "LIMIT" expression)?;
+
+insert          → "INSERT" "INTO " table parameters
+                  ("VALUES" tuple ("," tuple)*) | select;
+
+update          → "UPDATE" table
+                  "SET" assignment (, assignment)*
+                  "WHERE" expression_list;
+
+// Expressions
+
+expression      → logic_or;
+assignment      → (identifier ".")* identifier "=" logic_or;
+logic_or        → logic_and "OR" and;
+logic_and       → equality "AND" equality;
+equality        → comparison ( ( "!=" | "==" ) comparison)*;
+comparison      → term ( ( ">" | ">=" | "<" | "<=" ) term)*;
+term            → factor ( ( "-" | "+" ) factor )*;
+factor          → unary ( ( "/" | "*" ) unary)*;
+primary         → "true" | "false" | "nil" |
+                  NUMBER | STRING | IDENTIFIER | "(" expression ")";
+
+expression_list → expression  (","  expression)*;
+parameters      → identifier  (","  identifier)*;
+tuple           → "("  expression_list  ")";
+
+column          → identifier type;
+type            → "integer" | "varchar" | "boolean";
