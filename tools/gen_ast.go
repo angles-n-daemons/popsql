@@ -16,22 +16,18 @@ func main() {
 // some
 
 var exprAST = `
-Binary   = Expr left, Token operator, Expr right
-`
-var x = `
-Grouping = Expr expr
+Binary   = Expr left, parser.Token operator, Expr right
 Literal  = any value
-Unary    = Token operator, Expr right
+Unary    = parser.Token operator, Expr right
 List     = []Expr exprs
 `
 
 var walkFuncSignature = `
-type walkFunc[T any] func(Expr[T]) error
+type walkFunc func(Expr) error
 `
 
 var exprInterface = `
-type Expr[T any] interface {
-	Accept(visitor Visitor[T]) error
+type Expr interface {
 	Walk(walkFunc) error
 }
 `
@@ -89,20 +85,25 @@ func GenAST() string {
 	}
 
 	newline("package grammar")
+
+	newline("import (")
+	newline("\t\"fmt\"")
+	newline("\t\"github.com/angles-n-deaemons/popsql/internal/sql/parser\"")
+	newline(")")
+
 	newline(walkFuncSignature)
 	newline(exprInterface)
 
 	grammar := parseExprGrammar(exprAST)
 
 	newline(formatVisitor(grammar))
+	newline(formatVisit(grammar))
 
 	for _, ttype := range grammar {
 		newline("")
 		newline(formatStruct(ttype))
 		newline("")
 		newline(formatWalk(ttype))
-		newline("")
-		newline(formatVisit(ttype))
 		newline("")
 	}
 	return ast
@@ -142,17 +143,28 @@ func formatWalk(ttype treeType) string {
 	return walkStr
 }
 
-func formatVisit(ttype treeType) string {
-	visitStr := fmt.Sprintf("func (e %s) Visit(v ExprVisitor) error {\n", ttype.name)
-	visitStr += fmt.Sprintf("\treturn v.Visit%[1]sExpr(e)\n", ttype.name)
-	visitStr += "}"
+func formatVisit(grammar []treeType) string {
+	visitStr := "func Visit[T any](expr Expr, visitor ExprVisitor[T]) (*T, error) {\n"
+	newline := func(s string) {
+		visitStr += s + "\n"
+	}
+	newline("\tswitch typedExpr := expr.(type) {")
+	for _, ttype := range grammar {
+		newline(fmt.Sprintf("\tcase %s:", ttype.name))
+		newline(fmt.Sprintf("\t\treturn visitor.Visit%sExpr(typedExpr)", ttype.name))
+	}
+	newline("\tdefault:")
+	newline("\t\treturn nil, fmt.Errorf(\"unable to visit type %T\", typedExpr)")
+
+	newline("\t}")
+	newline("}")
 	return visitStr
 }
 
 func formatVisitor(grammar []treeType) string {
-	visitorStr := "type ExprVisitor interface {\n"
+	visitorStr := "type ExprVisitor[T any] interface {\n"
 	for _, ttype := range grammar {
-		visitorStr += fmt.Sprintf("\tVisit%[1]sExpr(%[1]s) error\n", ttype.name)
+		visitorStr += fmt.Sprintf("\tVisit%[1]sExpr(%[1]s) (*T, error)\n", ttype.name)
 	}
 	visitorStr += "}"
 	return visitorStr
