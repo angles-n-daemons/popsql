@@ -88,7 +88,7 @@ func GenAST() string {
 
 	newline("import (")
 	newline("\t\"fmt\"")
-	newline("\t\"github.com/angles-n-deaemons/popsql/internal/sql/parser\"")
+	newline("\t\"github.com/angles-n-daemons/popsql/pkg/sql/parser\"")
 	newline(")")
 
 	newline(walkFuncSignature)
@@ -128,6 +128,9 @@ func formatWalk(ttype treeType) string {
 	}
 	newline("\tvar err error")
 	for _, field := range ttype.fields {
+		if !strings.Contains(field.ftype, "Expr") {
+			continue
+		}
 		if field.isarray {
 			newline(fmt.Sprintf("\tfor i := 0; i < len(e.%s); i++ {", field.name))
 			newline(fmt.Sprintf("\t\terr = e.%s[i].Walk(f)", field.name))
@@ -138,7 +141,7 @@ func formatWalk(ttype treeType) string {
 			newline(errNilReturn(1))
 		}
 	}
-	newline("\treturn nil")
+	newline("\treturn err")
 	newline("}")
 	return walkStr
 }

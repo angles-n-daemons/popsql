@@ -21,7 +21,7 @@ func athousandrandomtokens() string {
 
 var tokenpoem = athousandrandomtokens()
 
-func assertTokensEqual(t *testing.T, expected *token, actual *token) {
+func assertTokensEqual(t *testing.T, expected *Token, actual *Token) {
 	if expected.Type != actual.Type {
 		t.Fatalf(
 			"tokens unequal, expected type %s, got %s",
@@ -50,7 +50,7 @@ func TestScannerBasic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for i, expected := range []*token{
+	for i, expected := range []*Token{
 		simpleToken(SELECT, "SELECT"),
 		newToken(STRING, "hi", "hi"),
 		simpleToken(COMMA, ","),

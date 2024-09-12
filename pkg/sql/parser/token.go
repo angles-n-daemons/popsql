@@ -90,16 +90,16 @@ var keywordLookup = map[string]tokenType{
 	"VALUES": VALUES,
 }
 
-type token struct {
+type Token struct {
 	Type    tokenType
 	Lexeme  string
 	Literal any
 }
 
-func simpleToken(ttype tokenType, lexeme string) *token {
+func simpleToken(ttype tokenType, lexeme string) *Token {
 	return newToken(ttype, lexeme, nil)
 }
 
-func newToken(ttype tokenType, lexeme string, literal any) *token {
-	return &token{ttype, lexeme, literal}
+func newToken(ttype tokenType, lexeme string, literal any) *Token {
+	return &Token{ttype, lexeme, literal}
 }

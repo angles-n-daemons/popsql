@@ -1,11 +1,12 @@
 package grammar
+
 import (
 	"fmt"
-	"github.com/angles-n-deaemons/popsql/internal/sql/parser"
+
+	"github.com/angles-n-daemons/popsql/pkg/sql/parser"
 )
 
 type walkFunc func(Expr) error
-
 
 type Expr interface {
 	Walk(walkFunc) error
@@ -17,6 +18,7 @@ type ExprVisitor[T any] interface {
 	VisitUnaryExpr(Unary) (*T, error)
 	VisitListExpr(List) (*T, error)
 }
+
 func Visit[T any](expr Expr, visitor ExprVisitor[T]) (*T, error) {
 	switch typedExpr := expr.(type) {
 	case Binary:
@@ -32,13 +34,11 @@ func Visit[T any](expr Expr, visitor ExprVisitor[T]) (*T, error) {
 	}
 }
 
-
 type Binary struct {
-	left Expr
+	left     Expr
 	operator parser.Token
-	right Expr
+	right    Expr
 }
-
 
 func (e Binary) Walk(f walkFunc) error {
 	var err error
@@ -48,70 +48,43 @@ func (e Binary) Walk(f walkFunc) error {
 		return err
 	}
 
-	err = e.operator.Walk(f)
-
-	if err != nil {
-		return err
-	}
-
 	err = e.right.Walk(f)
 
 	if err != nil {
 		return err
 	}
 
-	return nil
+	return err
 }
-
-
 
 type Literal struct {
 	value any
 }
 
-
 func (e Literal) Walk(f walkFunc) error {
 	var err error
-	err = e.value.Walk(f)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
-
-
 
 type Unary struct {
 	operator parser.Token
-	right Expr
+	right    Expr
 }
-
 
 func (e Unary) Walk(f walkFunc) error {
 	var err error
-	err = e.operator.Walk(f)
-
-	if err != nil {
-		return err
-	}
-
 	err = e.right.Walk(f)
 
 	if err != nil {
 		return err
 	}
 
-	return nil
+	return err
 }
-
-
 
 type List struct {
 	exprs []Expr
 }
-
 
 func (e List) Walk(f walkFunc) error {
 	var err error
@@ -123,8 +96,5 @@ func (e List) Walk(f walkFunc) error {
 		}
 
 	}
-	return nil
+	return err
 }
-
-
-

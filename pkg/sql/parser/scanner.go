@@ -11,8 +11,8 @@ DIGIT          → "0" ... "9" ;
 KEYWORDS       → "SELECT" | "FROM" | "WHERE" | "GROUP BY" | "OFFSET" | "LIMIT"
 */
 
-func Scan(s string) ([]*token, error) {
-	tokens := []*token{}
+func Scan(s string) ([]*Token, error) {
+	tokens := []*Token{}
 	i := 0
 
 	for !isAtEnd(s, i+1) {
@@ -51,7 +51,7 @@ func isAtEnd(s string, i int) bool {
 	return len(s) <= i
 }
 
-func scanStr(s string, start int) (*token, error) {
+func scanStr(s string, start int) (*Token, error) {
 	i := start
 	for !isAtEnd(s, i) {
 		switch c := s[i : i+1]; c {
