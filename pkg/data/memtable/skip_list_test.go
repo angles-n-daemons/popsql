@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/angles-n-daemons/popsql/internal/data/memtable"
+	"github.com/angles-n-daemons/popsql/pkg/data/memtable"
 )
 
 const (

@@ -39,3 +39,5 @@ tuple           → "("  expression_list  ")";
 
 column          → identifier type;
 type            → "integer" | "varchar" | "boolean";
+
+// lexical grammar

@@ -1,4 +1,4 @@
-package parser
+package scanner
 
 import "fmt"
 
@@ -32,6 +32,8 @@ func Scan(s string) ([]*Token, error) {
 		switch c := s[i : i+1]; c {
 		case " ", "\n", "\t":
 			i++
+		// identifier
+		// number
 		case "'":
 			token, err := scanStr(s, i+1)
 			if err != nil {
@@ -62,5 +64,5 @@ func scanStr(s string, start int) (*Token, error) {
 
 		}
 	}
-	return nil, fmt.Errorf("reached end of input parsing string")
+	return nil, fmt.Errorf("reached end of input scanning string")
 }
