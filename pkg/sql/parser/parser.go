@@ -7,26 +7,61 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
-func Parse(s string) (ast.Expr, error) {
+func Parse(s string) (ast.Stmt, error) {
 	tokens, err := scanner.Scan(s)
 	if err != nil {
 		return nil, err
 	}
-	expr, i, err := expression(tokens, 0)
+	stmt, i, err := statement(tokens, 0)
 	if err != nil {
 		return nil, err
 	}
 	if !isAtEnd(tokens, i) {
 		return nil, fmt.Errorf("finished parsing without consuming all input")
 	}
-	return expr, err
+	return stmt, err
 }
 
 type expressionSig func([]*scanner.Token, int) (ast.Expr, int, error)
 
+func statement(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
+	switch tokens[i].Type {
+	case scanner.SELECT:
+		return selectStmt(tokens, i+1)
+	default:
+		return nil, i, fmt.Errorf("unexpected token %s looking for statement", tokens[i].Type)
+	}
+}
+
+func selectStmt(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
+	terms, i, err := expressionList(tokens, i)
+	if err != nil {
+		return nil, i, err
+	}
+	return &ast.Select{Terms: terms}, i, nil
+}
+
+// expression list requries a minimum of one element
+func expressionList(tokens []*scanner.Token, i int) ([]ast.Expr, int, error) {
+	var expr ast.Expr
+	var err error
+	list := []ast.Expr{}
+	for {
+		expr, i, err = expression(tokens, i)
+		if err != nil {
+			return nil, i, err
+		}
+		list = append(list, expr)
+		if !match(tokens, i, scanner.COMMA) {
+			break
+		}
+	}
+	return list, i, nil
+}
+
 func expression(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
-	if i >= len(tokens) {
-		return nil, 0, fmt.Errorf("reached end of input parsing expression")
+	if isAtEnd(tokens, i) {
+		return nil, i, fmt.Errorf("reached end of input parsing expression")
 	}
 	return equality(tokens, i)
 }
@@ -75,7 +110,7 @@ func factor(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 
 func unary(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 	if i >= len(tokens) {
-		return nil, 0, fmt.Errorf("reached end of input parsing expression")
+		return nil, i, fmt.Errorf("reached end of input parsing expression")
 	}
 	var expr ast.Expr
 	var err error
@@ -83,9 +118,9 @@ func unary(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 		operator := tokens[i]
 		expr, i, err = unary(tokens, i+1)
 		if err != nil {
-			return nil, 0, err
+			return nil, i, err
 		}
-		return &ast.Unary{Operator: *operator, Right: expr}, 0, nil
+		return &ast.Unary{Operator: *operator, Right: expr}, i, nil
 	}
 	return primary(tokens, i)
 }
@@ -94,11 +129,11 @@ func binary(
 	tokens []*scanner.Token, i int, next expressionSig, operators ...scanner.TokenType,
 ) (ast.Expr, int, error) {
 	if i >= len(tokens) {
-		return nil, 0, fmt.Errorf("reached end of input parsing expression")
+		return nil, i, fmt.Errorf("reached end of input parsing expression")
 	}
 	expr, i, err := next(tokens, i)
 	if err != nil {
-		return nil, 0, err
+		return nil, i, err
 	}
 	for match(tokens, i, operators...) {
 		operator := *tokens[i]
@@ -106,7 +141,7 @@ func binary(
 		var right ast.Expr
 		right, i, err = next(tokens, i)
 		if err != nil {
-			return nil, 0, err
+			return nil, i, err
 		}
 		expr = &ast.Binary{
 			Left:     expr,
@@ -114,30 +149,41 @@ func binary(
 			Right:    right,
 		}
 	}
-	return nil, 0, nil
+	return expr, i, nil
 }
 
 func primary(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 	var expr ast.Expr
 	var err error
 	if i >= len(tokens) {
-		return nil, 0, fmt.Errorf("reached end of input parsing expression")
+		return nil, i, fmt.Errorf("reached end of input parsing expression")
 	}
 	switch tokens[i].Type {
-	case scanner.STRING:
-		return &ast.Literal{Value: tokens[i].Literal}, i + 1, nil
+	case scanner.NUMBER, scanner.STRING:
+		return &ast.Literal{Value: *tokens[i]}, i + 1, nil
+	case scanner.IDENTIFIER:
+		return reference(tokens, i)
 	case scanner.LEFT_PAREN:
 		expr, i, err = expression(tokens, i)
 		if err != nil {
-			return nil, 0, err
+			return nil, i, err
 		}
 		if !match(tokens, i, scanner.RIGHT_PAREN) {
-			return nil, 0, fmt.Errorf("expected ')' after expression")
+			return nil, i, fmt.Errorf("expected ')' after expression")
 		}
 		return expr, i, nil
 	default:
-		return nil, 0, fmt.Errorf("unexpected token %s found while parsing primary", tokens[i].Type)
+		return nil, i, fmt.Errorf("unexpected token %s found while parsing primary", tokens[i].Type)
 	}
+}
+
+func reference(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
+	names := []*scanner.Token{tokens[i]}
+	for match(tokens, i+1, scanner.DOT) {
+		i += 2
+		names = append(names, tokens[i])
+	}
+	return &ast.Reference{Names: names}, i + 1, nil
 }
 
 func match(tokens []*scanner.Token, i int, types ...scanner.TokenType) bool {

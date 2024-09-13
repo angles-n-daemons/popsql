@@ -8,9 +8,38 @@ import (
 )
 
 func TestParserBasic(t *testing.T) {
-	expr, err := parser.Parse(`'hi' == 'no' != 'where'`)
+	stmt, err := parser.Parse(`SELECT 'hi' == 'no' != 'where'`)
 	if err != nil {
 		t.Fatal(err)
 	}
-	(&ast.Printer{}).Print(expr)
+	ast.PrintStmt(stmt)
 }
+
+func TestValidPrograms(t *testing.T) {
+	for _, query := range []string{
+		"SELECT 1",
+		"SELECT 1.23",
+		"SELECT 'hi there'",
+		"SELECT jim",
+		"SELECT jim.jane",
+		//	"SELECT * FROM jim.jane",
+		//	"select * from jim.jane",
+		//	"select 'cal', col, 123. from jim.jane",
+	} {
+		stmt, err := parser.Parse(query)
+		if err != nil {
+			t.Fatal(err)
+		}
+		ast.PrintStmt(stmt)
+	}
+}
+
+var invalidPrograms = []string{
+	"SELECT 1;",
+	"SELECT 1;",
+}
+
+// tests to run
+// - ends with string
+// - ends with number
+// - ends with name

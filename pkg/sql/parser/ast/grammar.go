@@ -19,10 +19,10 @@ type ExprVisitor[T any] interface {
 	VisitLiteralExpr(*Literal) (*T, error)
 	VisitUnaryExpr(*Unary) (*T, error)
 	VisitAssignmentExpr(*Assignment) (*T, error)
-	VisitExprListExpr(*ExprList) (*T, error)
+	VisitReferenceExpr(*Reference) (*T, error)
 }
 
-func Visit[T any](expr Expr, visitor ExprVisitor[T]) (*T, error) {
+func VisitExpr[T any](expr Expr, visitor ExprVisitor[T]) (*T, error) {
 	switch typedExpr := expr.(type) {
 	case *Binary:
 		return visitor.VisitBinaryExpr(typedExpr)
@@ -32,8 +32,8 @@ func Visit[T any](expr Expr, visitor ExprVisitor[T]) (*T, error) {
 		return visitor.VisitUnaryExpr(typedExpr)
 	case *Assignment:
 		return visitor.VisitAssignmentExpr(typedExpr)
-	case *ExprList:
-		return visitor.VisitExprListExpr(typedExpr)
+	case *Reference:
+		return visitor.VisitReferenceExpr(typedExpr)
 	default:
 		return nil, fmt.Errorf("unable to visit type %T", typedExpr)
 	}
@@ -63,7 +63,7 @@ func (e Binary) Walk(f walkFunc) error {
 }
 
 type Literal struct {
-	Value any
+	Value scanner.Token
 }
 
 func (e Literal) Walk(f walkFunc) error {
@@ -103,14 +103,36 @@ func (e Assignment) Walk(f walkFunc) error {
 	return err
 }
 
-type ExprList struct {
-	Exprs []Expr
+type Reference struct {
+	Names []*scanner.Token
 }
 
-func (e ExprList) Walk(f walkFunc) error {
+func (e Reference) Walk(f walkFunc) error {
 	var err error
-	for i := 0; i < len(e.Exprs); i++ {
-		err = e.Exprs[i].Walk(f)
+	return err
+}
+
+type StmtVisitor[T any] interface {
+	VisitSelectStmt(*Select) (*T, error)
+}
+
+func VisitStmt[T any](expr Stmt, visitor StmtVisitor[T]) (*T, error) {
+	switch typedStmt := expr.(type) {
+	case *Select:
+		return visitor.VisitSelectStmt(typedStmt)
+	default:
+		return nil, fmt.Errorf("unable to visit type %T", typedStmt)
+	}
+}
+
+type Select struct {
+	Terms []Expr
+}
+
+func (e Select) Walk(f walkFunc) error {
+	var err error
+	for i := 0; i < len(e.Terms); i++ {
+		err = e.Terms[i].Walk(f)
 
 		if err != nil {
 			return err
@@ -118,4 +140,8 @@ func (e ExprList) Walk(f walkFunc) error {
 
 	}
 	return err
+}
+
+type Stmt interface {
+	Walk(walkFunc) error
 }

@@ -17,10 +17,14 @@ func main() {
 
 var exprAST = `
 Binary     = Expr Left, scanner.Token Operator, Expr Right
-Literal    = any Value
+Literal    = scanner.Token Value
 Unary      = scanner.Token Operator, Expr Right
 Assignment = scanner.Token Name, Expr Value
-ExprList   = []Expr Exprs
+Reference  = []*scanner.Token Names
+`
+
+var stmtAST = `
+Select     = []Expr Terms
 `
 
 var walkFuncSignature = `
@@ -29,6 +33,12 @@ type walkFunc func(Expr) error
 
 var exprInterface = `
 type Expr interface {
+	Walk(walkFunc) error
+}
+`
+
+var stmtInterface = `
+type Stmt interface {
 	Walk(walkFunc) error
 }
 `
@@ -59,7 +69,7 @@ func errNilReturn(indent int) string {
 	return fmt.Sprintf(errNilStr, pad)
 }
 
-func parseExprGrammar(grammarStr string) []treeType {
+func parseGrammar(grammarStr string) []treeType {
 	types := []treeType{}
 	typesStr := strings.Split(grammarStr, "\n")
 	for _, ttype := range typesStr {
@@ -99,12 +109,26 @@ func GenAST() string {
 	newline(")")
 
 	newline(walkFuncSignature)
+
 	newline(exprInterface)
+	newline(formatGrammar(exprAST, "Expr"))
 
-	grammar := parseExprGrammar(exprAST)
+	newline(formatGrammar(stmtAST, "Stmt"))
+	newline(stmtInterface)
 
-	newline(formatVisitor(grammar))
-	newline(formatVisit(grammar))
+	return ast
+}
+
+func formatGrammar(grammarStr string, grammarType string) string {
+	grammar := parseGrammar(grammarStr)
+	output := ""
+	newline := func(s string) {
+		output += s + "\n"
+	}
+
+	newline(formatVisitor(grammar, grammarType))
+	newline("")
+	newline(formatVisit(grammar, grammarType))
 
 	for _, ttype := range grammar {
 		newline("")
@@ -113,7 +137,7 @@ func GenAST() string {
 		newline(formatWalk(ttype))
 		newline("")
 	}
-	return ast
+	return output
 }
 
 func formatStruct(ttype treeType) string {
@@ -153,28 +177,28 @@ func formatWalk(ttype treeType) string {
 	return walkStr
 }
 
-func formatVisit(grammar []treeType) string {
-	visitStr := "func Visit[T any](expr Expr, visitor ExprVisitor[T]) (*T, error) {\n"
+func formatVisit(grammar []treeType, grammarType string) string {
+	visitStr := fmt.Sprintf("func Visit%[1]s[T any](expr %[1]s, visitor %[1]sVisitor[T]) (*T, error) {\n", grammarType)
 	newline := func(s string) {
 		visitStr += s + "\n"
 	}
-	newline("\tswitch typedExpr := expr.(type) {")
+	newline(fmt.Sprintf("\tswitch typed%s := expr.(type) {", grammarType))
 	for _, ttype := range grammar {
-		newline(fmt.Sprintf("\tcase %s:", ttype.name))
-		newline(fmt.Sprintf("\t\treturn visitor.Visit%sExpr(typedExpr)", ttype.name))
+		newline(fmt.Sprintf("\tcase *%s:", ttype.name))
+		newline(fmt.Sprintf("\t\treturn visitor.Visit%s%[2]s(typed%[2]s)", ttype.name, grammarType))
 	}
 	newline("\tdefault:")
-	newline("\t\treturn nil, fmt.Errorf(\"unable to visit type %T\", typedExpr)")
+	newline(fmt.Sprintf("\t\treturn nil, fmt.Errorf(\"unable to visit type %%T\", typed%s)", grammarType))
 
 	newline("\t}")
 	newline("}")
 	return visitStr
 }
 
-func formatVisitor(grammar []treeType) string {
-	visitorStr := "type ExprVisitor[T any] interface {\n"
+func formatVisitor(grammar []treeType, grammarType string) string {
+	visitorStr := fmt.Sprintf("type %sVisitor[T any] interface {\n", grammarType)
 	for _, ttype := range grammar {
-		visitorStr += fmt.Sprintf("\tVisit%[1]sExpr(%[1]s) (*T, error)\n", ttype.name)
+		visitorStr += fmt.Sprintf("\tVisit%[1]s%[2]s(*%[1]s) (*T, error)\n", ttype.name, grammarType)
 	}
 	visitorStr += "}"
 	return visitorStr

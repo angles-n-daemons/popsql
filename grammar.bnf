@@ -23,7 +23,7 @@ update          → "UPDATE" table
 // Expressions
 
 expression      → logic_or;
-assignment      → (identifier ".")* identifier "=" logic_or;
+assignment      → reference "=" logic_or;
 logic_or        → logic_and "OR" and;
 logic_and       → equality "AND" equality;
 equality        → comparison ( ( "!=" | "==" ) comparison)*;
@@ -31,7 +31,8 @@ comparison      → term ( ( ">" | ">=" | "<" | "<=" ) term)*;
 term            → factor ( ( "-" | "+" ) factor )*;
 factor          → unary ( ( "/" | "*" ) unary)*;
 primary         → "true" | "false" | "nil" |
-                  NUMBER | STRING | IDENTIFIER | "(" expression ")";
+                  NUMBER | STRING | reference | "(" expression ")";
+reference       → IDENTIFIER ("." IDENTIFIER)*
 
 expression_list → expression  (","  expression)*;
 parameters      → identifier  (","  identifier)*;

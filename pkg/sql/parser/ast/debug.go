@@ -5,58 +5,83 @@ import (
 	"strings"
 )
 
-type Printer struct {
-	depth int
-}
-
-func (p *Printer) Print(expr Expr) {
-	Visit(expr, p)
-}
-
 func printIndent(s string, indent int) {
 	fmt.Println(strings.Repeat("\t", indent) + s)
 }
 
-func (p *Printer) VisitBinaryExpr(expr *Binary) (*any, error) {
-	printIndent("- Binary", p.depth)
+type StmtPrinter struct {
+	depth int
+}
+
+func PrintStmt(stmt Stmt) {
+	VisitStmt(stmt, &StmtPrinter{})
+}
+
+func (p *StmtPrinter) print(stmt Stmt) {
+	VisitStmt(stmt, p)
+}
+
+func (p *StmtPrinter) VisitSelectStmt(stmt *Select) (*any, error) {
+	printIndent("- SELECT", p.depth)
 	p.depth++
-	printIndent(fmt.Sprintf("   operator: %s", expr.Operator.Type), p.depth-1)
-	printIndent("       left:", p.depth-1)
-	p.Print(expr.Left)
-	printIndent("      right:", p.depth-1)
-	p.Print(expr.Right)
+	for _, term := range stmt.Terms {
+		(&ExprPrinter{p.depth}).print(term)
+	}
 	p.depth--
 	return nil, nil
 }
 
-func (p *Printer) VisitLiteralExpr(expr *Literal) (*any, error) {
-	printIndent(fmt.Sprintf("--- Literal %v", expr.Value), p.depth)
+type ExprPrinter struct {
+	depth int
+}
+
+func PrintExpr(expr Expr) {
+	VisitExpr(expr, &ExprPrinter{})
+}
+
+func (p *ExprPrinter) print(expr Expr) {
+	VisitExpr(expr, p)
+}
+
+func (p *ExprPrinter) VisitBinaryExpr(expr *Binary) (*any, error) {
+	printIndent("- Binary", p.depth)
+	p.depth++
+	printIndent(fmt.Sprintf("     op: %s", expr.Operator.Type), p.depth-1)
+	printIndent("   left:", p.depth-1)
+	p.print(expr.Left)
+	printIndent("  right:", p.depth-1)
+	p.print(expr.Right)
+	p.depth--
 	return nil, nil
 }
 
-func (p *Printer) VisitUnaryExpr(expr *Unary) (*any, error) {
+func (p *ExprPrinter) VisitLiteralExpr(expr *Literal) (*any, error) {
+	printIndent(fmt.Sprintf("- Literal {%v}", expr.Value.Literal), p.depth)
+	return nil, nil
+}
+
+func (p *ExprPrinter) VisitUnaryExpr(expr *Unary) (*any, error) {
 	printIndent("- Unary", p.depth)
 	p.depth++
 	printIndent(fmt.Sprintf("   operator: %s", expr.Operator.Type), p.depth-1)
 	printIndent("      right:", p.depth-1)
-	p.Print(expr.Right)
+	p.print(expr.Right)
 	p.depth--
 	return nil, nil
 }
 
-func (p *Printer) VisitAssignmentExpr(expr *Assignment) (*any, error) {
+func (p *ExprPrinter) VisitAssignmentExpr(expr *Assignment) (*any, error) {
 	p.depth++
-	p.Print(expr.Value)
+	p.print(expr.Value)
 	p.depth--
 	return nil, nil
 }
 
-func (p *Printer) VisitExprListExpr(expr *ExprList) (*any, error) {
-	printIndent("- Expression List", p.depth)
-	p.depth++
-	for _, e := range expr.Exprs {
-		p.Print(e)
+func (p *ExprPrinter) VisitReferenceExpr(expr *Reference) (*any, error) {
+	names := []string{}
+	for _, token := range expr.Names {
+		names = append(names, token.Lexeme)
 	}
-	p.depth--
+	printIndent(fmt.Sprintf("- Reference: %s", strings.Join(names, ".")), p.depth)
 	return nil, nil
 }
