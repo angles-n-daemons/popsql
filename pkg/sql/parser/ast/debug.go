@@ -35,7 +35,10 @@ func (p *Printer) VisitLiteralExpr(expr *Literal) (*any, error) {
 }
 
 func (p *Printer) VisitUnaryExpr(expr *Unary) (*any, error) {
+	printIndent("- Unary", p.depth)
 	p.depth++
+	printIndent(fmt.Sprintf("   operator: %s", expr.Operator.Type), p.depth-1)
+	printIndent("      right:", p.depth-1)
 	p.Print(expr.Right)
 	p.depth--
 	return nil, nil
@@ -49,6 +52,7 @@ func (p *Printer) VisitAssignmentExpr(expr *Assignment) (*any, error) {
 }
 
 func (p *Printer) VisitExprListExpr(expr *ExprList) (*any, error) {
+	printIndent("- Expression List", p.depth)
 	p.depth++
 	for _, e := range expr.Exprs {
 		p.Print(e)

@@ -22,6 +22,8 @@ func Parse(s string) (ast.Expr, error) {
 	return expr, err
 }
 
+type expressionSig func([]*scanner.Token, int) (ast.Expr, int, error)
+
 func expression(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 	if i >= len(tokens) {
 		return nil, 0, fmt.Errorf("reached end of input parsing expression")
@@ -30,18 +32,79 @@ func expression(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 }
 
 func equality(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
+	return binary(
+		tokens,
+		i,
+		comparison,
+		scanner.BANG_EQUAL,
+		scanner.EQUAL_EQUAL,
+	)
+}
+
+func comparison(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
+	return binary(
+		tokens,
+		i,
+		term,
+		scanner.GREATER,
+		scanner.GREATER_EQUAL,
+		scanner.LESS,
+		scanner.LESS_EQUAL,
+	)
+}
+
+func term(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
+	return binary(
+		tokens,
+		i,
+		factor,
+		scanner.PLUS,
+		scanner.MINUS,
+	)
+}
+
+func factor(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
+	return binary(
+		tokens,
+		i,
+		unary,
+		scanner.STAR,
+		scanner.SLASH,
+	)
+}
+
+func unary(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 	if i >= len(tokens) {
 		return nil, 0, fmt.Errorf("reached end of input parsing expression")
 	}
-	expr, i, err := primary(tokens, i)
+	var expr ast.Expr
+	var err error
+	if match(tokens, i, scanner.BANG, scanner.MINUS) {
+		operator := tokens[i]
+		expr, i, err = unary(tokens, i+1)
+		if err != nil {
+			return nil, 0, err
+		}
+		return &ast.Unary{Operator: *operator, Right: expr}, 0, nil
+	}
+	return primary(tokens, i)
+}
+
+func binary(
+	tokens []*scanner.Token, i int, next expressionSig, operators ...scanner.TokenType,
+) (ast.Expr, int, error) {
+	if i >= len(tokens) {
+		return nil, 0, fmt.Errorf("reached end of input parsing expression")
+	}
+	expr, i, err := next(tokens, i)
 	if err != nil {
 		return nil, 0, err
 	}
-	for match(tokens, i, scanner.BANG_EQUAL, scanner.EQUAL_EQUAL) {
+	for match(tokens, i, operators...) {
 		operator := *tokens[i]
 		i++
 		var right ast.Expr
-		right, i, err = primary(tokens, i)
+		right, i, err = next(tokens, i)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -51,7 +114,7 @@ func equality(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 			Right:    right,
 		}
 	}
-	return expr, i, nil
+	return nil, 0, nil
 }
 
 func primary(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
