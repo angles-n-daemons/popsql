@@ -22,6 +22,7 @@ func TestValidPrograms(t *testing.T) {
 		"SELECT 'hi there'",
 		"SELECT jim",
 		"SELECT jim.jane",
+		"SELECT jane.goodall, 12.3, 'jeremy lin'",
 		//	"SELECT * FROM jim.jane",
 		//	"select * from jim.jane",
 		//	"select 'cal', col, 123. from jim.jane",

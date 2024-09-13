@@ -52,7 +52,9 @@ func expressionList(tokens []*scanner.Token, i int) ([]ast.Expr, int, error) {
 			return nil, i, err
 		}
 		list = append(list, expr)
-		if !match(tokens, i, scanner.COMMA) {
+		if match(tokens, i, scanner.COMMA) {
+			i++
+		} else {
 			break
 		}
 	}
