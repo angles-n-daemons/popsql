@@ -38,6 +38,7 @@ const (
 	// KEYWORDS
 	SELECT
 	INSERT
+	INTO
 	UPDATE
 	DELETE
 
@@ -78,6 +79,7 @@ var keywordLookup = map[string]TokenType{
 	"<=":     LESS_EQUAL,
 	"SELECT": SELECT,
 	"INSERT": INSERT,
+	"INTO":   INTO,
 	"UPDATE": UPDATE,
 	"DELETE": DELETE,
 

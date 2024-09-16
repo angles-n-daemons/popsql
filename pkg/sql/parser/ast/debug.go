@@ -40,6 +40,32 @@ func (p *StmtPrinter) VisitSelectStmt(stmt *Select) (*any, error) {
 	return nil, nil
 }
 
+func (p *StmtPrinter) VisitInsertStmt(stmt *Insert) (*any, error) {
+	printIndent("- Insert", p.depth)
+	p.depth++
+	printIndent("  table:", p.depth-1)
+	(&ExprPrinter{p.depth}).print(stmt.Table)
+	printIndent("columns:", p.depth-1)
+	if stmt.Columns != nil {
+		for _, column := range stmt.Columns {
+			(&ExprPrinter{p.depth}).print(column)
+		}
+	}
+	printIndent(" values:", p.depth-1)
+	if stmt.Values != nil {
+		for _, tup := range stmt.Values {
+			printIndent("  tup:", p.depth)
+			p.depth++
+			for _, exp := range tup {
+				(&ExprPrinter{p.depth}).print(exp)
+			}
+			p.depth--
+		}
+	}
+	p.depth--
+	return nil, nil
+}
+
 type ExprPrinter struct {
 	depth int
 }

@@ -22,6 +22,7 @@ func TestParserBasic(t *testing.T) {
 // - aliasing? (later)
 // - group by? (later)
 // - capitalization?
+// - insert with select
 func TestValidPrograms(t *testing.T) {
 	for _, query := range []string{
 		"SELECT 1",
@@ -34,6 +35,8 @@ func TestValidPrograms(t *testing.T) {
 		"SELECT column.* FROM users.thing",
 		"SELECT column.*, 12 FROM users.thing",
 		"SELECT 5 + 4, 'ello' FROM thing WHERE x==8",
+		"INSERT INTO a (x, y) VALUES (1, 2)",
+		"INSERT INTO a (x, y) VALUES (1, 2), (3, 4)",
 	} {
 		stmt, err := parser.Parse(query)
 		if err != nil {

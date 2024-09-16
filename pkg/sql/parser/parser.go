@@ -24,16 +24,18 @@ func Parse(s string) (ast.Stmt, error) {
 
 type expressionSig func([]*scanner.Token, int) (ast.Expr, int, error)
 
-func statement(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
+func statement(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 	switch tokens[i].Type {
 	case scanner.SELECT:
 		return selectStmt(tokens, i+1)
+	case scanner.INSERT:
+		return insertStmt(tokens, i+1)
 	default:
 		return nil, i, fmt.Errorf("unexpected token %s looking for statement", tokens[i].Type)
 	}
 }
 
-func selectStmt(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
+func selectStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 	terms, i, err := expressionList(tokens, i)
 	if err != nil {
 		return nil, i, err
@@ -68,6 +70,75 @@ func selectStmt(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 	return stmt, i + 1, nil
 }
 
+func insertStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
+	err := assertNext(tokens, i, scanner.INTO)
+	if err != nil {
+		return nil, i, err
+	}
+
+	table, i, err := reference(tokens, i+1)
+	if err != nil {
+		return nil, i, err
+	}
+
+	err = assertNext(tokens, i, scanner.LEFT_PAREN)
+	if err != nil {
+		return nil, i, err
+	}
+	columns, i, err := referenceList(tokens, i+1)
+	if err != nil {
+		return nil, i, err
+	}
+	err = assertNext(tokens, i, scanner.RIGHT_PAREN)
+	if err != nil {
+		return nil, i, err
+	}
+
+	err = assertNext(tokens, i+1, scanner.VALUES)
+	if err != nil {
+		return nil, i, err
+	}
+
+	values, i, err := tupleList(tokens, i+2)
+	if err != nil {
+		return nil, i, err
+	}
+
+	return &ast.Insert{Table: table, Columns: columns, Values: values}, i, nil
+}
+
+func tupleList(tokens []*scanner.Token, i int) ([][]ast.Expr, int, error) {
+	var tup []ast.Expr
+	var err error
+	list := [][]ast.Expr{}
+	for {
+		tup, i, err = tuple(tokens, i)
+		if err != nil {
+			return nil, i, err
+		}
+		list = append(list, tup)
+		if match(tokens, i, scanner.COMMA) {
+			i++
+		} else {
+			break
+		}
+	}
+	return list, i, nil
+}
+
+func tuple(tokens []*scanner.Token, i int) ([]ast.Expr, int, error) {
+	err := assertNext(tokens, i, scanner.LEFT_PAREN)
+	if err != nil {
+		return nil, i, err
+	}
+	list, i, err := expressionList(tokens, i+1)
+	err = assertNext(tokens, i, scanner.RIGHT_PAREN)
+	if err != nil {
+		return nil, i, err
+	}
+	return list, i + 1, nil
+}
+
 // expression list requries a minimum of one element
 func expressionList(tokens []*scanner.Token, i int) ([]ast.Expr, int, error) {
 	var expr ast.Expr
@@ -79,6 +150,25 @@ func expressionList(tokens []*scanner.Token, i int) ([]ast.Expr, int, error) {
 			return nil, i, err
 		}
 		list = append(list, expr)
+		if match(tokens, i, scanner.COMMA) {
+			i++
+		} else {
+			break
+		}
+	}
+	return list, i, nil
+}
+
+func referenceList(tokens []*scanner.Token, i int) ([]*ast.Reference, int, error) {
+	var ref *ast.Reference
+	var err error
+	list := []*ast.Reference{}
+	for {
+		ref, i, err = reference(tokens, i)
+		if err != nil {
+			return nil, i, err
+		}
+		list = append(list, ref)
 		if match(tokens, i, scanner.COMMA) {
 			i++
 		} else {
@@ -216,6 +306,17 @@ func reference(tokens []*scanner.Token, i int) (*ast.Reference, int, error) {
 		names = append(names, tokens[i])
 	}
 	return &ast.Reference{Names: names}, i + 1, nil
+}
+
+func assertNext(tokens []*scanner.Token, i int, ttype scanner.TokenType) error {
+	if isAtEnd(tokens, i) {
+		return fmt.Errorf("reached end of input looking for '%s'", ttype)
+	}
+
+	if tokens[i].Type != ttype {
+		return fmt.Errorf("expected token '%s' but got '%s'", ttype, tokens[i].Type)
+	}
+	return nil
 }
 
 func match(tokens []*scanner.Token, i int, types ...scanner.TokenType) bool {

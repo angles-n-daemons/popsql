@@ -25,6 +25,7 @@ Reference  = []*scanner.Token Names
 
 var stmtAST = `
 Select     = []Expr Terms, *Reference From, Expr Where
+Insert     = *Reference Table, []*Reference Columns, [][]Expr Values
 `
 
 var walkFuncSignature = `
