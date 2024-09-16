@@ -23,6 +23,7 @@ func TestParserBasic(t *testing.T) {
 // - group by? (later)
 // - capitalization?
 // - insert with select
+// - condition with single equal
 func TestValidPrograms(t *testing.T) {
 	for _, query := range []string{
 		"SELECT 1",
