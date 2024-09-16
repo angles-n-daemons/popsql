@@ -24,8 +24,17 @@ func (p *StmtPrinter) print(stmt Stmt) {
 func (p *StmtPrinter) VisitSelectStmt(stmt *Select) (*any, error) {
 	printIndent("- SELECT", p.depth)
 	p.depth++
+	printIndent("   terms:", p.depth-1)
 	for _, term := range stmt.Terms {
 		(&ExprPrinter{p.depth}).print(term)
+	}
+	printIndent("   from:", p.depth-1)
+	if stmt.From != nil {
+		(&ExprPrinter{p.depth}).print(stmt.From)
+	}
+	printIndent("  where:", p.depth-1)
+	if stmt.From != nil {
+		(&ExprPrinter{p.depth}).print(stmt.Where)
 	}
 	p.depth--
 	return nil, nil

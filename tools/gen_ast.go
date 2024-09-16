@@ -24,7 +24,7 @@ Reference  = []*scanner.Token Names
 `
 
 var stmtAST = `
-Select     = []Expr Terms
+Select     = []Expr Terms, *Reference From, Expr Where
 `
 
 var walkFuncSignature = `
@@ -32,15 +32,11 @@ type walkFunc func(Expr) error
 `
 
 var exprInterface = `
-type Expr interface {
-	Walk(walkFunc) error
-}
+type Expr interface { }
 `
 
 var stmtInterface = `
-type Stmt interface {
-	Walk(walkFunc) error
-}
+type Stmt interface { }
 `
 
 var errNilStr = `
@@ -134,8 +130,6 @@ func formatGrammar(grammarStr string, grammarType string) string {
 		newline("")
 		newline(formatStruct(ttype))
 		newline("")
-		newline(formatWalk(ttype))
-		newline("")
 	}
 	return output
 }
@@ -150,31 +144,6 @@ func formatStruct(ttype treeType) string {
 	}
 	newline("}")
 	return structStr
-}
-
-func formatWalk(ttype treeType) string {
-	walkStr := fmt.Sprintf("func (e %s) Walk(f walkFunc) error {\n", ttype.name)
-	newline := func(s string) {
-		walkStr += s + "\n"
-	}
-	newline("\tvar err error")
-	for _, field := range ttype.fields {
-		if !strings.Contains(field.ftype, "Expr") {
-			continue
-		}
-		if field.isarray {
-			newline(fmt.Sprintf("\tfor i := 0; i < len(e.%s); i++ {", field.name))
-			newline(fmt.Sprintf("\t\terr = e.%s[i].Walk(f)", field.name))
-			newline(errNilReturn(2))
-			newline("\t}")
-		} else {
-			newline(fmt.Sprintf("\terr = e.%s.Walk(f)", field.name))
-			newline(errNilReturn(1))
-		}
-	}
-	newline("\treturn err")
-	newline("}")
-	return walkStr
 }
 
 func formatVisit(grammar []treeType, grammarType string) string {

@@ -47,8 +47,12 @@ const (
 	WHERE
 	GROUP
 	OFFSET
+	ORDER
 	LIMIT
 	SET
+
+	AND
+	OR
 	NOT
 
 	VALUES
@@ -85,7 +89,10 @@ var keywordLookup = map[string]TokenType{
 	"OFFSET": OFFSET,
 	"LIMIT":  LIMIT,
 	"SET":    SET,
-	"NOT":    NOT,
+
+	"AND": AND,
+	"OR":  OR,
+	"NOT": NOT,
 
 	"VALUES": VALUES,
 }

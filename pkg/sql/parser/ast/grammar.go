@@ -4,15 +4,13 @@ package ast
 
 import (
 	"fmt"
-
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
 type walkFunc func(Expr) error
 
-type Expr interface {
-	Walk(walkFunc) error
-}
+
+type Expr interface { }
 
 type ExprVisitor[T any] interface {
 	VisitBinaryExpr(*Binary) (*T, error)
@@ -39,78 +37,40 @@ func VisitExpr[T any](expr Expr, visitor ExprVisitor[T]) (*T, error) {
 	}
 }
 
+
 type Binary struct {
-	Left     Expr
+	Left Expr
 	Operator scanner.Token
-	Right    Expr
+	Right Expr
 }
 
-func (e Binary) Walk(f walkFunc) error {
-	var err error
-	err = e.Left.Walk(f)
 
-	if err != nil {
-		return err
-	}
-
-	err = e.Right.Walk(f)
-
-	if err != nil {
-		return err
-	}
-
-	return err
-}
 
 type Literal struct {
 	Value scanner.Token
 }
 
-func (e Literal) Walk(f walkFunc) error {
-	var err error
-	return err
-}
+
 
 type Unary struct {
 	Operator scanner.Token
-	Right    Expr
+	Right Expr
 }
 
-func (e Unary) Walk(f walkFunc) error {
-	var err error
-	err = e.Right.Walk(f)
 
-	if err != nil {
-		return err
-	}
-
-	return err
-}
 
 type Assignment struct {
-	Name  scanner.Token
+	Name scanner.Token
 	Value Expr
 }
 
-func (e Assignment) Walk(f walkFunc) error {
-	var err error
-	err = e.Value.Walk(f)
 
-	if err != nil {
-		return err
-	}
-
-	return err
-}
 
 type Reference struct {
 	Names []*scanner.Token
 }
 
-func (e Reference) Walk(f walkFunc) error {
-	var err error
-	return err
-}
+
 
 type StmtVisitor[T any] interface {
 	VisitSelectStmt(*Select) (*T, error)
@@ -125,23 +85,16 @@ func VisitStmt[T any](expr Stmt, visitor StmtVisitor[T]) (*T, error) {
 	}
 }
 
+
 type Select struct {
 	Terms []Expr
+	From *Reference
+	Where Expr
 }
 
-func (e Select) Walk(f walkFunc) error {
-	var err error
-	for i := 0; i < len(e.Terms); i++ {
-		err = e.Terms[i].Walk(f)
 
-		if err != nil {
-			return err
-		}
 
-	}
-	return err
-}
 
-type Stmt interface {
-	Walk(walkFunc) error
-}
+type Stmt interface { }
+
+

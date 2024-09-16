@@ -15,6 +15,14 @@ func TestParserBasic(t *testing.T) {
 	ast.PrintStmt(stmt)
 }
 
+// features
+// - where statements
+// - order by statements
+// - insert statements
+// - update statements
+// - delete statements
+// - aliasing? (later)
+// - group by? (later)
 func TestValidPrograms(t *testing.T) {
 	for _, query := range []string{
 		"SELECT 1",
@@ -23,9 +31,10 @@ func TestValidPrograms(t *testing.T) {
 		"SELECT jim",
 		"SELECT jim.jane",
 		"SELECT jane.goodall, 12.3, 'jeremy lin'",
-		//	"SELECT * FROM jim.jane",
-		//	"select * from jim.jane",
-		//	"select 'cal', col, 123. from jim.jane",
+		"SELECT * FROM users;",
+		"SELECT column.* FROM users.thing",
+		"SELECT column.*, 12 FROM users.thing",
+		"SELECT 5 + 4, 'ello' FROM thing WHERE x==8",
 	} {
 		stmt, err := parser.Parse(query)
 		if err != nil {

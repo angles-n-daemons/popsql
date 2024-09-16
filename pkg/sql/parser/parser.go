@@ -38,7 +38,18 @@ func selectStmt(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 	if err != nil {
 		return nil, i, err
 	}
-	return &ast.Select{Terms: terms}, i, nil
+	stmt := &ast.Select{Terms: terms}
+	if match(tokens, i, scanner.FROM) {
+		var from *ast.Reference
+		from, i, err = reference(tokens, i+1)
+		stmt.From = from
+	}
+	if match(tokens, i, scanner.WHERE) {
+		var where ast.Expr
+		where, i, err = expression(tokens, i+1)
+		stmt.Where = where
+	}
+	return stmt, i + 1, nil
 }
 
 // expression list requries a minimum of one element
@@ -163,7 +174,7 @@ func primary(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 	switch tokens[i].Type {
 	case scanner.NUMBER, scanner.STRING:
 		return &ast.Literal{Value: *tokens[i]}, i + 1, nil
-	case scanner.IDENTIFIER:
+	case scanner.IDENTIFIER, scanner.STAR:
 		return reference(tokens, i)
 	case scanner.LEFT_PAREN:
 		expr, i, err = expression(tokens, i)
@@ -179,10 +190,13 @@ func primary(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 	}
 }
 
-func reference(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
+func reference(tokens []*scanner.Token, i int) (*ast.Reference, int, error) {
 	names := []*scanner.Token{tokens[i]}
 	for match(tokens, i+1, scanner.DOT) {
 		i += 2
+		if !match(tokens, i, scanner.IDENTIFIER, scanner.STAR) {
+			return nil, i, fmt.Errorf("unexpected token %s parsing reference", tokens[i].Type)
+		}
 		names = append(names, tokens[i])
 	}
 	return &ast.Reference{Names: names}, i + 1, nil
