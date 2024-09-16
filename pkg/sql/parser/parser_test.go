@@ -16,13 +16,12 @@ func TestParserBasic(t *testing.T) {
 }
 
 // features
-// - where statements
-// - order by statements
 // - insert statements
 // - update statements
 // - delete statements
 // - aliasing? (later)
 // - group by? (later)
+// - capitalization?
 func TestValidPrograms(t *testing.T) {
 	for _, query := range []string{
 		"SELECT 1",
@@ -44,9 +43,22 @@ func TestValidPrograms(t *testing.T) {
 	}
 }
 
-var invalidPrograms = []string{
-	"SELECT 1;",
-	"SELECT 1;",
+func TestInvalidPrograms(t *testing.T) {
+	for _, query := range []string{
+		"SELECT",
+		"5 + 4",
+		"SELECT FROM 5+4",
+		"i SELECT FROM 5+4",
+		"SELECT * FROM",
+		"SELECT * FROM z WHERE",
+		"SELECT * FROM z SELECT *",
+	} {
+		stmt, err := parser.Parse(query)
+		if err == nil {
+			t.Fatalf("expected query '%s' to fail parse, but didn't", query)
+		}
+		ast.PrintStmt(stmt)
+	}
 }
 
 // tests to run

@@ -40,13 +40,29 @@ func selectStmt(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 	}
 	stmt := &ast.Select{Terms: terms}
 	if match(tokens, i, scanner.FROM) {
+		if len(tokens) <= i+1 {
+			return nil, i, fmt.Errorf("reached end of input looking for 'from' expression")
+		}
+
 		var from *ast.Reference
 		from, i, err = reference(tokens, i+1)
+		if err != nil {
+			return nil, i, err
+		}
+
 		stmt.From = from
 	}
 	if match(tokens, i, scanner.WHERE) {
+		if len(tokens) <= i+1 {
+			return nil, i, fmt.Errorf("reached end of input looking for 'where' expression")
+		}
+
 		var where ast.Expr
 		where, i, err = expression(tokens, i+1)
+		if err != nil {
+			return nil, i, err
+		}
+
 		stmt.Where = where
 	}
 	return stmt, i + 1, nil
