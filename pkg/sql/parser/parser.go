@@ -12,6 +12,7 @@ func Parse(s string) (ast.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
+	scanner.PrintTokens(tokens)
 	stmt, i, err := statement(tokens, 0)
 	if err != nil {
 		return nil, err
@@ -26,6 +27,11 @@ type expressionSig func([]*scanner.Token, int) (ast.Expr, int, error)
 
 func statement(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 	switch tokens[i].Type {
+	case scanner.CREATE:
+		if !match(tokens, i+1, scanner.TABLE) {
+			return nil, i + 1, fmt.Errorf("unexpected token following CREATE %s looking for TABLE", tokens[i+1].Type)
+		}
+		return createStmt(tokens, i+2)
 	case scanner.SELECT:
 		return selectStmt(tokens, i+1)
 	case scanner.INSERT:
@@ -33,6 +39,36 @@ func statement(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 	default:
 		return nil, i, fmt.Errorf("unexpected token %s looking for statement", tokens[i].Type)
 	}
+}
+
+func createStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
+	if !match(tokens, i, scanner.IDENTIFIER) {
+		return nil, i, fmt.Errorf("expected name to follow CREATE TABLE")
+	}
+	name := tokens[i]
+	if !match(tokens, i+1, scanner.LEFT_PAREN) {
+		return nil, i + 1, fmt.Errorf("expected LEFT_PAREN to follow CREATE TABLE <name>")
+	}
+	columns := []*ast.ColumnSpec{}
+	i += 2
+	for match(tokens, i, scanner.IDENTIFIER) {
+		var spec *ast.ColumnSpec
+		var err error
+		spec, i, err = columnSpec(tokens, i)
+		if err != nil {
+			return nil, i, err
+		}
+		columns = append(columns, spec)
+		if match(tokens, i, scanner.COMMA) {
+			i++
+		} else {
+			break
+		}
+	}
+	if !match(tokens, i, scanner.RIGHT_PAREN) {
+		return nil, i, fmt.Errorf("expected RIGHT_PAREN to close CREATE TABLE statement")
+	}
+	return &ast.Create{Name: *name, Columns: columns}, i + 1, nil
 }
 
 func selectStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
@@ -105,6 +141,17 @@ func insertStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 	}
 
 	return &ast.Insert{Table: table, Columns: columns, Values: values}, i, nil
+}
+
+func columnSpec(tokens []*scanner.Token, i int) (*ast.ColumnSpec, int, error) {
+	if !match(tokens, i, scanner.IDENTIFIER) {
+		return nil, i, fmt.Errorf("expected name in column spec")
+	}
+	if !match(tokens, i+1, scanner.DATATYPE_BOOLEAN, scanner.DATATYPE_STRING, scanner.DATATYPE_NUMBER) {
+		return nil, i + 1, fmt.Errorf("expected data type in column spec")
+	}
+
+	return &ast.ColumnSpec{Name: *tokens[i], DataType: *tokens[i+1]}, i + 2, nil
 }
 
 func tupleList(tokens []*scanner.Token, i int) ([][]ast.Expr, int, error) {

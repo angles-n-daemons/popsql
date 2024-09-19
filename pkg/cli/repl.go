@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -10,19 +11,21 @@ import (
 )
 
 var banner = `
-                            __
-   ___  ___  ___  ___ ___ _/ /
-  / _ \/ _ \/ _ \(_-</ _ '/ / 
- / .__/\___/ .__/___/\_, /_/  
-/_/       /_/         /_/     
+      ┏┓┏┓┓ 
+┏┓┏┓┏┓┗┓┃┃┃ 
+┣┛┗┛┣┛┗┛┗┻┗┛
+┛   ┛       
 `
 
-var db = engine.Engine{DataDir: ""}
-
-func REPL() {
-	reader := bufio.NewReader(os.Stdin)
+func REPL(args []string) {
 	fmt.Println(banner)
 	fmt.Println("version 0.0")
+	db := engine.NewEngine(engine.Options{})
+	loop(db)
+}
+
+func loop(db *engine.Engine) {
+	reader := bufio.NewReader(os.Stdin)
 	query := ""
 	for {
 		if query == "" {
@@ -32,8 +35,7 @@ func REPL() {
 		}
 		text, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Printf("error reading input: %s\n", err)
-			os.Exit(1)
+			log.Fatalf("error reading input: %s\n", err)
 		}
 		parts := strings.Split(text, ";")
 		query += parts[0]

@@ -38,7 +38,7 @@ expression_list → expression  (","  expression)*;
 parameters      → identifier  (","  identifier)*;
 tuple           → "("  expression_list  ")";
 
-column          → identifier type;
-type            → "integer" | "varchar" | "boolean";
+column_spec     → identifier type ("NOT" "NULL")?
+type            → "number" | "string" | "boolean";
 
 // lexical grammar
