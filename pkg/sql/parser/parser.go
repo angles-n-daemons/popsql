@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/ast"
@@ -26,6 +27,9 @@ func Parse(s string) (ast.Stmt, error) {
 type expressionSig func([]*scanner.Token, int) (ast.Expr, int, error)
 
 func statement(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
+	if isAtEnd(tokens, i) {
+		return nil, i, errors.New("reached end of input parsing statement")
+	}
 	switch tokens[i].Type {
 	case scanner.CREATE:
 		if !match(tokens, i+1, scanner.TABLE) {
@@ -345,8 +349,10 @@ func primary(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 
 func reference(tokens []*scanner.Token, i int) (*ast.Reference, int, error) {
 	names := []*scanner.Token{tokens[i]}
+	fmt.Println("parsing ref", tokens[i].Lexeme)
 	for match(tokens, i+1, scanner.DOT) {
 		i += 2
+		fmt.Println("parsing additional ref", tokens[i].Lexeme)
 		if !match(tokens, i, scanner.IDENTIFIER, scanner.STAR) {
 			return nil, i, fmt.Errorf("unexpected token %s parsing reference", tokens[i].Type)
 		}
