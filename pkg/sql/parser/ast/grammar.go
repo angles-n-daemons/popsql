@@ -18,6 +18,7 @@ type ExprVisitor[T any] interface {
 	VisitUnaryExpr(*Unary) (*T, error)
 	VisitAssignmentExpr(*Assignment) (*T, error)
 	VisitReferenceExpr(*Reference) (*T, error)
+	VisitColumnSpecExpr(*ColumnSpec) (*T, error)
 }
 
 func VisitExpr[T any](expr Expr, visitor ExprVisitor[T]) (*T, error) {
@@ -32,6 +33,8 @@ func VisitExpr[T any](expr Expr, visitor ExprVisitor[T]) (*T, error) {
 		return visitor.VisitAssignmentExpr(typedExpr)
 	case *Reference:
 		return visitor.VisitReferenceExpr(typedExpr)
+	case *ColumnSpec:
+		return visitor.VisitColumnSpecExpr(typedExpr)
 	default:
 		return nil, fmt.Errorf("unable to visit type %T", typedExpr)
 	}
@@ -61,9 +64,15 @@ type Reference struct {
 	Names []*scanner.Token
 }
 
+type ColumnSpec struct {
+	Name     scanner.Token
+	DataType scanner.Token
+}
+
 type StmtVisitor[T any] interface {
 	VisitSelectStmt(*Select) (*T, error)
 	VisitInsertStmt(*Insert) (*T, error)
+	VisitCreateStmt(*Create) (*T, error)
 }
 
 func VisitStmt[T any](expr Stmt, visitor StmtVisitor[T]) (*T, error) {
@@ -72,6 +81,8 @@ func VisitStmt[T any](expr Stmt, visitor StmtVisitor[T]) (*T, error) {
 		return visitor.VisitSelectStmt(typedStmt)
 	case *Insert:
 		return visitor.VisitInsertStmt(typedStmt)
+	case *Create:
+		return visitor.VisitCreateStmt(typedStmt)
 	default:
 		return nil, fmt.Errorf("unable to visit type %T", typedStmt)
 	}
@@ -87,6 +98,11 @@ type Insert struct {
 	Table   *Reference
 	Columns []*Reference
 	Values  [][]Expr
+}
+
+type Create struct {
+	Name    scanner.Token
+	Columns []*ColumnSpec
 }
 
 type Stmt interface{}

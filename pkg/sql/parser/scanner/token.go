@@ -31,9 +31,9 @@ const (
 	NUMBER
 
 	// DATA_TYPES
-	INTEGER
-	VARCHAR
-	FLOAT
+	DATATYPE_NUMBER
+	DATATYPE_STRING
+	DATATYPE_BOOLEAN
 
 	// KEYWORDS
 	SELECT
@@ -43,6 +43,7 @@ const (
 	DELETE
 
 	CREATE
+	TABLE
 
 	FROM
 	WHERE
@@ -84,6 +85,7 @@ var keywordLookup = map[string]TokenType{
 	"DELETE": DELETE,
 
 	"CREATE": CREATE,
+	"TABLE":  TABLE,
 
 	"FROM":   FROM,
 	"WHERE":  WHERE,
@@ -91,6 +93,10 @@ var keywordLookup = map[string]TokenType{
 	"OFFSET": OFFSET,
 	"LIMIT":  LIMIT,
 	"SET":    SET,
+
+	"NUMBER":  DATATYPE_NUMBER,
+	"STRING":  DATATYPE_STRING,
+	"BOOLEAN": DATATYPE_BOOLEAN,
 
 	"AND": AND,
 	"OR":  OR,

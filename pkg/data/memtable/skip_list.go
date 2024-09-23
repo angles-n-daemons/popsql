@@ -19,6 +19,10 @@ type SkiplistNode[K cmp.Ordered, V any] struct {
 	next []*SkiplistNode[K, V]
 }
 
+func (node *SkiplistNode[K, V]) Next() *SkiplistNode[K, V] {
+	return node.next[0]
+}
+
 /*
  * A Skiplist is an efficiently sorted data structure.
  * It's desirable because its performance is similar to that
@@ -66,7 +70,7 @@ func (list *Skiplist[K, V]) Put(key K, val V) (bool, error) {
 		return false, errors.New("cannot put element in skiplist, at maximum size.")
 	}
 
-	node, prevs := list.search(key)
+	node, prevs := list.Search(key)
 	if node != nil {
 		// if the node already exists, we change its value
 		node.Val = val
@@ -105,13 +109,13 @@ func (list *Skiplist[K, V]) Put(key K, val V) (bool, error) {
 
 // Get finds the element in the skiplist if it exists, otherwise returns nil
 func (list *Skiplist[K, V]) Get(key K) *SkiplistNode[K, V] {
-	node, _ := list.search(key)
+	node, _ := list.Search(key)
 	return node
 }
 
 // Delete removes the element with the specified key from the list if it exists
 func (list *Skiplist[K, V]) Delete(key K) *SkiplistNode[K, V] {
-	node, prevs := list.search(key)
+	node, prevs := list.Search(key)
 	// If we didn't find the node, return nil
 	if node == nil {
 		return nil
@@ -131,11 +135,11 @@ func (list *Skiplist[K, V]) Delete(key K) *SkiplistNode[K, V] {
 	return node
 }
 
-// search is an internal function, leveraged by Put, Get and Delete
-// it searches through the list for a value, returning a search array
+// Search is an internal function, leveraged by Put, Get and Delete
+// it searches through the list for a value, returning a Search array
 // of nodes preceeding or equal to the node value.
-// if the key exists, it will be returned in addition to the search array
-func (list *Skiplist[K, V]) search(key K) (*SkiplistNode[K, V], []*SkiplistNode[K, V]) {
+// if the key exists, it will be returned in addition to the Search array
+func (list *Skiplist[K, V]) Search(key K) (*SkiplistNode[K, V], []*SkiplistNode[K, V]) {
 	// Find the highest head which is less than val
 	level := list.height - 1
 	var search *SkiplistNode[K, V]
