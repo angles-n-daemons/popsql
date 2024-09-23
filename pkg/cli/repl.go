@@ -20,11 +20,11 @@ var banner = `
 func REPL(args []string) {
 	fmt.Println(banner)
 	fmt.Println("version 0.0")
-	db := engine.NewEngine(engine.Options{})
-	loop(db)
+	loop()
 }
 
-func loop(db *engine.Engine) {
+func loop() {
+	db := engine.GetEngine(engine.Options{})
 	reader := bufio.NewReader(os.Stdin)
 	query := ""
 	for {

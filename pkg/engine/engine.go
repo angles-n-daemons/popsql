@@ -2,6 +2,7 @@ package engine
 
 import (
 	"os"
+	"sync"
 
 	"github.com/angles-n-daemons/popsql/pkg/data"
 	"github.com/angles-n-daemons/popsql/pkg/data/memtable"
@@ -21,7 +22,7 @@ type Engine struct {
 	New    bool
 }
 
-func NewEngine(opts Options) *Engine {
+func newEngine(opts Options) *Engine {
 	// need some heavy debug flags
 	// might be worth tagging the logging
 	store := memtable.NewMemStore()
@@ -35,7 +36,16 @@ func NewEngine(opts Options) *Engine {
 	if isNew {
 		db.CreateSystemTables()
 	}
+	return db
+}
 
+var db *Engine
+var once sync.Once
+
+func GetEngine(opts Options) *Engine {
+	once.Do(func() {
+		db = newEngine(opts)
+	})
 	return db
 }
 

@@ -1,5 +1,31 @@
 package sys
 
+// sys.runtime?
+// sys.schema?
+
+// runtime.Schema
+// runtime.Table
+// runtime.Column
+
+// runtime.Table.SERIAL
+
+// schema.NewSchema()
+// schema.Schema
+// schema.Catalog
+
+// sys.schema
+//  - Schema
+//  - Table
+//    - KeyPrefix
+//    - KeyPrefixEnd
+//    - GetColumn
+//    - Key
+//  - Column
+
+// sys.runtime
+//  - Record { table, column, payload }
+//    - Validate()
+
 import (
 	"fmt"
 	"strings"
@@ -31,6 +57,7 @@ func NewSchema() *Schema {
 						DataType: STRING,
 					},
 				},
+				PrimaryKey: []string{"scope", "table"},
 			},
 			Columns: Table{
 				Space: SYSTEM,
@@ -61,6 +88,7 @@ func NewSchema() *Schema {
 						DataType: STRING,
 					},
 				},
+				PrimaryKey: []string{"scope", "table", "name"},
 			},
 		},
 		Tables: map[string]Table{},
@@ -87,9 +115,14 @@ type Table struct {
 func (t *Table) KeyPrefix() string {
 	return fmt.Sprintf("%s/table/%s", t.Space, t.Name)
 }
+
 func (t *Table) KeyPrefixEnd() string {
 	prefix := t.KeyPrefix()
 	return nextString(prefix)
+}
+
+func (t *Table) Key() string {
+	return fmt.Sprintf("%s:%s", t.Space, t.Name)
 }
 
 func nextString(s string) string {
@@ -111,12 +144,16 @@ func nextString(s string) string {
 		return r
 	}, s)
 }
-
-func (t *Table) Key() string {
-	return t.Name
+func (t *Table) GetColumn(name string) (*Column, error) {
+	for _, column := range t.Columns {
+		if column.Name == name {
+			return &column, nil
+		}
+	}
+	return nil, fmt.Errorf("Unable to find column %s on table %s", name, t.Name)
 }
 
-func (t *Table) GetColumn(ref *ast.Reference) (*Column, error) {
+func (t *Table) GetColumnFromRef(ref *ast.Reference) (*Column, error) {
 	if len(ref.Names) == 0 {
 		return nil, fmt.Errorf("Reference name too short: %d", len(ref.Names))
 	}
@@ -124,12 +161,7 @@ func (t *Table) GetColumn(ref *ast.Reference) (*Column, error) {
 		return nil, fmt.Errorf("Reference name too long: %d", len(ref.Names))
 	}
 	name := ref.Names[0].Lexeme
-	for _, column := range t.Columns {
-		if column.Name == name {
-			return &column, nil
-		}
-	}
-	return nil, fmt.Errorf("Unable to find column %s on table %s", name, t.Name)
+	return t.GetColumn(name)
 }
 
 type Column struct {

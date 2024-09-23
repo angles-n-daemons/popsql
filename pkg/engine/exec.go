@@ -34,34 +34,16 @@ func (db *Engine) VisitInsertStmt(stmt *ast.Insert) (*any, error) {
 	if err != nil {
 		return nil, err
 	}
-	tupleLen := len(stmt.Columns)
-	columns := make([]*sys.Column, tupleLen)
-	for i, col := range stmt.Columns {
-		column, err := table.GetColumn(col)
+	for _, tuple := range stmt.Values {
+		payload, err := sys.NewPayloadFromExpression(table, stmt.Columns, tuple)
 		if err != nil {
 			return nil, err
 		}
-		columns[i] = column
-	}
-	for i, tuple := range stmt.Values {
-		fmt.Println(tuple)
-		if len(tuple) != tupleLen {
-			return nil, fmt.Errorf("%dth value set found incorrect size %d (expected %d)", i, len(tuple), tupleLen)
+		b, err := payload.ToBytes()
+		if err != nil {
+			return nil, err
 		}
-		var record map[string]any
-		for j, value := range tuple {
-			// validate data type
-			// how to handle references?
-			// only handle simple data types
-			switch value.(type) {
-			case *ast.Literal:
-				fmt.Println(value, j)
-			default:
-				return nil, fmt.Errorf("unexpected expression type %T reading VALUES", value)
-			}
-		}
-		// validate record
-		fmt.Println(record, tuple)
+		fmt.Println(string(b))
 	}
 	return nil, nil
 }
@@ -88,6 +70,16 @@ func (db *Engine) VisitCreateStmt(stmt *ast.Create) (*any, error) {
 
 func (db *Engine) CreateTable(table sys.Table) error {
 	// validate primary key
+	if len(table.PrimaryKey) == 0 {
+		table.Columns = append(table.Columns, sys.Column{
+			Space:    table.Space,
+			Table:    table.Name,
+			Name:     sys.PRIMARY_KEY_NAME,
+			DataType: sys.STRING,
+		})
+		table.PrimaryKey = []string{sys.PRIMARY_KEY_NAME}
+	}
+
 	tablePrefix := table.KeyPrefix()
 	tableKey := Key(db.Schema.System.Tables, &table)
 	bytes, err := json.Marshal(table)
@@ -113,6 +105,7 @@ func (db *Engine) CreateTable(table sys.Table) error {
 	}
 	// verify it doesn't already exist
 	db.Schema.Tables[tablePrefix] = table
+
 	return nil
 }
 
@@ -131,10 +124,6 @@ func (db *Engine) lookupTable(ref *ast.Reference) (*sys.Table, error) {
 		names = append(names, nameExpr.Lexeme)
 	}
 	key := fmt.Sprintf("%s/table/%s", names[0], names[1])
-	for tk, t := range db.Schema.Tables {
-		fmt.Println(tk, t)
-		fmt.Printf("same? '%s' '%s' %d %d\n", tk, key, len(tk), len(key))
-	}
 	table, ok := db.Schema.Tables[key]
 	if !ok {
 		return nil, fmt.Errorf("unable to find table %s", strings.Join(names, "."))

@@ -13,7 +13,6 @@ func Parse(s string) (ast.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	scanner.PrintTokens(tokens)
 	stmt, i, err := statement(tokens, 0)
 	if err != nil {
 		return nil, err
@@ -349,7 +348,6 @@ func primary(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 
 func reference(tokens []*scanner.Token, i int) (*ast.Reference, int, error) {
 	names := []*scanner.Token{tokens[i]}
-	fmt.Println("parsing ref", tokens[i].Lexeme)
 	for match(tokens, i+1, scanner.DOT) {
 		i += 2
 		fmt.Println("parsing additional ref", tokens[i].Lexeme)
