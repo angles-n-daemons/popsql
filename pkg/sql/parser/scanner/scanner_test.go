@@ -19,6 +19,17 @@ func athousandrandomtokens() string {
 	return strings.Join(poem, " ")
 }
 
+func mixCase(s string) string {
+	rng := rand.New(rand.NewSource(0))
+	coin := rng.Intn(2)
+	middle := len(s) / 2
+	if coin == 1 {
+		return s[:middle] + strings.ToLower(s[middle:])
+	} else {
+		return strings.ToLower(s[:middle])
+	}
+}
+
 var tokenpoem = athousandrandomtokens()
 
 func assertTokensEqual(t *testing.T, expected *Token, actual *Token) {
@@ -79,3 +90,7 @@ func BenchmarkScanTokenPoem(b *testing.B) {
 		Scan(tokenpoem)
 	}
 }
+
+// Benchmark case insensitivity
+// BenchmarkScanTokenPoem-11           7710            155490 ns/op case sensitive
+// BenchmarkScanTokenPoem-11           6512            178254 ns/op case insensitive
