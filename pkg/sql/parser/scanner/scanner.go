@@ -2,8 +2,10 @@ package scanner
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"strconv"
+	"strings"
 )
 
 /*
@@ -24,11 +26,10 @@ func Scan(s string) ([]*Token, error) {
 outside:
 	for !isAtEnd(s, i) {
 		// first check if at reserved keyword or symbol
-		for j := i + 6; j >= i+1; j-- {
-			if len(s) < j {
-				continue
-			}
-			word := s[i:j]
+		minLen := int(math.Min(float64(i+6), float64(len(s))))
+		upper := strings.ToUpper(s[i:minLen])
+		for j := minLen - i; j >= 1; j-- {
+			word := upper[:j]
 			if ttype, ok := keywordLookup[word]; ok {
 				tokens = append(tokens, simpleToken(ttype, word))
 				i += len(word)
