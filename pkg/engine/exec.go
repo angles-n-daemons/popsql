@@ -10,40 +10,55 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/sys"
 )
 
-func (db *Engine) PrintRows(rows []any) {
-
-}
-
 func (db *Engine) VisitSelectStmt(stmt *ast.Select) (*any, error) {
 	// read rows from table
 	// ignore where clauses and what not for now
 	// rearrange rows into specified column order
 	// omit hidden columns
+	table, err := db.lookupTable(stmt.From)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := db.Store.Scan(table.KeyPrefix(), table.KeyPrefixEnd())
+	if err != nil {
+		return nil, err
+	}
+	records := []*sys.Record{}
+	for _, row := range rows {
+		record, err := sys.NewRecordFromBytes(table, stmt.Terms, row)
+		if err != nil {
+			return nil, err
+		}
+		records = append(records, record)
+		results := []string{}
+		for _, val := range record.Data {
+			results = append(results, fmt.Sprintf("%v", val))
+		}
+		fmt.Println(strings.Join(results, "|"))
+	}
 	return nil, nil
 }
 
 func (db *Engine) VisitInsertStmt(stmt *ast.Insert) (*any, error) {
-	// lookup table for validation
-	// insert to rows
-	//   order rows in order of columns
-	//   validate data types
-	//   add missing column data
-	//   reorder to match default column ordering
-	// write rows
 	table, err := db.lookupTable(stmt.Table)
 	if err != nil {
 		return nil, err
 	}
 	for _, tuple := range stmt.Values {
-		payload, err := sys.NewPayloadFromExpression(table, stmt.Columns, tuple)
+		record, err := sys.NewRecordFromExpression(table, stmt.Columns, tuple)
 		if err != nil {
 			return nil, err
 		}
-		b, err := payload.ToBytes()
+		err = record.MaybeAddAutogenKey()
+		key := fmt.Sprintf("%s/%s", table.KeyPrefix(), record.Key())
+		b, err := record.ToBytes()
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println(string(b))
+		err = db.Store.Put(key, b, false)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return nil, nil
 }
@@ -69,7 +84,7 @@ func (db *Engine) VisitCreateStmt(stmt *ast.Create) (*any, error) {
 }
 
 func (db *Engine) CreateTable(table sys.Table) error {
-	// validate primary key
+	// add primary key if none set
 	if len(table.PrimaryKey) == 0 {
 		table.Columns = append(table.Columns, sys.Column{
 			Space:    table.Space,

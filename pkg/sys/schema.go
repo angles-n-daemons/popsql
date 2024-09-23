@@ -27,6 +27,7 @@ package sys
 //    - Validate()
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -162,6 +163,18 @@ func (t *Table) GetColumnFromRef(ref *ast.Reference) (*Column, error) {
 	}
 	name := ref.Names[0].Lexeme
 	return t.GetColumn(name)
+}
+
+func (t *Table) Debug() {
+	fmt.Printf("TABLE: %s.%s\n", t.Space, t.Name)
+	for _, column := range t.Columns {
+		b, err := json.Marshal(column)
+		if err != nil {
+			fmt.Println("couldnt marshal col")
+		} else {
+			fmt.Println("\t", string(b))
+		}
+	}
 }
 
 type Column struct {

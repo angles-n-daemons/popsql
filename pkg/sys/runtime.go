@@ -11,16 +11,39 @@ import (
 
 const PRIMARY_KEY_NAME = "_internal_pk"
 
-type Payload struct {
+type Record struct {
 	Table *Table
 	// columns and data are theoretically ordered
 	Columns []*Column
 	Data    []any
 }
 
-func NewPayloadFromExpression(
+func NewRecordFromBytes(table *Table, terms []ast.Expr, recordBytes []byte) (*Record, error) {
+	var record = map[string]any{}
+	err := json.Unmarshal(recordBytes, &record)
+	if err != nil {
+		return nil, err
+	}
+	columns := []*Column{}
+	data := []any{}
+	for _, term := range terms {
+		col, ok := term.(*ast.Reference)
+		if !ok {
+			return nil, fmt.Errorf("unexpected type %T looking for reference", term)
+		}
+		column, err := table.GetColumnFromRef(col)
+		if err != nil {
+			return nil, err
+		}
+		columns = append(columns, column)
+		data = append(data, record[column.Name])
+	}
+
+	return &Record{Table: table, Columns: columns, Data: data}, nil
+}
+func NewRecordFromExpression(
 	table *Table, colRefs []*ast.Reference, tuple []ast.Expr,
-) (*Payload, error) {
+) (*Record, error) {
 	// need two things for a primary key
 	// 1. a primary key column on create table
 	//    created on create
@@ -33,12 +56,12 @@ func NewPayloadFromExpression(
 		return nil, fmt.Errorf("value set found incorrect size expected %d found %d", len(colRefs), len(tuple))
 	}
 	columns := []*Column{}
-	for i, col := range colRefs {
+	for _, col := range colRefs {
 		column, err := table.GetColumnFromRef(col)
 		if err != nil {
 			return nil, err
 		}
-		columns[i] = column
+		columns = append(columns, column)
 	}
 	data := []any{}
 	for _, value := range tuple {
@@ -52,10 +75,10 @@ func NewPayloadFromExpression(
 			return nil, fmt.Errorf("unexpected expression type %T reading VALUES", value)
 		}
 	}
-	return &Payload{Table: table, Columns: columns, Data: data}, nil
+	return &Record{Table: table, Columns: columns, Data: data}, nil
 }
 
-func (p *Payload) Key() string {
+func (p *Record) Key() string {
 	pk := p.Table.PrimaryKey
 	if len(pk) == 0 {
 		panic(fmt.Errorf("no primary key for table %s", p.Table.Name))
@@ -85,7 +108,7 @@ func (p *Payload) Key() string {
 	return strings.Join(keys, ":")
 }
 
-func (p *Payload) ToBytes() ([]byte, error) {
+func (p *Record) ToBytes() ([]byte, error) {
 	var record = map[string]any{}
 	for i, col := range p.Columns {
 		record[col.Name] = p.Data[i]
@@ -93,25 +116,25 @@ func (p *Payload) ToBytes() ([]byte, error) {
 	return json.Marshal(record)
 }
 
-func MaybeAddAutogenKey(table *Table, columns []*Column, data []any) error {
+func (p *Record) MaybeAddAutogenKey() error {
 	// should not reach this state
-	if len(table.PrimaryKey) == 0 {
+	if len(p.Table.PrimaryKey) == 0 {
 		return fmt.Errorf("no primary keys found for this table")
 	}
 	// primary key cannot be auto gen if more than one column
-	if len(table.PrimaryKey) > 1 {
+	if len(p.Table.PrimaryKey) > 1 {
 		return nil
 	}
 	// only autogen if primary key is the autogen primary key
-	pk := table.PrimaryKey[0]
+	pk := p.Table.PrimaryKey[0]
 	if pk != PRIMARY_KEY_NAME {
 		return nil
 	}
-	column, err := table.GetColumn(PRIMARY_KEY_NAME)
+	column, err := p.Table.GetColumn(PRIMARY_KEY_NAME)
 	if err != nil {
 		return err
 	}
-	columns = append(columns, column)
-	data = append(data, uuid.New())
+	p.Columns = append(p.Columns, column)
+	p.Data = append(p.Data, uuid.New().String())
 	return nil
 }

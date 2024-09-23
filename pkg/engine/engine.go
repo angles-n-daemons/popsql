@@ -61,6 +61,10 @@ func (db *Engine) Query(query string) error {
 	return nil
 }
 
+func (db *Engine) PrintRows(rows []sys.Record) {
+
+}
+
 func (db *Engine) CreateSystemTables() {
 	db.CreateTable(db.Schema.System.Tables)
 	db.CreateTable(db.Schema.System.Columns)
