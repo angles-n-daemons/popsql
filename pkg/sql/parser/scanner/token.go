@@ -30,12 +30,10 @@ const (
 	STRING
 	NUMBER
 
-	// DATA_TYPES
-	INTEGER
-	VARCHAR
-	FLOAT
+	// data types
+	TYPE
 
-	// KEYWORDS
+	// keywords
 	SELECT
 	INSERT
 	INTO
@@ -97,6 +95,13 @@ var keywordLookup = map[string]TokenType{
 	"NOT": NOT,
 
 	"VALUES": VALUES,
+
+	"INTEGER": TYPE,
+	"INT":     TYPE,
+	"FLOAT":   TYPE,
+	"STRING":  TYPE,
+	"BOOLEAN": TYPE,
+	"BOOL":    TYPE,
 }
 
 type Token struct {

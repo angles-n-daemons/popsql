@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 	"testing"
@@ -49,7 +50,7 @@ func assertTokensEqual(t *testing.T, expected *Token, actual *Token) {
 	}
 	if expected.Literal != actual.Literal {
 		t.Fatalf(
-			"tokens unequal, expected lexeme %s, got %s",
+			"tokens unequal, expected literal %s, got %s",
 			expected.Literal,
 			actual.Literal,
 		)
@@ -67,6 +68,20 @@ func TestScannerBasic(t *testing.T) {
 		simpleToken(COMMA, ","),
 		newToken(STRING, "bye", "bye"),
 	} {
+		assertTokensEqual(t, expected, tokens[i])
+	}
+}
+
+func TestScannerWithDataTypes(t *testing.T) {
+	tokens, err := Scan("col1 INT")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i, expected := range []*Token{
+		newToken(IDENTIFIER, "col1", "col1"),
+		simpleToken(TYPE, "INT"),
+	} {
+		fmt.Println(expected)
 		assertTokensEqual(t, expected, tokens[i])
 	}
 }

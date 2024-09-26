@@ -297,6 +297,9 @@ func primary(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 }
 
 func reference(tokens []*scanner.Token, i int) (*ast.Reference, int, error) {
+	if !match(tokens, i, scanner.IDENTIFIER, scanner.STAR) {
+		return nil, i, fmt.Errorf("unexpected token %s parsing reference", tokens[i].Type)
+	}
 	names := []*scanner.Token{tokens[i]}
 	for match(tokens, i+1, scanner.DOT) {
 		i += 2

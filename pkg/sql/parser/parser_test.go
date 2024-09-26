@@ -28,6 +28,8 @@ func TestValidPrograms(t *testing.T) {
 	for _, query := range []string{
 		"SELECT 1",
 		"SELECT 1.23",
+		"SeleCT 1.23",
+		"sELEct 1.23",
 		"SELECT 'hi there'",
 		"SELECT jim",
 		"SELECT jim.jane",
@@ -38,10 +40,14 @@ func TestValidPrograms(t *testing.T) {
 		"SELECT 5 + 4, 'ello' FROM thing WHERE x==8",
 		"INSERT INTO a (x, y) VALUES (1, 2)",
 		"INSERT INTO a (x, y) VALUES (1, 2), (3, 4)",
+		"INSERT INTO a.b (c.d) VALUES (5)",
+		"SELECT !false",
+		"SELECT a.false",
+		"SELECT (1)",
 	} {
 		stmt, err := parser.Parse(query)
 		if err != nil {
-			t.Fatal(err)
+			t.Fatal("unexpected error for query: ", query, err)
 		}
 		ast.PrintStmt(stmt)
 	}
@@ -52,10 +58,25 @@ func TestInvalidPrograms(t *testing.T) {
 		"SELECT",
 		"5 + 4",
 		"SELECT FROM 5+4",
-		"i SELECT FROM 5+4",
 		"SELECT * FROM",
 		"SELECT * FROM z WHERE",
 		"SELECT * FROM z SELECT *",
+		"SELECT * FROM '",
+		"SELECT * FROM 5",
+		"SELECT * WHERE SELECT *",
+		"INSERT",
+		"INSERT FROM",
+		"INSERT INTO 5",
+		"INSERT INTO a.b thing",
+		"INSERT INTO a.b (5",
+		"INSERT INTO a.b (c.d(",
+		"INSERT INTO a.b (c.d) FROM",
+		"INSERT INTO a.b (c.d) VALUES 5",
+		"INSERT INTO a.b (c.d) VALUES (5, ",
+		"INSERT INTO a.b (c.d) VALUES (5 a",
+		"SELECT !",
+		"SELECT !false",
+		"SELECT (5 + 4",
 	} {
 		stmt, err := parser.Parse(query)
 		if err == nil {
