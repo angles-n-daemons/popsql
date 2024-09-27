@@ -283,7 +283,7 @@ func primary(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 	case scanner.IDENTIFIER, scanner.STAR:
 		return reference(tokens, i)
 	case scanner.LEFT_PAREN:
-		expr, i, err = expression(tokens, i)
+		expr, i, err = expression(tokens, i+1)
 		if err != nil {
 			return nil, i, err
 		}

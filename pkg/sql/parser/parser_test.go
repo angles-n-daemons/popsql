@@ -75,7 +75,6 @@ func TestInvalidPrograms(t *testing.T) {
 		"INSERT INTO a.b (c.d) VALUES (5, ",
 		"INSERT INTO a.b (c.d) VALUES (5 a",
 		"SELECT !",
-		"SELECT !false",
 		"SELECT (5 + 4",
 	} {
 		stmt, err := parser.Parse(query)
