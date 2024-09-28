@@ -96,9 +96,8 @@ var keywordLookup = map[string]TokenType{
 
 	"VALUES": VALUES,
 
-	"INTEGER": TYPE,
-	"INT":     TYPE,
-	"FLOAT":   TYPE,
+	"NUMBER":  TYPE,
+	"NUM":     TYPE,
 	"STRING":  TYPE,
 	"BOOLEAN": TYPE,
 	"BOOL":    TYPE,
@@ -108,6 +107,13 @@ type Token struct {
 	Type    TokenType
 	Lexeme  string
 	Literal any
+}
+
+func (t *Token) Equal(o *Token) bool {
+	return o != nil &&
+		t.Type == o.Type &&
+		t.Lexeme == o.Lexeme &&
+		t.Literal == o.Literal
 }
 
 func simpleToken(ttype TokenType, lexeme string) *Token {

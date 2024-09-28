@@ -40,7 +40,7 @@ outside:
 		switch {
 		case slices.Contains(whitespace, s[i]):
 			i++
-		case s[i] == '\'':
+		case s[i] == '"':
 			token, err := scanStr(s, i+1)
 			if err != nil {
 				return nil, err
@@ -62,7 +62,6 @@ outside:
 			tokens = append(tokens, token)
 			i += len(token.Lexeme)
 		default:
-			fmt.Println(s[i : i+6])
 			return nil, fmt.Errorf("unknown character '%c'", s[i])
 		}
 	}
@@ -85,7 +84,7 @@ func scanStr(s string, start int) (*Token, error) {
 	i := start + 1
 	for !isAtEnd(s, i) {
 		switch s[i] {
-		case '\'':
+		case '"':
 			return newToken(STRING, s[start:i], s[start:i]), nil
 		default:
 			i++

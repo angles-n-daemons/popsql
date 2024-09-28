@@ -81,25 +81,25 @@ func insertStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 		return nil, i, err
 	}
 
-	err = assertNext(tokens, i, scanner.LEFT_PAREN)
-	if err != nil {
-		return nil, i, err
+	var columns []*ast.Reference
+	if match(tokens, i, scanner.LEFT_PAREN) {
+		columns, i, err = referenceList(tokens, i+1)
+		if err != nil {
+			return nil, i, err
+		}
+		err = assertNext(tokens, i, scanner.RIGHT_PAREN)
+		if err != nil {
+			return nil, i, err
+		}
+		i++
 	}
-	columns, i, err := referenceList(tokens, i+1)
-	if err != nil {
-		return nil, i, err
-	}
-	err = assertNext(tokens, i, scanner.RIGHT_PAREN)
+
+	err = assertNext(tokens, i, scanner.VALUES)
 	if err != nil {
 		return nil, i, err
 	}
 
-	err = assertNext(tokens, i+1, scanner.VALUES)
-	if err != nil {
-		return nil, i, err
-	}
-
-	values, i, err := tupleList(tokens, i+2)
+	values, i, err := tupleList(tokens, i+1)
 	if err != nil {
 		return nil, i, err
 	}
