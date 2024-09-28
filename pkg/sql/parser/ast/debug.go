@@ -21,8 +21,19 @@ func (p *StmtPrinter) print(stmt Stmt) {
 	VisitStmt(stmt, p)
 }
 
+func (p *StmtPrinter) VisitCreateStmt(stmt *Create) (*any, error) {
+	printIndent("- CREATE TABLE", p.depth)
+	p.depth++
+	printIndent(fmt.Sprintf("         name: %s", stmt.Name.Lexeme), p.depth-1)
+	for _, column := range stmt.Columns {
+		(&ExprPrinter{p.depth}).print(column)
+	}
+	p.depth--
+	return nil, nil
+}
+
 func (p *StmtPrinter) VisitSelectStmt(stmt *Select) (*any, error) {
-	printIndent("- SELECT", p.depth)
+	printIndent("SELECT", p.depth)
 	p.depth++
 	printIndent("   terms:", p.depth-1)
 	for _, term := range stmt.Terms {
@@ -118,5 +129,10 @@ func (p *ExprPrinter) VisitReferenceExpr(expr *Reference) (*any, error) {
 		names = append(names, token.Lexeme)
 	}
 	printIndent(fmt.Sprintf("- Reference: %s", strings.Join(names, ".")), p.depth)
+	return nil, nil
+}
+
+func (p *ExprPrinter) VisitColumnSpecExpr(expr *ColumnSpec) (*any, error) {
+	printIndent(fmt.Sprintf("- Column Spec: %s %s", expr.Name.Lexeme, expr.DataType.Lexeme), p.depth)
 	return nil, nil
 }

@@ -30,8 +30,8 @@ const (
 	STRING
 	NUMBER
 
-	// data types
-	TYPE
+	// data type
+	DATATYPE
 
 	// keywords
 	SELECT
@@ -41,6 +41,7 @@ const (
 	DELETE
 
 	CREATE
+	TABLE
 
 	FROM
 	WHERE
@@ -82,6 +83,7 @@ var keywordLookup = map[string]TokenType{
 	"DELETE": DELETE,
 
 	"CREATE": CREATE,
+	"TABLE":  TABLE,
 
 	"FROM":   FROM,
 	"WHERE":  WHERE,
@@ -96,11 +98,11 @@ var keywordLookup = map[string]TokenType{
 
 	"VALUES": VALUES,
 
-	"NUMBER":  TYPE,
-	"NUM":     TYPE,
-	"STRING":  TYPE,
-	"BOOLEAN": TYPE,
-	"BOOL":    TYPE,
+	"NUMBER":  DATATYPE,
+	"NUM":     DATATYPE,
+	"STRING":  DATATYPE,
+	"BOOLEAN": DATATYPE,
+	"BOOL":    DATATYPE,
 }
 
 type Token struct {

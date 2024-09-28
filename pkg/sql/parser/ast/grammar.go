@@ -4,13 +4,13 @@ package ast
 
 import (
 	"fmt"
-
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
 type walkFunc func(Expr) error
 
-type Expr interface{}
+
+type Expr interface { }
 
 type ExprVisitor[T any] interface {
 	VisitBinaryExpr(*Binary) (*T, error)
@@ -18,6 +18,7 @@ type ExprVisitor[T any] interface {
 	VisitUnaryExpr(*Unary) (*T, error)
 	VisitAssignmentExpr(*Assignment) (*T, error)
 	VisitReferenceExpr(*Reference) (*T, error)
+	VisitColumnSpecExpr(*ColumnSpec) (*T, error)
 }
 
 func VisitExpr[T any](expr Expr, visitor ExprVisitor[T]) (*T, error) {
@@ -32,38 +33,59 @@ func VisitExpr[T any](expr Expr, visitor ExprVisitor[T]) (*T, error) {
 		return visitor.VisitAssignmentExpr(typedExpr)
 	case *Reference:
 		return visitor.VisitReferenceExpr(typedExpr)
+	case *ColumnSpec:
+		return visitor.VisitColumnSpecExpr(typedExpr)
 	default:
 		return nil, fmt.Errorf("unable to visit type %T", typedExpr)
 	}
 }
 
+
 type Binary struct {
-	Left     Expr
+	Left Expr
 	Operator scanner.Token
-	Right    Expr
+	Right Expr
 }
+
+
 
 type Literal struct {
 	Value scanner.Token
 }
 
+
+
 type Unary struct {
 	Operator scanner.Token
-	Right    Expr
+	Right Expr
 }
 
+
+
 type Assignment struct {
-	Name  scanner.Token
+	Name scanner.Token
 	Value Expr
 }
+
+
 
 type Reference struct {
 	Names []*scanner.Token
 }
 
+
+
+type ColumnSpec struct {
+	Name scanner.Token
+	DataType scanner.Token
+}
+
+
+
 type StmtVisitor[T any] interface {
 	VisitSelectStmt(*Select) (*T, error)
 	VisitInsertStmt(*Insert) (*T, error)
+	VisitCreateStmt(*Create) (*T, error)
 }
 
 func VisitStmt[T any](expr Stmt, visitor StmtVisitor[T]) (*T, error) {
@@ -72,21 +94,38 @@ func VisitStmt[T any](expr Stmt, visitor StmtVisitor[T]) (*T, error) {
 		return visitor.VisitSelectStmt(typedStmt)
 	case *Insert:
 		return visitor.VisitInsertStmt(typedStmt)
+	case *Create:
+		return visitor.VisitCreateStmt(typedStmt)
 	default:
 		return nil, fmt.Errorf("unable to visit type %T", typedStmt)
 	}
 }
 
+
 type Select struct {
 	Terms []Expr
-	From  *Reference
+	From *Reference
 	Where Expr
 }
 
+
+
 type Insert struct {
-	Table   *Reference
+	Table *Reference
 	Columns []*Reference
-	Values  [][]Expr
+	Values [][]Expr
 }
 
-type Stmt interface{}
+
+
+type Create struct {
+	Name scanner.Token
+	Columns []*ColumnSpec
+}
+
+
+
+
+type Stmt interface { }
+
+

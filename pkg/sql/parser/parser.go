@@ -26,6 +26,8 @@ type expressionSig func([]*scanner.Token, int) (ast.Expr, int, error)
 
 func statement(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 	switch tokens[i].Type {
+	case scanner.CREATE:
+		return createStmt(tokens, i+1)
 	case scanner.SELECT:
 		return selectStmt(tokens, i+1)
 	case scanner.INSERT:
@@ -33,6 +35,39 @@ func statement(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 	default:
 		return nil, i, fmt.Errorf("unexpected token %s looking for statement", tokens[i].Type)
 	}
+}
+
+func createStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
+	if !match(tokens, i, scanner.TABLE) {
+		return nil, i, fmt.Errorf("expected TABLE to follow CREATE")
+	}
+	if !match(tokens, i+1, scanner.IDENTIFIER) {
+		return nil, i + 1, fmt.Errorf("expected name to follow CREATE TABLE")
+	}
+	name := tokens[i+1]
+	if !match(tokens, i+2, scanner.LEFT_PAREN) {
+		return nil, i + 2, fmt.Errorf("expected LEFT_PAREN to follow CREATE TABLE <name>")
+	}
+	columns := []*ast.ColumnSpec{}
+	i += 3
+	for match(tokens, i, scanner.IDENTIFIER) {
+		var spec *ast.ColumnSpec
+		var err error
+		spec, i, err = columnSpec(tokens, i)
+		if err != nil {
+			return nil, i, err
+		}
+		columns = append(columns, spec)
+		if match(tokens, i, scanner.COMMA) {
+			i++
+		} else {
+			break
+		}
+	}
+	if !match(tokens, i, scanner.RIGHT_PAREN) {
+		return nil, i, fmt.Errorf("expected RIGHT_PAREN to close CREATE TABLE statement")
+	}
+	return &ast.Create{Name: *name, Columns: columns}, i + 1, nil
 }
 
 func selectStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
@@ -105,6 +140,17 @@ func insertStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 	}
 
 	return &ast.Insert{Table: table, Columns: columns, Values: values}, i, nil
+}
+
+func columnSpec(tokens []*scanner.Token, i int) (*ast.ColumnSpec, int, error) {
+	if !match(tokens, i, scanner.IDENTIFIER) {
+		return nil, i, fmt.Errorf("expected name in column spec")
+	}
+	if !match(tokens, i+1, scanner.DATATYPE) {
+		return nil, i + 1, fmt.Errorf("expected data type in column spec")
+	}
+
+	return &ast.ColumnSpec{Name: *tokens[i], DataType: *tokens[i+1]}, i + 2, nil
 }
 
 func tupleList(tokens []*scanner.Token, i int) ([][]ast.Expr, int, error) {
