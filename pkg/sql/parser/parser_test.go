@@ -1,6 +1,8 @@
 package parser_test
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser"
@@ -57,13 +59,20 @@ func TestParseValidPrograms(t *testing.T) {
 		//`DELETE FROM a`,
 		//`DELETE FROM a WHERE x=3`,
 		// `DROP TABLE derp`,
+		//`SELECT * FROM (SELECT * FROM b)`
 	} {
 		t.Run(`Parse Valid: `+query, func(t *testing.T) {
+			fmt.Println("test in : ", query)
 			stmt, err := parser.Parse(query)
 			if err != nil {
 				t.Fatal(`unexpected error for query: `, query, err)
 			}
-			ast.PrintStmt(stmt)
+			s, err := ast.GenQuery(stmt)
+			if err != nil {
+				t.Fatal(err)
+			}
+			fmt.Println("test out: ", strings.Replace(*s, "\n", "", -1))
+			fmt.Println()
 		})
 	}
 }

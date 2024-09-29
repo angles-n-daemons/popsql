@@ -4,13 +4,13 @@ package ast
 
 import (
 	"fmt"
+
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
 type walkFunc func(Expr) error
 
-
-type Expr interface { }
+type Expr interface{}
 
 type ExprVisitor[T any] interface {
 	VisitBinaryExpr(*Binary) (*T, error)
@@ -40,47 +40,35 @@ func VisitExpr[T any](expr Expr, visitor ExprVisitor[T]) (*T, error) {
 	}
 }
 
-
 type Binary struct {
-	Left Expr
+	Left     Expr
 	Operator scanner.Token
-	Right Expr
+	Right    Expr
 }
-
-
 
 type Literal struct {
 	Value scanner.Token
 }
 
-
-
 type Unary struct {
 	Operator scanner.Token
-	Right Expr
+	Right    Expr
 }
 
-
-
+// How to distingish comparison from binary?
 type Assignment struct {
-	Name scanner.Token
+	Name  scanner.Token
 	Value Expr
 }
-
-
 
 type Reference struct {
 	Names []*scanner.Token
 }
 
-
-
 type ColumnSpec struct {
-	Name scanner.Token
+	Name     scanner.Token
 	DataType scanner.Token
 }
-
-
 
 type StmtVisitor[T any] interface {
 	VisitSelectStmt(*Select) (*T, error)
@@ -101,31 +89,21 @@ func VisitStmt[T any](expr Stmt, visitor StmtVisitor[T]) (*T, error) {
 	}
 }
 
-
 type Select struct {
 	Terms []Expr
-	From *Reference
+	From  *Reference
 	Where Expr
 }
 
-
-
 type Insert struct {
-	Table *Reference
+	Table   *Reference
 	Columns []*Reference
-	Values [][]Expr
+	Values  [][]Expr
 }
 
-
-
 type Create struct {
-	Name scanner.Token
+	Name    scanner.Token
 	Columns []*ColumnSpec
 }
 
-
-
-
-type Stmt interface { }
-
-
+type Stmt interface{}
