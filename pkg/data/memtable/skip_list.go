@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -17,6 +16,10 @@ type SkiplistNode[K cmp.Ordered, V any] struct {
 	Key  K
 	Val  V
 	next []*SkiplistNode[K, V]
+}
+
+func (node *SkiplistNode[K, V]) Next() *SkiplistNode[K, V] {
+	return node.next[0]
 }
 
 /*
@@ -57,6 +60,10 @@ func NewSkiplistWithRandSource[K cmp.Ordered, V any](source rand.Source) *Skipli
 	}
 }
 
+func (list *Skiplist[K, V]) Head() *SkiplistNode[K, V] {
+	return list.heads[0]
+}
+
 /* Put takes a value and tries to insert it into the skiplist.
  * This function returns a boolean which is true if the element is new.
  * It can error if the skiplist is full.
@@ -66,7 +73,7 @@ func (list *Skiplist[K, V]) Put(key K, val V) (bool, error) {
 		return false, errors.New("cannot put element in skiplist, at maximum size.")
 	}
 
-	node, prevs := list.search(key)
+	node, prevs := list.Search(key)
 	if node != nil {
 		// if the node already exists, we change its value
 		node.Val = val
@@ -105,13 +112,13 @@ func (list *Skiplist[K, V]) Put(key K, val V) (bool, error) {
 
 // Get finds the element in the skiplist if it exists, otherwise returns nil
 func (list *Skiplist[K, V]) Get(key K) *SkiplistNode[K, V] {
-	node, _ := list.search(key)
+	node, _ := list.Search(key)
 	return node
 }
 
 // Delete removes the element with the specified key from the list if it exists
 func (list *Skiplist[K, V]) Delete(key K) *SkiplistNode[K, V] {
-	node, prevs := list.search(key)
+	node, prevs := list.Search(key)
 	// If we didn't find the node, return nil
 	if node == nil {
 		return nil
@@ -131,11 +138,11 @@ func (list *Skiplist[K, V]) Delete(key K) *SkiplistNode[K, V] {
 	return node
 }
 
-// search is an internal function, leveraged by Put, Get and Delete
-// it searches through the list for a value, returning a search array
+// Search is an internal function, leveraged by Put, Get and Delete
+// it searches through the list for a value, returning a Search array
 // of nodes preceeding or equal to the node value.
-// if the key exists, it will be returned in addition to the search array
-func (list *Skiplist[K, V]) search(key K) (*SkiplistNode[K, V], []*SkiplistNode[K, V]) {
+// if the key exists, it will be returned in addition to the Search array
+func (list *Skiplist[K, V]) Search(key K) (*SkiplistNode[K, V], []*SkiplistNode[K, V]) {
 	// Find the highest head which is less than val
 	level := list.height - 1
 	var search *SkiplistNode[K, V]
@@ -218,7 +225,7 @@ func (list *Skiplist[K, V]) DebugGetRow(level int) ([]K, error) {
 // [8 -- -- -- -- -- -- -- -- 37 -- 47 56 -- -- -- -- -- -- -- -- -- -- -- 94 95 --- 106 --- 118 124 --- --- --- 141 --- --- 156 --- --- --- --- --- ---]
 // [8 -- 13 -- -- -- -- 31 33 37 45 47 56 -- -- -- -- -- 81 85 -- -- -- -- 94 95 --- 106 --- 118 124 --- --- 140 141 --- --- 156 --- --- --- --- 190 ---]
 // [8 11 13 15 25 26 29 31 33 37 45 47 56 58 59 66 74 78 81 85 87 88 89 90 94 95 100 106 111 118 124 128 137 140 141 147 153 156 159 162 163 187 190 194]
-func DebugPrintIntList(list *Skiplist[int, int], levels int) {
+func DebugPrintList[K cmp.Ordered, V any](list *Skiplist[K, V], levels int) {
 	lists := make([][]string, 5)
 	for i := 0; i < levels; i++ {
 		lists[i] = []string{}
@@ -227,7 +234,7 @@ func DebugPrintIntList(list *Skiplist[int, int], levels int) {
 	node := list.heads[0]
 	for node != nil {
 		height := len(node.next)
-		str := strconv.Itoa(node.Key)
+		str := fmt.Sprintf("%v", node.Key)
 		for i := 0; i < levels; i++ {
 			if i < height {
 				lists[i] = append(lists[i], str)
