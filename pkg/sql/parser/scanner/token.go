@@ -31,7 +31,9 @@ const (
 	NUMBER
 
 	// data type
-	DATATYPE
+	DATATYPE_BOOLEAN
+	DATATYPE_STRING
+	DATATYPE_NUMBER
 
 	// keywords
 	SELECT
@@ -98,11 +100,11 @@ var keywordLookup = map[string]TokenType{
 
 	"VALUES": VALUES,
 
-	"NUMBER":  DATATYPE,
-	"NUM":     DATATYPE,
-	"STRING":  DATATYPE,
-	"BOOLEAN": DATATYPE,
-	"BOOL":    DATATYPE,
+	"NUMBER":  DATATYPE_NUMBER,
+	"NUM":     DATATYPE_NUMBER,
+	"STRING":  DATATYPE_STRING,
+	"BOOLEAN": DATATYPE_BOOLEAN,
+	"BOOL":    DATATYPE_BOOLEAN,
 }
 
 type Token struct {

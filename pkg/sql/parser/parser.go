@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/ast"
@@ -25,6 +26,9 @@ func Parse(s string) (ast.Stmt, error) {
 type expressionSig func([]*scanner.Token, int) (ast.Expr, int, error)
 
 func statement(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
+	if isAtEnd(tokens, i) {
+		return nil, i, errors.New("reached end of input parsing statement")
+	}
 	switch tokens[i].Type {
 	case scanner.CREATE:
 		return createStmt(tokens, i+1)
@@ -146,7 +150,7 @@ func columnSpec(tokens []*scanner.Token, i int) (*ast.ColumnSpec, int, error) {
 	if !match(tokens, i, scanner.IDENTIFIER) {
 		return nil, i, fmt.Errorf("expected name in column spec")
 	}
-	if !match(tokens, i+1, scanner.DATATYPE) {
+	if !match(tokens, i+1, scanner.DATATYPE_BOOLEAN, scanner.DATATYPE_STRING, scanner.DATATYPE_NUMBER) {
 		return nil, i + 1, fmt.Errorf("expected data type in column spec")
 	}
 
