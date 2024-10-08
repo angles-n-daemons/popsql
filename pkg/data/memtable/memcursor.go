@@ -1,8 +1,14 @@
 package memtable
 
+import "math"
+
 type Memcursor struct {
 	Node *SkiplistNode[string, []byte]
 	End  string
+}
+
+func (m *Memcursor) ReadAll(num int) ([][]byte, error) {
+	return m.ReadAll(math.MaxInt)
 }
 
 func (m *Memcursor) Read(num int) ([][]byte, error) {
