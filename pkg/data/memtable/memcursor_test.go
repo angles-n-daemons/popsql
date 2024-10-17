@@ -26,6 +26,7 @@ func TestMemcursorRead(t *testing.T) {
 	afterEnd := "5"
 	atEnd := "4"
 	beforeEnd := "3"
+	t.Fatal("test beforeStart and afterStart")
 	for _, test := range []struct {
 		end      string
 		num      int
