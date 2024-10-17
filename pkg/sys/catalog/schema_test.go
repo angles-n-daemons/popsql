@@ -1,4 +1,4 @@
-package schema_test
+package catalog_test
 
 import "testing"
 

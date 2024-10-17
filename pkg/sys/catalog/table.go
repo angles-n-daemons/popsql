@@ -1,20 +1,23 @@
-package schema
+package catalog
 
 import (
 	"fmt"
 	"strings"
 )
 
-func NewTable() (*Table, error) {
+func NewTable(namespace *Namespace, name string, pkey []string) (*Table, error) {
 	return nil, nil
 }
 
 type Table struct {
-	Space      string
+	Namespace  *Namespace
 	Name       string
-	Columns    []*Column `json:"-"`
+	Columns    []*Column
 	PrimaryKey []string
-	autoInc    uint
+}
+
+func (t *Table) AddColumn(column *Column) error {
+	return nil
 }
 
 func (t *Table) GetColumn(name string) (*Column, error) {
@@ -27,7 +30,7 @@ func (t *Table) GetColumn(name string) (*Column, error) {
 }
 
 func (t *Table) Prefix() string {
-	return fmt.Sprintf("%s/table/%s", t.Space, t.Name)
+	return fmt.Sprintf("%s/table/%s", t.Namespace.Name, t.Name)
 }
 
 func (t *Table) PrefixEnd() string {
@@ -35,11 +38,25 @@ func (t *Table) PrefixEnd() string {
 	return nextString(prefix)
 }
 
-func (t *Table) Key() (string, error) {
-	return "", nil
+func (t *Table) ToRegister() *TableRegister {
+	return &TableRegister{
+		t.Namespace.Name,
+		t.Name,
+		t.PrimaryKey,
+	}
 }
 
-func (t *Table) Value() ([]byte, error) {
+type TableRegister struct {
+	Namespace  string
+	Name       string
+	PrimaryKey []string
+}
+
+func (t *TableRegister) Key() (string, error) {
+	return t.Namespace + "-" + t.Name, nil
+}
+
+func (t *TableRegister) Value() ([]byte, error) {
 	return nil, nil
 }
 
