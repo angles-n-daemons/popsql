@@ -1,4 +1,4 @@
-package catalog
+package schema
 
 import (
 	"fmt"
@@ -7,11 +7,22 @@ import (
 )
 
 type Column struct {
-	Space    string
-	Table    string
 	Name     string
 	DataType DataType
-	// define an order?
+}
+
+type ColumnRegister struct {
+	Schema Schema
+	Table  Table
+	Column Column
+}
+
+func (c *ColumnRegister) Key() (string, error) {
+	return "", nil
+}
+
+func (c *ColumnRegister) Value() ([]byte, error) {
+	return nil, nil
 }
 
 type DataType int
@@ -23,7 +34,7 @@ const (
 	BOOLEAN
 )
 
-func GetDataType(token scanner.Token) (DataType, error) {
+func GetDataType(token *scanner.Token) (DataType, error) {
 	switch token.Type {
 	case scanner.DATATYPE_BOOLEAN:
 		return BOOLEAN, nil
