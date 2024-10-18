@@ -21,7 +21,6 @@ func TestMemcursorRead(t *testing.T) {
 		}
 		values = append(values, value)
 	}
-	fmt.Println(values, values[1:])
 
 	afterStart := "3"
 	atStart := "2"
