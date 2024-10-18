@@ -4,17 +4,30 @@ var SYSTEM = "system"
 var USER = "user"
 
 type Schema struct {
-	System *Namespace
-	User   *Namespace
+	Tables        map[string]*Table
+	TableIdByName map[string]string
+}
+
+func (n *Schema) AddTable(t *Table) error {
+	// error if table already exists
+	return nil
+}
+
+func (n *Schema) GetTable(id string) (*Table, error) {
+	return nil, nil
+}
+
+func (n *Schema) GetTableByName(id string) (*Table, error) {
+	return nil, nil
 }
 
 func InitSchema() *Schema {
-	var system = NewNamespace(SYSTEM)
-	var user = NewNamespace(USER)
-
+	schema := &Schema{
+		Tables:        map[string]*Table{},
+		TableIdByName: map[string]string{},
+	}
 	var tables = &Table{
-		Namespace: system,
-		Name:      "tables",
+		Name: "tables",
 		Columns: []*Column{
 			{
 				Name:     "namespace",
@@ -27,38 +40,11 @@ func InitSchema() *Schema {
 		},
 	}
 
-	var columns = &Table{
-		Namespace: system,
-		Name:      "columns",
-		Columns: []*Column{
-			{
-				Name:     "namespace",
-				DataType: STRING,
-			},
-			{
-				Name:     "table",
-				DataType: STRING,
-			},
-			{
-				Name:     "name",
-				DataType: STRING,
-			},
-			{
-				Name:     "datatype",
-				DataType: STRING,
-			},
-		},
-	}
-
-	system.AddTable(tables)
-	system.AddTable(columns)
-	return &Schema{
-		System: system,
-		User:   user,
-	}
+	schema.AddTable(tables)
+	return &Schema{}
 }
 
-func SchemaFromBytes(tables [][]byte, columns [][]byte) (*Schema, error) {
+func SchemaFromBytes(tables [][]byte) (*Schema, error) {
 	var schema = InitSchema()
 
 	return schema, nil

@@ -5,18 +5,19 @@ import (
 	"strings"
 )
 
-func NewTable(namespace *Namespace, name string, pkey []string) (*Table, error) {
+func NewTable(name string, pkey []string) (*Table, error) {
+	// name enforcement
 	return nil, nil
 }
 
 type Table struct {
-	Namespace  *Namespace
 	Name       string
 	Columns    []*Column
 	PrimaryKey []string
 }
 
 func (t *Table) AddColumn(column *Column) error {
+	// check column exists
 	return nil
 }
 
@@ -30,7 +31,7 @@ func (t *Table) GetColumn(name string) (*Column, error) {
 }
 
 func (t *Table) Prefix() string {
-	return fmt.Sprintf("%s/table/%s", t.Namespace.Name, t.Name)
+	return fmt.Sprintf("table/%s", t.Name)
 }
 
 func (t *Table) PrefixEnd() string {
@@ -38,25 +39,11 @@ func (t *Table) PrefixEnd() string {
 	return nextString(prefix)
 }
 
-func (t *Table) ToRegister() *TableRegister {
-	return &TableRegister{
-		t.Namespace.Name,
-		t.Name,
-		t.PrimaryKey,
-	}
+func (t *Table) Key() (string, error) {
+	return t.Name, nil
 }
 
-type TableRegister struct {
-	Namespace  string
-	Name       string
-	PrimaryKey []string
-}
-
-func (t *TableRegister) Key() (string, error) {
-	return t.Namespace + "-" + t.Name, nil
-}
-
-func (t *TableRegister) Value() ([]byte, error) {
+func (t *Table) Value() ([]byte, error) {
 	return nil, nil
 }
 
