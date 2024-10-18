@@ -11,43 +11,72 @@ import (
 func TestMemcursorRead(t *testing.T) {
 	store := memtable.NewMemstore()
 	values := [][]byte{}
-	// generates { 0 : a, 2: b, 4: c }
-	for i := 0; i < 3; i++ {
+	// generates { 2 : a, 4: b, 6: c }
+	for i := 1; i < 4; i++ {
 		key := strconv.Itoa(i * 2)
 		value := []byte{byte('a' + i)}
 		err := store.Set(key, value)
 		if err != nil {
 			t.Fatal(err)
 		}
-		fmt.Println(key, value)
 		values = append(values, value)
 	}
+	fmt.Println(values, values[1:])
 
-	afterEnd := "5"
-	atEnd := "4"
-	beforeEnd := "3"
-	t.Fatal("test beforeStart and afterStart")
+	afterStart := "3"
+	atStart := "2"
+	beforeStart := "1"
+	afterEnd := "7"
+	atEnd := "6"
+	beforeEnd := "5"
 	for _, test := range []struct {
+		start    string
 		end      string
 		num      int
 		isAtEnd  bool
 		expected [][]byte
 	}{
-		{end: afterEnd, num: 3, isAtEnd: true, expected: values},
-		{end: atEnd, num: 3, isAtEnd: true, expected: values[:2]},
-		{end: beforeEnd, num: 3, isAtEnd: true, expected: values[:2]},
-		{end: afterEnd, num: 2, isAtEnd: false, expected: values[:2]},
-		{end: atEnd, num: 2, isAtEnd: true, expected: values[:2]},
-		{end: beforeEnd, num: 2, isAtEnd: true, expected: values[:2]},
-		{end: afterEnd, num: 1, isAtEnd: false, expected: values[:1]},
-		{end: atEnd, num: 1, isAtEnd: false, expected: values[:1]},
-		{end: beforeEnd, num: 1, isAtEnd: false, expected: values[:1]},
-		{end: afterEnd, num: 0, isAtEnd: false, expected: [][]byte{}},
-		{end: atEnd, num: 0, isAtEnd: false, expected: [][]byte{}},
-		{end: beforeEnd, num: 0, isAtEnd: false, expected: [][]byte{}},
+		{start: beforeStart, end: afterEnd, num: 3, isAtEnd: true, expected: values},
+		{start: beforeStart, end: atEnd, num: 3, isAtEnd: true, expected: values[:2]},
+		{start: beforeStart, end: beforeEnd, num: 3, isAtEnd: true, expected: values[:2]},
+		{start: beforeStart, end: afterEnd, num: 2, isAtEnd: false, expected: values[:2]},
+		{start: beforeStart, end: atEnd, num: 2, isAtEnd: true, expected: values[:2]},
+		{start: beforeStart, end: beforeEnd, num: 2, isAtEnd: true, expected: values[:2]},
+		{start: beforeStart, end: afterEnd, num: 1, isAtEnd: false, expected: values[:1]},
+		{start: beforeStart, end: atEnd, num: 1, isAtEnd: false, expected: values[:1]},
+		{start: beforeStart, end: beforeEnd, num: 1, isAtEnd: false, expected: values[:1]},
+		{start: beforeStart, end: afterEnd, num: 0, isAtEnd: false, expected: [][]byte{}},
+		{start: beforeStart, end: atEnd, num: 0, isAtEnd: false, expected: [][]byte{}},
+		{start: beforeStart, end: beforeEnd, num: 0, isAtEnd: false, expected: [][]byte{}},
+
+		{start: atStart, end: afterEnd, num: 3, isAtEnd: true, expected: values},
+		{start: atStart, end: atEnd, num: 3, isAtEnd: true, expected: values[:2]},
+		{start: atStart, end: beforeEnd, num: 3, isAtEnd: true, expected: values[:2]},
+		{start: atStart, end: afterEnd, num: 2, isAtEnd: false, expected: values[:2]},
+		{start: atStart, end: atEnd, num: 2, isAtEnd: true, expected: values[:2]},
+		{start: atStart, end: beforeEnd, num: 2, isAtEnd: true, expected: values[:2]},
+		{start: atStart, end: afterEnd, num: 1, isAtEnd: false, expected: values[:1]},
+		{start: atStart, end: atEnd, num: 1, isAtEnd: false, expected: values[:1]},
+		{start: atStart, end: beforeEnd, num: 1, isAtEnd: false, expected: values[:1]},
+		{start: atStart, end: afterEnd, num: 0, isAtEnd: false, expected: [][]byte{}},
+		{start: atStart, end: atEnd, num: 0, isAtEnd: false, expected: [][]byte{}},
+		{start: atStart, end: beforeEnd, num: 0, isAtEnd: false, expected: [][]byte{}},
+
+		{start: afterStart, end: afterEnd, num: 3, isAtEnd: true, expected: values[1:]},
+		{start: afterStart, end: atEnd, num: 3, isAtEnd: true, expected: values[1:2]},
+		{start: afterStart, end: beforeEnd, num: 3, isAtEnd: true, expected: values[1:2]},
+		{start: afterStart, end: afterEnd, num: 2, isAtEnd: true, expected: values[1:]},
+		{start: afterStart, end: atEnd, num: 2, isAtEnd: true, expected: values[1:2]},
+		{start: afterStart, end: beforeEnd, num: 2, isAtEnd: true, expected: values[1:2]},
+		{start: afterStart, end: afterEnd, num: 1, isAtEnd: false, expected: values[1:2]},
+		{start: afterStart, end: atEnd, num: 1, isAtEnd: true, expected: values[1:2]},
+		{start: afterStart, end: beforeEnd, num: 1, isAtEnd: true, expected: values[1:2]},
+		{start: afterStart, end: afterEnd, num: 0, isAtEnd: false, expected: [][]byte{}},
+		{start: afterStart, end: atEnd, num: 0, isAtEnd: false, expected: [][]byte{}},
+		{start: afterStart, end: beforeEnd, num: 0, isAtEnd: false, expected: [][]byte{}},
 	} {
-		t.Run(fmt.Sprintf("end=%s, num=%d", test.end, test.num), func(t *testing.T) {
-			cur, err := store.GetRange("", test.end)
+		t.Run(fmt.Sprintf("start %s, end=%s, num=%d", test.start, test.end, test.num), func(t *testing.T) {
+			cur, err := store.GetRange(test.start, test.end)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -55,7 +84,7 @@ func TestMemcursorRead(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if !test.isAtEnd == cur.IsAtEnd() {
+			if test.isAtEnd != cur.IsAtEnd() {
 				t.Fatalf("expected isAtEnd call to be %t, but got %t", test.isAtEnd, cur.IsAtEnd())
 			}
 			assertArraysEqual(t, test.expected, result)
@@ -69,7 +98,7 @@ func TestMemcursorMultipleRead(t *testing.T) {
 	// generates { 0 : 0, 2: 1, 4: 2 }
 	for i := 0; i < 3; i++ {
 		key := strconv.Itoa(i * 2)
-		value := []byte(strconv.Itoa(i))
+		value := []byte{byte('a' + i)}
 		err := store.Set(key, value)
 		if err != nil {
 			t.Fatal(err)
