@@ -1,14 +1,13 @@
 package catalog
 
 import (
+	"encoding/json"
 	"fmt"
-	"strings"
+
+	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
-func NewTable(name string, pkey []string) (*Table, error) {
-	// name enforcement
-	return nil, nil
-}
+var ReservedInternalKeyName = "___zkey"
 
 type Table struct {
 	Name       string
@@ -16,18 +15,77 @@ type Table struct {
 	PrimaryKey []string
 }
 
-func (t *Table) AddColumn(column *Column) error {
-	// check column exists
+func NewTable(name string, columns []*Column, pkey []string) (*Table, error) {
+	if len(pkey) == 0 {
+		// if a primary key wasn't found, create an internal one
+		pkey = []string{ReservedInternalKeyName}
+		pkeyColumn, err := NewColumn(ReservedInternalKeyName, scanner.DATATYPE_STRING)
+		if err != nil {
+			return nil, err
+		}
+		columns = append(columns, pkeyColumn)
+	} else {
+		// otherwise, verify that the names used for the primary key exist
+		for _, key := range pkey {
+			found := false
+			for _, column := range columns {
+				if column.Name == key {
+					found = true
+				}
+			}
+			if !found {
+				return nil, fmt.Errorf("could not find key column '%s' while creating table '%s'", key, name)
+			}
+		}
+	}
+	return &Table{
+		Name:       name,
+		Columns:    columns,
+		PrimaryKey: pkey,
+	}, nil
+}
+
+func NewTableFromBytes(tableBytes []byte) (*Table, error) {
+	var table *Table
+	err := json.Unmarshal(tableBytes, &table)
+	return table, err
+}
+
+func (t *Table) AddColumn(name string, tokenType scanner.TokenType) error {
+	if t.GetColumn(name) != nil {
+		return fmt.Errorf(
+			"a column with the name '%s' already exists on table '%s'",
+			name,
+			t.Name,
+		)
+	}
+
+	column, err := NewColumn(name, tokenType)
+	if err != nil {
+		return err
+	}
+
+	t.Columns = append(t.Columns, column)
 	return nil
 }
 
-func (t *Table) GetColumn(name string) (*Column, error) {
+func (t *Table) GetColumn(name string) *Column {
 	for _, column := range t.Columns {
 		if column.Name == name {
-			return column, nil
+			return column
 		}
 	}
-	return nil, fmt.Errorf("Unable to find column %s on table %s", name, t.Name)
+	return nil
+}
+
+func (t *Table) Equal(other *Table) bool {
+	if other == nil {
+		return false
+	}
+	// check name
+	// check primary key
+	// check column
+	return true
 }
 
 func (t *Table) Prefix() string {
@@ -39,30 +97,11 @@ func (t *Table) PrefixEnd() string {
 	return nextString(prefix)
 }
 
+// Utility functions for the schema table
 func (t *Table) Key() (string, error) {
 	return t.Name, nil
 }
 
 func (t *Table) Value() ([]byte, error) {
-	return nil, nil
-}
-
-func nextString(s string) string {
-	i := len(s) - 1
-	for i >= 0 && s[i] == 'z' {
-		i--
-	}
-
-	if i == -1 {
-		return s + "a"
-	}
-
-	j := 0
-	return strings.Map(func(r rune) rune {
-		if j == i {
-			r += 1
-		}
-		j++
-		return r
-	}, s)
+	return json.Marshal(t)
 }

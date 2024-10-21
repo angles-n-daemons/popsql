@@ -18,11 +18,9 @@ func NewColumn(name string, tokenType scanner.TokenType) (*Column, error) {
 	}, nil
 }
 
-type DataType int
-
-const (
-	UNKNOWN DataType = iota
-	STRING
-	NUMBER
-	BOOLEAN
-)
+func (c *Column) Equal(o *Column) bool {
+	if o == nil {
+		return false
+	}
+	return c.Name == o.Name && c.DataType == o.DataType
+}

@@ -1,7 +1,8 @@
 package catalog
 
-var SYSTEM = "system"
-var USER = "user"
+import "fmt"
+
+const SchemaTableName = "__schema__"
 
 type Schema struct {
 	Tables        map[string]*Table
@@ -14,10 +15,12 @@ func (n *Schema) AddTable(t *Table) error {
 }
 
 func (n *Schema) GetTable(id string) (*Table, error) {
+	// error if doesn't exist
 	return nil, nil
 }
 
 func (n *Schema) GetTableByName(id string) (*Table, error) {
+	// error if doesn't exist
 	return nil, nil
 }
 
@@ -27,7 +30,7 @@ func InitSchema() *Schema {
 		TableIdByName: map[string]string{},
 	}
 	var tables = &Table{
-		Name: "tables",
+		Name: SchemaTableName,
 		Columns: []*Column{
 			{
 				Name:     "namespace",
@@ -44,8 +47,12 @@ func InitSchema() *Schema {
 	return &Schema{}
 }
 
-func SchemaFromBytes(tables [][]byte) (*Schema, error) {
+func SchemaFromBytes(tablesBytes [][]byte) (*Schema, error) {
 	var schema = InitSchema()
+
+	for _, tableBytes := range tablesBytes {
+		fmt.Println(tableBytes)
+	}
 
 	return schema, nil
 }

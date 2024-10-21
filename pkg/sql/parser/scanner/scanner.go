@@ -121,7 +121,7 @@ loop:
 
 func scanIdentifier(s string, start int) (*Token, error) {
 	i := start + 1
-	for !isAtEnd(s, i) && (isLetter(s[i]) || isNumeric(s[i])) {
+	for !isAtEnd(s, i) && (isLetter(s[i]) || isNumeric(s[i]) || s[i] == '_') {
 		i++
 	}
 	return newToken(IDENTIFIER, s[start:i], s[start:i]), nil

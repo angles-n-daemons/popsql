@@ -2,15 +2,21 @@ package catalog
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
-const NAME_VALIDATION_REGEX = "[A-z0-9_]"
+const NAME_VALIDATION_REGEXP = "[A-z0-9_]"
 
-func ValidateName(name string) error {
-	return nil
-}
+type DataType int
+
+const (
+	UNKNOWN DataType = iota
+	STRING
+	NUMBER
+	BOOLEAN
+)
 
 func GetDataType(tokenType scanner.TokenType) (DataType, error) {
 	switch tokenType {
@@ -23,4 +29,24 @@ func GetDataType(tokenType scanner.TokenType) (DataType, error) {
 	default:
 		return UNKNOWN, fmt.Errorf("unrecognized data type %s", tokenType)
 	}
+}
+
+func nextString(s string) string {
+	i := len(s) - 1
+	for i >= 0 && s[i] == 'z' {
+		i--
+	}
+
+	if i == -1 {
+		return s + "a"
+	}
+
+	j := 0
+	return strings.Map(func(r rune) rune {
+		if j == i {
+			r += 1
+		}
+		j++
+		return r
+	}, s)
 }
