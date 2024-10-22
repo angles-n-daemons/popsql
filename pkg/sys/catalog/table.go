@@ -3,6 +3,7 @@ package catalog
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
@@ -82,9 +83,17 @@ func (t *Table) Equal(other *Table) bool {
 	if other == nil {
 		return false
 	}
-	// check name
-	// check primary key
-	// check column
+	if len(t.Columns) != len(other.Columns) {
+		return false
+	}
+	for i, column := range t.Columns {
+		if !column.Equal(other.Columns[i]) {
+			return false
+		}
+	}
+	if !slices.Equal(t.PrimaryKey, other.PrimaryKey) {
+		return false
+	}
 	return true
 }
 

@@ -1,6 +1,7 @@
 package catalog_test
 
 import (
+	"fmt"
 	"slices"
 	"testing"
 
@@ -8,27 +9,37 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/sys/catalog"
 )
 
-var table *catalog.Table
-
 func testTable() *catalog.Table {
-	a, err := catalog.NewColumn("a", scanner.DATATYPE_NUMBER)
-	if err != nil {
-		panic(err)
+	return testTableFromArgs("", nil, nil)
+}
+
+func testTableFromArgs(name string, columns []*catalog.Column, pkey []string) *catalog.Table {
+	if name == "" {
+		name = "mytable"
 	}
-	b, err := catalog.NewColumn("b", scanner.DATATYPE_STRING)
-	if err != nil {
-		panic(err)
+	if columns == nil {
+		a, err := catalog.NewColumn("a", scanner.DATATYPE_NUMBER)
+		if err != nil {
+			panic(err)
+		}
+		b, err := catalog.NewColumn("b", scanner.DATATYPE_STRING)
+		if err != nil {
+			panic(err)
+		}
+		columns = []*catalog.Column{a, b}
 	}
-	table, err = catalog.NewTable(
-		"mytable",
-		[]*catalog.Column{a, b},
-		[]string{"a"},
+	if pkey == nil {
+		pkey = []string{"a"}
+	}
+	table, err := catalog.NewTable(
+		name,
+		columns,
+		pkey,
 	)
 	if err != nil {
 		panic(err)
 	}
 	return table
-
 }
 
 func TestNewTable(t *testing.T) {
@@ -107,6 +118,7 @@ func TestNewTable(t *testing.T) {
 func TestTableAddColumn(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
 		table := testTable()
+		fmt.Println(table)
 		err := table.AddColumn("c", scanner.DATATYPE_BOOLEAN)
 		if err != nil {
 			t.Fatal(err)
@@ -179,25 +191,61 @@ func TestTableEqual(t *testing.T) {
 	t.Run("other is nil", func(t *testing.T) {
 		table1 := testTable()
 		var table2 *catalog.Table
-		if !table1.Equal(table2) {
-			t.Fatalf("tables not equal")
+		if table1.Equal(table2) {
+			t.Fatalf("expected tables to not be equal")
 		}
 	})
 	t.Run("primary keys not equal", func(t *testing.T) {
 		table1 := testTable()
 		table2 := testTable()
-		if !table1.Equal(table2) {
-			t.Fatalf("tables not equal")
+		table2.PrimaryKey = []string{"b"}
+		if table1.Equal(table2) {
+			t.Fatalf("expected tables to not be equal")
 		}
 	})
 	t.Run("t has more columns", func(t *testing.T) {
-
+		table1 := testTable()
+		table2 := testTable()
+		newCol, err := catalog.NewColumn("third", scanner.DATATYPE_STRING)
+		if err != nil {
+			t.Fatal(err)
+		}
+		table1.Columns = append(table1.Columns, newCol)
+		if table1.Equal(table2) {
+			t.Fatal("expected tables not to be equal")
+		}
 	})
 	t.Run("other has more columns", func(t *testing.T) {
-
+		table1 := testTable()
+		table2 := testTable()
+		newCol, err := catalog.NewColumn("third", scanner.DATATYPE_STRING)
+		if err != nil {
+			t.Fatal(err)
+		}
+		table2.Columns = append(table2.Columns, newCol)
+		if table1.Equal(table2) {
+			t.Fatal("expected tables not to be equal")
+		}
 	})
 	t.Run("columns are different", func(t *testing.T) {
+		a, err := catalog.NewColumn("a", scanner.DATATYPE_NUMBER)
+		if err != nil {
+			t.Fatal(err)
+		}
+		b, err := catalog.NewColumn("b", scanner.DATATYPE_NUMBER)
+		if err != nil {
+			t.Fatal(err)
+		}
+		c, err := catalog.NewColumn("c", scanner.DATATYPE_NUMBER)
+		if err != nil {
+			t.Fatal(err)
+		}
 
+		table1 := testTableFromArgs("", []*catalog.Column{a, b}, []string{"a"})
+		table2 := testTableFromArgs("", []*catalog.Column{a, c}, []string{"a"})
+		if table1.Equal(table2) {
+			t.Fatal("expected tables not to be equal")
+		}
 	})
 }
 
