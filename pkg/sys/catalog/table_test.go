@@ -250,17 +250,12 @@ func TestTableEqual(t *testing.T) {
 }
 
 func TestTableSerialization(t *testing.T) {
-
-}
-
-func TestTablePrefix(t *testing.T) {
-
-}
-
-func TestTablePrefixEnd(t *testing.T) {
-
-}
-
-func TestTableKey(t *testing.T) {
-
+	bytes, err := testTable().Value()
+	if err != nil {
+		t.Fatal(err)
+	}
+	table, err := catalog.NewTableFromBytes(bytes)
+	if !testTable().Equal(table) {
+		t.Fatal("expected table to be equal to serialized and deserialized copy")
+	}
 }
