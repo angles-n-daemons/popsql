@@ -7,8 +7,8 @@ type Memcursor struct {
 	End  string
 }
 
-func (m *Memcursor) ReadAll(num int) ([][]byte, error) {
-	return m.ReadAll(math.MaxInt)
+func (m *Memcursor) ReadAll() ([][]byte, error) {
+	return m.Read(math.MaxInt)
 }
 
 func (m *Memcursor) Read(num int) ([][]byte, error) {

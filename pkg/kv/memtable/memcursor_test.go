@@ -15,7 +15,7 @@ func TestMemcursorRead(t *testing.T) {
 	for i := 1; i < 4; i++ {
 		key := strconv.Itoa(i * 2)
 		value := []byte{byte('a' + i)}
-		err := store.Set(key, value)
+		err := store.Put(key, value)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -98,7 +98,7 @@ func TestMemcursorMultipleRead(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		key := strconv.Itoa(i * 2)
 		value := []byte{byte('a' + i)}
-		err := store.Set(key, value)
+		err := store.Put(key, value)
 		if err != nil {
 			t.Fatal(err)
 		}

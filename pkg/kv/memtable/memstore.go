@@ -1,6 +1,10 @@
 package memtable
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/angles-n-daemons/popsql/pkg/kv/store"
+)
 
 // Memstore is a struct which satisfies the Store interface
 // and works entirely in memory. It's useful for testing the behavior of the system.
@@ -22,7 +26,7 @@ func (m *Memstore) Get(key string) ([]byte, error) {
 	return node.Val, nil
 }
 
-func (m *Memstore) GetRange(start, end string) (*Memcursor, error) {
+func (m *Memstore) GetRange(start, end string) (store.Cursor, error) {
 	node, prevs := m.List.Search(start)
 	if node == nil && prevs[0] != nil {
 		node = prevs[0].Next()
@@ -36,11 +40,11 @@ func (m *Memstore) GetRange(start, end string) (*Memcursor, error) {
 	}, nil
 }
 
-func (m *Memstore) Set(key string, value []byte) error {
+func (m *Memstore) Put(key string, value []byte) error {
 	_, err := m.List.Put(key, value)
 	return err
 }
 
-func (m *Memstore) SetRange(start, end string, value []byte) error {
+func (m *Memstore) PutRange(start, end string, value []byte) error {
 	return fmt.Errorf("not implemented")
 }

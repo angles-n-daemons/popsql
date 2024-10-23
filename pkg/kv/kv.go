@@ -1,37 +1,8 @@
 package kv
 
-type Store interface {
-	Get(string) ([][]byte, error)
-	// Gets range [start, end)
-	GetRange(string, string) Cursor
-	Put(string, []byte) error
-	PutRange(string, string, []byte) error
-}
+import "github.com/angles-n-daemons/popsql/pkg/kv/memtable"
 
-/*
-SELECT MANY
-  - GetRange (store)
-
-SELECT ONE
-  - GetRange?
-
-INSERT MANY
-  - Put
-
-INSERT ONE
-  - Put
-
-UPDATE MANY
-  - GetRange and Put
-
-DELETE MANY
-  - DeleteRange
-*/
-type Cursor interface {
-	Read(int) ([][]byte, error)
-	ReadAll() ([][]byte, error)
-	IsAtEnd() bool
-}
+var NewMemstore = memtable.NewMemstore
 
 /*
 Register is a savable object in the KV space.

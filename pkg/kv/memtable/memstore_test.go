@@ -11,10 +11,10 @@ import (
 
 func TestMemstoreBasic(t *testing.T) {
 	store := memtable.NewMemstore()
-	if err := store.Set("key1", []byte("val1")); err != nil {
+	if err := store.Put("key1", []byte("val1")); err != nil {
 		t.Fatal(err)
 	}
-	if err := store.Set("key2", []byte("val2")); err != nil {
+	if err := store.Put("key2", []byte("val2")); err != nil {
 		t.Fatal(err)
 	}
 
@@ -53,7 +53,7 @@ func TestMemstoreRanges(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		key := strconv.Itoa(i * 2)
 		value := []byte(strconv.Itoa(i))
-		err := store.Set(key, value)
+		err := store.Put(key, value)
 		if err != nil {
 			t.Fatal(err)
 		}
