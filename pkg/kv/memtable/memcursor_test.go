@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/angles-n-daemons/popsql/pkg/data/memtable"
+	"github.com/angles-n-daemons/popsql/pkg/kv/memtable"
 )
 
 func TestMemcursorRead(t *testing.T) {

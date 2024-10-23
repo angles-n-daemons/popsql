@@ -259,3 +259,42 @@ func TestTableSerialization(t *testing.T) {
 		t.Fatal("expected table to be equal to serialized and deserialized copy")
 	}
 }
+
+func TestTablePrefix(t *testing.T) {
+	for _, test := range []struct {
+		name     string
+		expected string
+	}{
+		{"chuck", "chuck"},
+		{"jim", "jim"},
+	} {
+		t.Run(fmt.Sprintf("name=%s, expected=%s", test.name, test.expected), func(t *testing.T) {
+			prefix := testTableFromArgs(test.name, nil, nil).Prefix()
+			if prefix != test.expected {
+				t.Fatalf("expected %s but got %s", test.expected, prefix)
+			}
+		})
+		fmt.Println(test)
+	}
+}
+
+func TestTableID(t *testing.T) {
+	for _, test := range []struct {
+		name     string
+		expected string
+	}{
+		{"chuck", "chuck"},
+		{"jim", "jim"},
+	} {
+		t.Run(fmt.Sprintf("name=%s, expected=%s", test.name, test.expected), func(t *testing.T) {
+			id, err := testTableFromArgs(test.name, nil, nil).ID()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if id != test.expected {
+				t.Fatalf("expected %s but got %s", test.expected, id)
+			}
+		})
+		fmt.Println(test)
+	}
+}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
@@ -98,16 +99,15 @@ func (t *Table) Equal(other *Table) bool {
 }
 
 func (t *Table) Prefix() string {
-	return fmt.Sprintf("table/%s", t.Name)
+	return keys.NewKey(t.Name).String()
 }
 
 func (t *Table) PrefixEnd() string {
-	prefix := t.Prefix()
-	return nextString(prefix)
+	return keys.NextString(t.Prefix())
 }
 
 // Utility functions for the schema table
-func (t *Table) Key() (string, error) {
+func (t *Table) ID() (string, error) {
 	return t.Name, nil
 }
 
