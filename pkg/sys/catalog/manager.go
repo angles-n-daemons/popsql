@@ -7,4 +7,4 @@ type Manager struct {
 	Store  data.Store
 }
 
-func NewManager(
+func NewManager(store data.Store)
