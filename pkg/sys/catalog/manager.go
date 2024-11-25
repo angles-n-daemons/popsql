@@ -1,10 +1,8 @@
 package catalog
 
-import "github.com/angles-n-daemons/popsql/pkg/kv/store"
+import "github.com/angles-n-daemons/popsql/pkg/kv/data"
 
 type Manager struct {
 	Schema Schema
-	Store  store.Store
+	Store  data.Store
 }
-
-func NewManager(store store.Store)
