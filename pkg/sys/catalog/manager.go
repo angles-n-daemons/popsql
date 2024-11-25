@@ -4,7 +4,7 @@ import "github.com/angles-n-daemons/popsql/pkg/kv/store"
 
 type Manager struct {
 	Schema Schema
-	Store  data.Store
+	Store  store.Store
 }
 
-func NewManager(store data.Store)
+func NewManager(store store.Store)
