@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"strings"
+
+	"github.com/angles-n-daemons/popsql/pkg/db"
 )
 
 var banner = `
@@ -22,7 +24,7 @@ func REPL(args []string) {
 }
 
 func loop() {
-	//db := engine.GetEngine(engine.Options{})
+	db := db.GetEngine()
 	reader := bufio.NewReader(os.Stdin)
 	query := ""
 	for {
@@ -40,7 +42,7 @@ func loop() {
 
 		// semicolon sent
 		if len(parts) > 1 {
-			//err = db.Query(query)
+			err = db.Query(query, nil)
 			if err != nil {
 				fmt.Println(err)
 			}

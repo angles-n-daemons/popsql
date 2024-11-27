@@ -58,12 +58,9 @@ var Tables = &Table{
 	Name: SchemaTableName,
 	Columns: []*Column{
 		{
-			Name:     "namespace",
-			DataType: STRING,
-		},
-		{
 			Name:     "name",
 			DataType: STRING,
 		},
 	},
+	PrimaryKey: []string{"name"},
 }

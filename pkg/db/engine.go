@@ -4,43 +4,42 @@ import (
 	"sync"
 
 	"github.com/angles-n-daemons/popsql/pkg/kv/data"
+	"github.com/angles-n-daemons/popsql/pkg/kv/memtable"
+	"github.com/angles-n-daemons/popsql/pkg/sql/parser"
+	"github.com/angles-n-daemons/popsql/pkg/sql/parser/ast"
+	"github.com/angles-n-daemons/popsql/pkg/sys/catalog"
 )
 
 type Engine struct {
-	Store  data.Store
-	Schema *catalog.Schema
-	New    bool
+	Store   data.Store
+	Catalog *catalog.Manager
 }
 
-type Options struct {
-
-}
-
-
-func newEngine(opts Options) *Engine {
-	// need some heavy debug flags
-	// might be worth tagging the logging
-	store := memtable.NewMemStore()
-	isNew := true
-	schema, err := LoadSchema(store)
+func (e *Engine) Query(query string, parameters []any) error {
+	stmt, err := parser.Parse(query)
 	if err != nil {
-		// do not panic here
-		panic(err)
+		return err
 	}
-	db := &Engine{Store: store, Schema: schema}
-	if isNew {
-		db.CreateSystemTables()
+	switch stmt.(type) {
+	case ast.Create:
+		return e.Create(stmt)
+	case ast.Insert:
+		return nil
 	}
-	return db
+	return nil
 }
 
+func newEngine() *Engine {
+	store := memtable.NewMemstore()
+	return &Engine{store, nil}
+}
 
 var db *Engine
 var once sync.Once
 
-func GetEngine(opts Options) *Engine {
+func GetEngine() *Engine {
 	once.Do(func() {
-		db = newEngine(opts)
+		db = newEngine()
 	})
 	return db
 }

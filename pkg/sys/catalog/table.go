@@ -103,7 +103,7 @@ func (t *Table) Prefix() string {
 }
 
 func (t *Table) PrefixEnd() string {
-	return keys.NextString(t.Prefix())
+	return keys.Next(t.Prefix())
 }
 
 // Utility functions for the schema table

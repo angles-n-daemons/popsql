@@ -1,7 +1,5 @@
 package keys
 
-import "strings"
-
 type Key struct {
 	Table string
 	ID    string
@@ -38,22 +36,24 @@ func (k *Key) String() string {
 	return key
 }
 
+func (k *Key) Next() *Key {
+	if k.ID == "" {
+		return newKey(NextString(k.Table), k.ID)
+	}
+	return newKey(k.Table, NextString(k.ID))
+}
+
 func NextString(s string) string {
-	i := len(s) - 1
-	for i >= 0 && s[i] == 'z' {
-		i--
+	n := len(s)
+	if n == 0 {
+		return "a"
 	}
 
-	if i == -1 {
-		return s + "a"
+	runes := []rune(s)
+	if runes[len(runes)-1] == 'z' || len(s) == 0 {
+		runes = append(runes, 'a')
+	} else {
+		runes[len(runes)-1]++
 	}
-
-	j := 0
-	return strings.Map(func(r rune) rune {
-		if j == i {
-			r += 1
-		}
-		j++
-		return r
-	}, s)
+	return string(runes)
 }
