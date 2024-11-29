@@ -1,4 +1,4 @@
-package keys
+package kv
 
 import "unicode/utf8"
 

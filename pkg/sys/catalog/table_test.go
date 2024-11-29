@@ -265,12 +265,12 @@ func TestTablePrefix(t *testing.T) {
 		name     string
 		expected string
 	}{
-		{"chuck", "chuck"},
-		{"jim", "jim"},
+		{"chuck", "chuck/"},
+		{"jim", "jim/"},
 	} {
 		t.Run(fmt.Sprintf("name=%s, expected=%s", test.name, test.expected), func(t *testing.T) {
 			prefix := testTableFromArgs(test.name, nil, nil).Prefix()
-			if prefix != test.expected {
+			if prefix.String() != test.expected {
 				t.Fatalf("expected %s but got %s", test.expected, prefix)
 			}
 		})
