@@ -1,13 +1,10 @@
 package catalog
 
-import (
-	"github.com/angles-n-daemons/popsql/pkg/kv"
-	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
-)
+import "github.com/angles-n-daemons/popsql/pkg/kv"
 
 // System Table Keys
-var CATALOG_TABLE_PREFIX = keys.NewKey("__tables")
-var CATALOG_TABLE_PREFIX_END = keys.Next(CATALOG_TABLE_PREFIX)
+var CATALOG_KEYS_PREFIX = kv.NewKey("__tables")
+var CATALOG_KEYS_END = CATALOG_KEYS_PREFIX.Next()
 
 // catalog.Manager is responsible for persisting and loading the database
 // schema to and from disk.
