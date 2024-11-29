@@ -2,6 +2,7 @@ package keys_test
 
 import (
 	"testing"
+	"unicode/utf8"
 
 	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
 )
@@ -42,7 +43,7 @@ func TestWithID(t *testing.T) {
 }
 
 func TestWithIDAddition(t *testing.T) {
-	key := keys.NewKey("testTable")
+	key := keys.NewKey("testTable").WithID("123")
 	addition := "123"
 	newKey := key.WithIDAddition(addition)
 	if newKey.ID != key.ID+addition {
@@ -55,23 +56,30 @@ func TestWithIDAddition(t *testing.T) {
 
 func TestString(t *testing.T) {
 	key := keys.NewKey("testTable")
-	if key.String() != "testTable" {
+	if key.String() != "testTable/" {
 		t.Errorf("expected string %s, got %s", "testTable", key.String())
 	}
 	key = key.WithID("testID")
 	if key.String() != "testTable/testID" {
 		t.Errorf("expected string %s, got %s", "testTable/testID", key.String())
 	}
+
+	// special case check for the end string
+	if key.WithID(string(keys.END_ID)).String() != "testTable/<END>" {
+		t.Errorf("expected string %s, got %s", "testTable/<END>", key.String())
+	}
 }
 
 func TestNext(t *testing.T) {
+	mr := string(utf8.MaxRune)
+	end := string(keys.END_ID)
 	tests := []struct {
 		table, id, expectedTable, expectedID string
 	}{
-		{"table", "", "tablf", ""},
+		{"table", end, "table", end},
+		{"table", "", "table", string(keys.END_ID)},
 		{"table", "id", "table", "ie"},
-		{"table", "idz", "table", "idza"},
-		{"tablez", "", "tableza", ""},
+		{"table", "id" + mr, "table", "id" + mr + " "},
 	}
 
 	for _, test := range tests {
@@ -87,13 +95,16 @@ func TestNext(t *testing.T) {
 }
 
 func TestNextString(t *testing.T) {
+	mr := string(utf8.MaxRune)
 	tests := []struct {
 		input, expected string
 	}{
+		{"", " "},
+		{" ", "!"},
 		{"a", "b"},
-		{"z", "za"},
-		{"az", "aza"},
-		{"zz", "zza"},
+		{mr, mr + " "},
+		{" " + mr, " " + mr + " "},
+		{mr + mr, mr + mr + " "},
 	}
 
 	for _, test := range tests {
