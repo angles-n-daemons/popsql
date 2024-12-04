@@ -36,12 +36,9 @@ func SchemaFromBytes(tablesBytes [][]byte) (*Schema, error) {
 }
 
 func (s *Schema) AddTable(t *Table) error {
-	id, err := t.ID()
-	if err != nil {
-		return err
-	}
+	id := t.Key()
 	if _, ok := s.Tables[id]; ok {
-		return fmt.Errorf("table with name '%s' already exists", t.Name)
+		return fmt.Errorf("table '%s' already exists", t.Name)
 	}
 	return nil
 }
@@ -49,9 +46,18 @@ func (s *Schema) AddTable(t *Table) error {
 func (s *Schema) GetTable(id string) (*Table, error) {
 	table, ok := s.Tables[id]
 	if !ok {
-		return nil, fmt.Errorf("could not find table with id '%s'", id)
+		return nil, fmt.Errorf("could not find table with key '%s'", id)
 	}
 	return table, nil
+}
+
+func (s *Schema) DropTable(id string) error {
+	_, ok := s.Tables[id]
+	if !ok {
+		return fmt.Errorf("could not delete table with key '%s'", id)
+	}
+	delete(s.Tables, id)
+	return nil
 }
 
 var Tables = &Table{

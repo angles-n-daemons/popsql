@@ -7,6 +7,8 @@ type Column struct {
 	DataType DataType
 }
 
+// NewColumn is a utility function which turns a name and a scanned token into
+// a schema column.
 func NewColumn(name string, tokenType scanner.TokenType) (*Column, error) {
 	datatype, err := GetDataType(tokenType)
 	if err != nil {

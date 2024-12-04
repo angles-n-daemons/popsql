@@ -107,8 +107,8 @@ func (t *Table) PrefixEnd() *keys.Key {
 }
 
 // Utility functions for the schema table
-func (t *Table) ID() (string, error) {
-	return t.Name, nil
+func (t *Table) Key() string {
+	return t.Name
 }
 
 func (t *Table) Value() ([]byte, error) {

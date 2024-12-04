@@ -5,7 +5,7 @@ Register is a savable object in the KV space.
 */
 type Register interface {
 	// primary key index
-	ID() string
+	Key() string
 	Value() ([]byte, error)
 }
 

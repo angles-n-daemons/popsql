@@ -278,7 +278,25 @@ func TestTablePrefix(t *testing.T) {
 	}
 }
 
-func TestTableID(t *testing.T) {
+func TestTablePrefixEnd(t *testing.T) {
+	for _, test := range []struct {
+		name     string
+		expected string
+	}{
+		{"chuck", "chuck/<END>"},
+		{"jim", "jim/<END>"},
+	} {
+		t.Run(fmt.Sprintf("name=%s, expected=%s", test.name, test.expected), func(t *testing.T) {
+			prefix := testTableFromArgs(test.name, nil, nil).PrefixEnd()
+			if prefix.String() != test.expected {
+				t.Fatalf("expected %s but got %s", test.expected, prefix)
+			}
+		})
+		fmt.Println(test)
+	}
+}
+
+func TestTableKey(t *testing.T) {
 	for _, test := range []struct {
 		name     string
 		expected string
@@ -287,7 +305,7 @@ func TestTableID(t *testing.T) {
 		{"jim", "jim"},
 	} {
 		t.Run(fmt.Sprintf("name=%s, expected=%s", test.name, test.expected), func(t *testing.T) {
-			id, err := testTableFromArgs(test.name, nil, nil).ID()
+			id, err := testTableFromArgs(test.name, nil, nil).Key()
 			if err != nil {
 				t.Fatal(err)
 			}
