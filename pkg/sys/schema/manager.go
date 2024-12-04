@@ -1,4 +1,4 @@
-package catalog
+package schema
 
 import (
 	"github.com/angles-n-daemons/popsql/pkg/kv"
@@ -9,7 +9,7 @@ import (
 var CATALOG_KEYS_PREFIX = keys.New("__tables")
 var CATALOG_KEYS_END = CATALOG_KEYS_PREFIX.Next()
 
-// catalog.Manager is responsible for persisting and loading the database
+// Manager is responsible for persisting and loading the database
 // schema to and from disk.
 type Manager struct {
 	Schema *Schema

@@ -1,4 +1,4 @@
-package catalog
+package schema
 
 import "github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 

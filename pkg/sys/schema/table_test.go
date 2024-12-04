@@ -1,4 +1,4 @@
-package catalog_test
+package schema_test
 
 import (
 	"fmt"
@@ -6,32 +6,32 @@ import (
 	"testing"
 
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
-	"github.com/angles-n-daemons/popsql/pkg/sys/catalog"
+	"github.com/angles-n-daemons/popsql/pkg/sys/schema"
 )
 
-func testTable() *catalog.Table {
+func testTable() *schema.Table {
 	return testTableFromArgs("", nil, nil)
 }
 
-func testTableFromArgs(name string, columns []*catalog.Column, pkey []string) *catalog.Table {
+func testTableFromArgs(name string, columns []*schema.Column, pkey []string) *schema.Table {
 	if name == "" {
 		name = "mytable"
 	}
 	if columns == nil {
-		a, err := catalog.NewColumn("a", scanner.DATATYPE_NUMBER)
+		a, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
 		if err != nil {
 			panic(err)
 		}
-		b, err := catalog.NewColumn("b", scanner.DATATYPE_STRING)
+		b, err := schema.NewColumn("b", scanner.DATATYPE_STRING)
 		if err != nil {
 			panic(err)
 		}
-		columns = []*catalog.Column{a, b}
+		columns = []*schema.Column{a, b}
 	}
 	if pkey == nil {
 		pkey = []string{"a"}
 	}
-	table, err := catalog.NewTable(
+	table, err := schema.NewTable(
 		name,
 		columns,
 		pkey,
@@ -44,24 +44,24 @@ func testTableFromArgs(name string, columns []*catalog.Column, pkey []string) *c
 
 func TestNewTable(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
-		a, err := catalog.NewColumn("a", scanner.DATATYPE_NUMBER)
+		a, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
 		if err != nil {
 			t.Fatal(err)
 		}
-		b, err := catalog.NewColumn("b", scanner.DATATYPE_STRING)
+		b, err := schema.NewColumn("b", scanner.DATATYPE_STRING)
 		if err != nil {
 			t.Fatal(err)
 		}
-		table, err := catalog.NewTable(
+		table, err := schema.NewTable(
 			"mytable",
-			[]*catalog.Column{a, b},
+			[]*schema.Column{a, b},
 			[]string{"a"},
 		)
 
 		if table.Name != "mytable" {
 			t.Fatalf("expected table name '%s', got '%s'", "mytable", table.Name)
 		}
-		if !slices.Equal(table.Columns, []*catalog.Column{a, b}) {
+		if !slices.Equal(table.Columns, []*schema.Column{a, b}) {
 			t.Fatal("columns weren't equal")
 		}
 		if !slices.Equal(table.PrimaryKey, []string{"a"}) {
@@ -70,14 +70,14 @@ func TestNewTable(t *testing.T) {
 	})
 
 	t.Run("missing primary key", func(t *testing.T) {
-		a, err := catalog.NewColumn("a", scanner.DATATYPE_NUMBER)
+		a, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
 		if err != nil {
 			t.Fatal(err)
 		}
 		for _, test := range [][]string{nil, {}} {
-			table, err := catalog.NewTable(
+			table, err := schema.NewTable(
 				"mytable",
-				[]*catalog.Column{a},
+				[]*schema.Column{a},
 				test,
 			)
 			if err != nil {
@@ -90,20 +90,20 @@ func TestNewTable(t *testing.T) {
 			if len(table.PrimaryKey) != 1 {
 				t.Fatal("failed to add or create primary key")
 			}
-			if table.PrimaryKey[0] != catalog.ReservedInternalKeyName {
+			if table.PrimaryKey[0] != schema.ReservedInternalKeyName {
 				t.Fatalf("unexpected primary key name '%s'", table.PrimaryKey[0])
 			}
 		}
 	})
 
 	t.Run("invalid primary key", func(t *testing.T) {
-		a, err := catalog.NewColumn("a", scanner.DATATYPE_NUMBER)
+		a, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
 		if err != nil {
 			t.Fatal(err)
 		}
-		_, err = catalog.NewTable(
+		_, err = schema.NewTable(
 			"mytable",
-			[]*catalog.Column{a},
+			[]*schema.Column{a},
 			[]string{"b"},
 		)
 		if err == nil {
@@ -123,7 +123,7 @@ func TestTableAddColumn(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		expected, err := catalog.NewColumn("c", scanner.DATATYPE_BOOLEAN)
+		expected, err := schema.NewColumn("c", scanner.DATATYPE_BOOLEAN)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -160,7 +160,7 @@ func TestTableGetColumn(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
 		table := testTable()
 		column := table.GetColumn("a")
-		expected, err := catalog.NewColumn("a", scanner.DATATYPE_NUMBER)
+		expected, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -190,7 +190,7 @@ func TestTableEqual(t *testing.T) {
 	})
 	t.Run("other is nil", func(t *testing.T) {
 		table1 := testTable()
-		var table2 *catalog.Table
+		var table2 *schema.Table
 		if table1.Equal(table2) {
 			t.Fatalf("expected tables to not be equal")
 		}
@@ -206,7 +206,7 @@ func TestTableEqual(t *testing.T) {
 	t.Run("t has more columns", func(t *testing.T) {
 		table1 := testTable()
 		table2 := testTable()
-		newCol, err := catalog.NewColumn("third", scanner.DATATYPE_STRING)
+		newCol, err := schema.NewColumn("third", scanner.DATATYPE_STRING)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -218,7 +218,7 @@ func TestTableEqual(t *testing.T) {
 	t.Run("other has more columns", func(t *testing.T) {
 		table1 := testTable()
 		table2 := testTable()
-		newCol, err := catalog.NewColumn("third", scanner.DATATYPE_STRING)
+		newCol, err := schema.NewColumn("third", scanner.DATATYPE_STRING)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -228,21 +228,21 @@ func TestTableEqual(t *testing.T) {
 		}
 	})
 	t.Run("columns are different", func(t *testing.T) {
-		a, err := catalog.NewColumn("a", scanner.DATATYPE_NUMBER)
+		a, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
 		if err != nil {
 			t.Fatal(err)
 		}
-		b, err := catalog.NewColumn("b", scanner.DATATYPE_NUMBER)
+		b, err := schema.NewColumn("b", scanner.DATATYPE_NUMBER)
 		if err != nil {
 			t.Fatal(err)
 		}
-		c, err := catalog.NewColumn("c", scanner.DATATYPE_NUMBER)
+		c, err := schema.NewColumn("c", scanner.DATATYPE_NUMBER)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		table1 := testTableFromArgs("", []*catalog.Column{a, b}, []string{"a"})
-		table2 := testTableFromArgs("", []*catalog.Column{a, c}, []string{"a"})
+		table1 := testTableFromArgs("", []*schema.Column{a, b}, []string{"a"})
+		table2 := testTableFromArgs("", []*schema.Column{a, c}, []string{"a"})
 		if table1.Equal(table2) {
 			t.Fatal("expected tables not to be equal")
 		}
@@ -254,7 +254,7 @@ func TestTableSerialization(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	table, err := catalog.NewTableFromBytes(bytes)
+	table, err := schema.NewTableFromBytes(bytes)
 	if !testTable().Equal(table) {
 		t.Fatal("expected table to be equal to serialized and deserialized copy")
 	}
