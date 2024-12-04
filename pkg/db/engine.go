@@ -3,7 +3,7 @@ package db
 import (
 	"sync"
 
-	"github.com/angles-n-daemons/popsql/pkg/kv/data"
+	"github.com/angles-n-daemons/popsql/pkg/kv"
 	"github.com/angles-n-daemons/popsql/pkg/kv/memtable"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/ast"
@@ -11,7 +11,7 @@ import (
 )
 
 type Engine struct {
-	Store   data.Store
+	Store   kv.Store
 	Catalog *catalog.Manager
 }
 

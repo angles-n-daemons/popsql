@@ -1,5 +1,7 @@
 package memtable
 
+import "github.com/angles-n-daemons/popsql/pkg/kv"
+
 // Memstore is a struct which satisfies the Store interface
 // and works entirely in memory. It's useful for testing the behavior of the system.
 func NewMemstore() *Memstore {
@@ -40,14 +42,14 @@ func (m *Memstore) Get(key string) ([]byte, error) {
 // - end: The ending key of the range to retrieve.
 //
 // Returns:
-// - data.Cursor: A cursor pointing to the start of the range within the Memstore.
+// - kv.Cursor: A cursor pointing to the start of the range within the Memstore.
 // - error: An error if the range cannot be retrieved.
 //
 // The function searches for the node corresponding to the 'start' key. If the node
 // is not found, it attempts to use the previous node's next pointer. If still not
 // found, it defaults to the head of the list. The returned cursor will iterate
 // from the found node up to the 'end' key.
-func (m *Memstore) GetRange(start, end string) (*Memcursor, error) {
+func (m *Memstore) GetRange(start, end string) (kv.Cursor, error) {
 	node, prevs := m.List.Search(start)
 	if node == nil && prevs[0] != nil {
 		node = prevs[0].Next()

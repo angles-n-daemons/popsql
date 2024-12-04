@@ -1,4 +1,4 @@
-package kv
+package keys
 
 import "unicode/utf8"
 
@@ -16,8 +16,8 @@ type Key struct {
 	ID    string
 }
 
-// NewKey creates a new key from a table.
-func NewKey(table string) *Key {
+// New creates a new key from a table.
+func New(table string) *Key {
 	return newKey(table, "")
 }
 

@@ -7,7 +7,6 @@ type Register interface {
 	// primary key index
 	ID() string
 	Value() ([]byte, error)
-	IndexIDs() ([]string, error)
 }
 
 type Store interface {

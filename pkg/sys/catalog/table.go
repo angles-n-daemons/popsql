@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/angles-n-daemons/popsql/pkg/kv"
+	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
@@ -98,11 +98,11 @@ func (t *Table) Equal(other *Table) bool {
 	return true
 }
 
-func (t *Table) Prefix() *kv.Key {
-	return kv.NewKey(t.Name)
+func (t *Table) Prefix() *keys.Key {
+	return keys.New(t.Name)
 }
 
-func (t *Table) PrefixEnd() *kv.Key {
+func (t *Table) PrefixEnd() *keys.Key {
 	return t.Prefix().Next()
 }
 
