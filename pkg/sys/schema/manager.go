@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/angles-n-daemons/popsql/pkg/kv"
@@ -13,6 +14,9 @@ var CATALOG_KEYS_END = CATALOG_KEYS_PREFIX.Next()
 
 // Meta Table Name
 const MetaTableName = "__schema__"
+
+// Custom error for dropping the Meta table.
+var ErrDropMetaTable = errors.New("cannot drop meta table")
 
 // Manager is responsible for holding the entire schema as well as keeping it
 // in sync with the underlying data store.
@@ -66,6 +70,14 @@ func (m *Manager) AddTable(t *Table) error {
 		return fmt.Errorf("could not put table definition in store %w", err)
 	}
 	return nil
+}
+
+func (m *Manager) DropTable(t *Table) error {
+	if t.Key() == MetaTable.Key() {
+		return ErrDropMetaTable
+	}
+
+	return errors.New("not implemented")
 }
 
 var MetaTable = &Table{

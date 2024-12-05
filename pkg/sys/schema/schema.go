@@ -30,37 +30,29 @@ func SchemaFromBytes(tablesBytes [][]byte) (*Schema, error) {
 }
 
 func (s *Schema) AddTable(t *Table) error {
-	id := t.Key()
-	if _, ok := s.Tables[id]; ok {
+	key := t.Key()
+	if _, ok := s.Tables[key]; ok {
 		return fmt.Errorf("table '%s' already exists", t.Name)
 	}
 	return nil
 }
 
-func (s *Schema) GetTable(id string) (*Table, error) {
-	table, ok := s.Tables[id]
+func (s *Schema) GetTable(key string) (*Table, error) {
+	table, ok := s.Tables[key]
 	if !ok {
-		return nil, fmt.Errorf("could not find table with key '%s'", id)
+		return nil, fmt.Errorf("could not find table '%s'", key)
 	}
 	return table, nil
 }
 
-func (s *Schema) DropTable(id string) error {
-	_, ok := s.Tables[id]
-	if !ok {
-		return fmt.Errorf("could not delete table with key '%s'", id)
+func (s *Schema) DropTable(key string) error {
+	if key == RootTable.Key() {
+		return ErrDropMetaTable
 	}
-	delete(s.Tables, id)
+	_, ok := s.Tables[key]
+	if !ok {
+		return fmt.Errorf("could not delete table '%s'", key)
+	}
+	delete(s.Tables, key)
 	return nil
-}
-
-var RootTable = &Table{
-	Name: SchemaTableName,
-	Columns: []*Column{
-		{
-			Name:     "name",
-			DataType: STRING,
-		},
-	},
-	PrimaryKey: []string{"name"},
 }
