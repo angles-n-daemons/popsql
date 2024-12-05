@@ -5,7 +5,7 @@ import (
 
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 	"github.com/angles-n-daemons/popsql/pkg/sys/schema"
-	"github.com/angles-n-daemons/popsql/pkg/testutil/assert"
+	"github.com/angles-n-daemons/popsql/pkg/testing/assert"
 )
 
 func TestNewColumn(t *testing.T) {
