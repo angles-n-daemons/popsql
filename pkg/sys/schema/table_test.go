@@ -2,11 +2,11 @@ package schema_test
 
 import (
 	"fmt"
-	"slices"
 	"testing"
 
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 	"github.com/angles-n-daemons/popsql/pkg/sys/schema"
+	"github.com/angles-n-daemons/popsql/pkg/testutil/assert"
 )
 
 func testTable() *schema.Table {
@@ -58,15 +58,9 @@ func TestNewTable(t *testing.T) {
 			[]string{"a"},
 		)
 
-		if table.Name != "mytable" {
-			t.Fatalf("expected table name '%s', got '%s'", "mytable", table.Name)
-		}
-		if !slices.Equal(table.Columns, []*schema.Column{a, b}) {
-			t.Fatal("columns weren't equal")
-		}
-		if !slices.Equal(table.PrimaryKey, []string{"a"}) {
-			t.Fatal("primary keys not equal")
-		}
+		assert.Equal(t, table.Name, "mytable")
+		assert.Equal(t, table.Columns, []*schema.Column{a, b})
+		assert.Equal(t, table.PrimaryKey, []string{"a"})
 	})
 
 	t.Run("missing primary key", func(t *testing.T) {
@@ -80,19 +74,10 @@ func TestNewTable(t *testing.T) {
 				[]*schema.Column{a},
 				test,
 			)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			if len(table.Columns) != 2 {
-				t.Fatal("failed to add internal key column")
-			}
-			if len(table.PrimaryKey) != 1 {
-				t.Fatal("failed to add or create primary key")
-			}
-			if table.PrimaryKey[0] != schema.ReservedInternalKeyName {
-				t.Fatalf("unexpected primary key name '%s'", table.PrimaryKey[0])
-			}
+			assert.NoError(t, err)
+			assert.Equal(t, len(table.Columns), 2)
+			assert.Equal(t, len(table.PrimaryKey), 1)
+			assert.Equal(t, table.PrimaryKey[0], schema.ReservedInternalKeyName)
 		}
 	})
 
@@ -106,12 +91,7 @@ func TestNewTable(t *testing.T) {
 			[]*schema.Column{a},
 			[]string{"b"},
 		)
-		if err == nil {
-			t.Fatal("didn't error like expected")
-		}
-		if err.Error() != "could not find key column 'b' while creating table 'mytable'" {
-			t.Fatalf("incorrect error '%s'", err)
-		}
+		assert.IsError(t, err, "could not find key column 'b' while creating table 'mytable'")
 	})
 }
 
@@ -124,35 +104,19 @@ func TestTableAddColumn(t *testing.T) {
 			t.Fatal(err)
 		}
 		expected, err := schema.NewColumn("c", scanner.DATATYPE_BOOLEAN)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if len(table.Columns) != 3 {
-			t.Fatalf("columns length '%d' incorrect", len(table.Columns))
-		}
-		if !table.Columns[2].Equal(expected) {
-			t.Fatal("column at expected index was different")
-		}
+		assert.NoError(t, err)
+		assert.Equal(t, len(table.Columns), 3)
+		assert.Equal(t, table.Columns[2], expected)
 	})
 	t.Run("duplicate column", func(t *testing.T) {
 		table := testTable()
 		err := table.AddColumn("b", scanner.DATATYPE_BOOLEAN)
-		if err == nil {
-			t.Fatal("didn't error like expected")
-		}
-		if err.Error() != "a column with the name 'b' already exists on table 'mytable'" {
-			t.Fatalf("wrong error '%s'", err)
-		}
+		assert.IsError(t, err, "a column with the name 'b' already exists on table 'mytable'")
 	})
 	t.Run("NewColumn fails", func(t *testing.T) {
 		table := testTable()
 		err := table.AddColumn("c", scanner.BANG)
-		if err == nil {
-			t.Fatal("didn't error like expected")
-		}
-		if err.Error() != "unrecognized data type BANG" {
-			t.Fatalf("wrong error '%s'", err)
-		}
+		assert.IsError(t, err, "unrecognized data type BANG")
 	})
 }
 
@@ -161,19 +125,13 @@ func TestTableGetColumn(t *testing.T) {
 		table := testTable()
 		column := table.GetColumn("a")
 		expected, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !expected.Equal(column) {
-			t.Fatalf("columns not equal: %v, %v", expected, column)
-		}
+		assert.NoError(t, err)
+		assert.Equal(t, expected, column)
 	})
 	t.Run("column doesn't exist", func(t *testing.T) {
 		table := testTable()
 		column := table.GetColumn("c")
-		if column != nil {
-			t.Fatalf("found column '%s' when expecting nil response", column.Name)
-		}
+		assert.Nil(t, column)
 	})
 }
 
@@ -181,71 +139,46 @@ func TestTableEqual(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
 		table1 := testTable()
 		table2 := testTable()
-		if table1 == table2 {
-			t.Fatal("test conditions incorrect, using same addresses")
-		}
-		if !table1.Equal(table2) {
-			t.Fatalf("tables not equal")
-		}
+		assert.Equal(t, table1, table2)
 	})
 	t.Run("other is nil", func(t *testing.T) {
 		table1 := testTable()
 		var table2 *schema.Table
-		if table1.Equal(table2) {
-			t.Fatalf("expected tables to not be equal")
-		}
+		assert.NotEqual(t, table1, table2)
 	})
 	t.Run("primary keys not equal", func(t *testing.T) {
 		table1 := testTable()
 		table2 := testTable()
 		table2.PrimaryKey = []string{"b"}
-		if table1.Equal(table2) {
-			t.Fatalf("expected tables to not be equal")
-		}
+		assert.NotEqual(t, table1, table2)
 	})
 	t.Run("t has more columns", func(t *testing.T) {
 		table1 := testTable()
 		table2 := testTable()
 		newCol, err := schema.NewColumn("third", scanner.DATATYPE_STRING)
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.NoError(t, err)
 		table1.Columns = append(table1.Columns, newCol)
-		if table1.Equal(table2) {
-			t.Fatal("expected tables not to be equal")
-		}
+		assert.NotEqual(t, table1, table2)
 	})
 	t.Run("other has more columns", func(t *testing.T) {
 		table1 := testTable()
 		table2 := testTable()
 		newCol, err := schema.NewColumn("third", scanner.DATATYPE_STRING)
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.NoError(t, err)
 		table2.Columns = append(table2.Columns, newCol)
-		if table1.Equal(table2) {
-			t.Fatal("expected tables not to be equal")
-		}
+		assert.NotEqual(t, table1, table2)
 	})
 	t.Run("columns are different", func(t *testing.T) {
 		a, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.NoError(t, err)
 		b, err := schema.NewColumn("b", scanner.DATATYPE_NUMBER)
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.NoError(t, err)
 		c, err := schema.NewColumn("c", scanner.DATATYPE_NUMBER)
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.NoError(t, err)
 
 		table1 := testTableFromArgs("", []*schema.Column{a, b}, []string{"a"})
 		table2 := testTableFromArgs("", []*schema.Column{a, c}, []string{"a"})
-		if table1.Equal(table2) {
-			t.Fatal("expected tables not to be equal")
-		}
+		assert.NotEqual(t, table1, table2)
 	})
 }
 
@@ -270,11 +203,8 @@ func TestTablePrefix(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("name=%s, expected=%s", test.name, test.expected), func(t *testing.T) {
 			prefix := testTableFromArgs(test.name, nil, nil).Prefix()
-			if prefix.String() != test.expected {
-				t.Fatalf("expected %s but got %s", test.expected, prefix)
-			}
+			assert.Equal(t, prefix.String(), test.expected)
 		})
-		fmt.Println(test)
 	}
 }
 
@@ -287,12 +217,9 @@ func TestTablePrefixEnd(t *testing.T) {
 		{"jim", "jim/<END>"},
 	} {
 		t.Run(fmt.Sprintf("name=%s, expected=%s", test.name, test.expected), func(t *testing.T) {
-			prefix := testTableFromArgs(test.name, nil, nil).PrefixEnd()
-			if prefix.String() != test.expected {
-				t.Fatalf("expected %s but got %s", test.expected, prefix)
-			}
+			prefixEnd := testTableFromArgs(test.name, nil, nil).PrefixEnd()
+			assert.Equal(t, prefixEnd.String(), test.expected)
 		})
-		fmt.Println(test)
 	}
 }
 
@@ -305,14 +232,8 @@ func TestTableKey(t *testing.T) {
 		{"jim", "jim"},
 	} {
 		t.Run(fmt.Sprintf("name=%s, expected=%s", test.name, test.expected), func(t *testing.T) {
-			id, err := testTableFromArgs(test.name, nil, nil).Key()
-			if err != nil {
-				t.Fatal(err)
-			}
-			if id != test.expected {
-				t.Fatalf("expected %s but got %s", test.expected, id)
-			}
+			id := testTableFromArgs(test.name, nil, nil).Key()
+			assert.Equal(t, id, test.expected)
 		})
-		fmt.Println(test)
 	}
 }

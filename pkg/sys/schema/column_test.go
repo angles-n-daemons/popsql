@@ -1,11 +1,11 @@
 package schema_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 	"github.com/angles-n-daemons/popsql/pkg/sys/schema"
+	"github.com/angles-n-daemons/popsql/pkg/testutil/assert"
 )
 
 func TestNewColumn(t *testing.T) {
@@ -17,22 +17,13 @@ func TestNewColumn(t *testing.T) {
 		"name",
 		schema.STRING,
 	}
-	if !column.Equal(expected) {
-		t.Fatalf("expected %v and %v to be equal", column, expected)
-	}
+	assert.Equal(t, expected, column)
 }
 
 func TestNewColumnWrongDataType(t *testing.T) {
 	column, err := schema.NewColumn("test", scanner.STRING)
-	if column != nil {
-		t.Fatalf("expected column to be nil, got %v", column)
-	}
-	if err == nil {
-		t.Fatalf("expected NewColumn to fail")
-	}
-	if err.Error() != fmt.Sprintf("unrecognized data type STRING") {
-		t.Fatalf("wrong error message %s", err)
-	}
+	assert.Nil(t, column)
+	assert.IsError(t, err, "unrecognized data type STRING")
 }
 
 func TestColumnEqual(t *testing.T) {

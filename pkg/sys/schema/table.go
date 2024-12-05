@@ -2,6 +2,7 @@ package schema
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"slices"
 
@@ -11,6 +12,8 @@ import (
 
 var ReservedInternalKeyName = "___zkey"
 
+var ErrNilColumns = errors.New("nil columns passed into NewTable")
+
 type Table struct {
 	Name       string
 	Columns    []*Column
@@ -18,6 +21,9 @@ type Table struct {
 }
 
 func NewTable(name string, columns []*Column, pkey []string) (*Table, error) {
+	if columns == nil {
+		return nil, ErrNilColumns
+	}
 	if len(pkey) == 0 {
 		// if a primary key wasn't found, create an internal one
 		pkey = []string{ReservedInternalKeyName}

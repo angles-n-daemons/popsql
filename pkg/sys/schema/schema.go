@@ -15,12 +15,6 @@ func NewSchema() *Schema {
 	return schema
 }
 
-func InitSchema() *Schema {
-	schema := NewSchema()
-	schema.AddTable(Tables)
-	return schema
-}
-
 func SchemaFromBytes(tablesBytes [][]byte) (*Schema, error) {
 	var schema = &Schema{}
 
@@ -60,7 +54,7 @@ func (s *Schema) DropTable(id string) error {
 	return nil
 }
 
-var Tables = &Table{
+var RootTable = &Table{
 	Name: SchemaTableName,
 	Columns: []*Column{
 		{

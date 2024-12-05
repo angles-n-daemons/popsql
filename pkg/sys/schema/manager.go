@@ -11,6 +11,9 @@ import (
 var CATALOG_KEYS_PREFIX = keys.New("__tables")
 var CATALOG_KEYS_END = CATALOG_KEYS_PREFIX.Next()
 
+// Meta Table Name
+const MetaTableName = "__schema__"
+
 // Manager is responsible for holding the entire schema as well as keeping it
 // in sync with the underlying data store.
 type Manager struct {
@@ -25,7 +28,7 @@ func (m *Manager) NewManager(store kv.Store) (*Manager, error) {
 }
 
 func (m *Manager) LoadSchema() error {
-	cur, err := m.Store.GetRange(Tables.Prefix().String(), Tables.PrefixEnd().String())
+	cur, err := m.Store.GetRange(MetaTable.Prefix().String(), MetaTable.PrefixEnd().String())
 	if err != nil {
 		return fmt.Errorf("failed to read the table catalog from the store %w", err)
 	}
@@ -63,4 +66,15 @@ func (m *Manager) AddTable(t *Table) error {
 		return fmt.Errorf("could not put table definition in store %w", err)
 	}
 	return nil
+}
+
+var MetaTable = &Table{
+	Name: MetaTableName,
+	Columns: []*Column{
+		{
+			Name:     "name",
+			DataType: STRING,
+		},
+	},
+	PrimaryKey: []string{"name"},
 }

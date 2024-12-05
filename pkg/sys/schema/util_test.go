@@ -6,6 +6,7 @@ import (
 
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 	"github.com/angles-n-daemons/popsql/pkg/sys/schema"
+	"github.com/angles-n-daemons/popsql/pkg/testutil/assert"
 )
 
 func TestGetDataType(t *testing.T) {
@@ -22,29 +23,8 @@ func TestGetDataType(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("tokenType=%s, dataType=%s", test.tokenType, test.datatype), func(t *testing.T) {
 			datatype, err := schema.GetDataType(test.tokenType)
-			if test.error != "" && err != nil {
-				if test.error != err.Error() {
-					t.Fatalf(
-						"expected error %s but instead got %s",
-						test.error,
-						err,
-					)
-				}
-				return
-			}
-			if err == nil && test.error != "" {
-				t.Fatalf("expected error: %s", test.error)
-			}
-			if err != nil && test.error == "" {
-				t.Fatalf("expected no error but received error: %s", err)
-			}
-			if datatype != test.datatype {
-				t.Fatalf(
-					"expected datatype %s, but got %s instead",
-					test.datatype,
-					datatype,
-				)
-			}
+			assert.IsError(t, err, test.error)
+			assert.Equal(t, datatype, test.datatype)
 		})
 	}
 }
