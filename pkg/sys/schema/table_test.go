@@ -9,13 +9,19 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/testing/assert"
 )
 
+// Global counter to ensure each test-created table has a unique ID and (if needed) a unique name.
+var tableIDCounter uint64
+
 func testTable() *schema.Table {
 	return testTableFromArgs("", nil, nil)
 }
 
 func testTableFromArgs(name string, columns []*schema.Column, pkey []string) *schema.Table {
+	tableIDCounter++
+
 	if name == "" {
-		name = "mytable"
+		// Give each table a unique name if none was provided
+		name = fmt.Sprintf("mytable%d", tableIDCounter)
 	}
 	if columns == nil {
 		a, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
@@ -32,7 +38,7 @@ func testTableFromArgs(name string, columns []*schema.Column, pkey []string) *sc
 		pkey = []string{"a"}
 	}
 	table, err := schema.NewTable(
-		1,
+		tableIDCounter, // unique ID for each created table
 		name,
 		columns,
 		pkey,
@@ -53,13 +59,14 @@ func TestNewTable(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		tableIDCounter++
 		table, err := schema.NewTable(
-			1,
+			tableIDCounter,
 			"mytable",
 			[]*schema.Column{a, b},
 			[]string{"a"},
 		)
-
+		assert.NoError(t, err)
 		assert.Equal(t, table.Name, "mytable")
 		assert.Equal(t, table.Columns, []*schema.Column{a, b})
 		assert.Equal(t, table.PrimaryKey, []string{"a"})
@@ -71,9 +78,10 @@ func TestNewTable(t *testing.T) {
 			t.Fatal(err)
 		}
 		for _, test := range [][]string{nil, {}} {
+			tableIDCounter++
 			table, err := schema.NewTable(
-				1,
-				"mytable",
+				tableIDCounter,
+				"mytable_missing_pk",
 				[]*schema.Column{a},
 				test,
 			)
@@ -89,20 +97,20 @@ func TestNewTable(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		tableIDCounter++
 		_, err = schema.NewTable(
-			1,
-			"mytable",
+			tableIDCounter,
+			"mytable_invalid_pk",
 			[]*schema.Column{a},
 			[]string{"b"},
 		)
-		assert.IsError(t, err, "could not find key column 'b' while creating table 'mytable'")
+		assert.IsError(t, err, "could not find key column 'b' while creating table 'mytable_invalid_pk'")
 	})
 }
 
 func TestTableAddColumn(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
 		table := testTable()
-		fmt.Println(table)
 		err := table.AddColumn("c", scanner.DATATYPE_BOOLEAN)
 		if err != nil {
 			t.Fatal(err)
@@ -112,11 +120,13 @@ func TestTableAddColumn(t *testing.T) {
 		assert.Equal(t, len(table.Columns), 3)
 		assert.Equal(t, table.Columns[2], expected)
 	})
+
 	t.Run("duplicate column", func(t *testing.T) {
 		table := testTable()
 		err := table.AddColumn("b", scanner.DATATYPE_BOOLEAN)
-		assert.IsError(t, err, "a column with the name 'b' already exists on table 'mytable'")
+		assert.IsError(t, err, fmt.Sprintf("a column with the name 'b' already exists on table '%s'", table.Name))
 	})
+
 	t.Run("NewColumn fails", func(t *testing.T) {
 		table := testTable()
 		err := table.AddColumn("c", scanner.BANG)
@@ -142,36 +152,41 @@ func TestTableGetColumn(t *testing.T) {
 func TestTableEqual(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
 		table1 := testTable()
-		table2 := testTable()
+		table2 := testTableFromArgs(table1.Name, table1.Columns, table1.PrimaryKey)
 		assert.Equal(t, table1, table2)
 	})
+
 	t.Run("other is nil", func(t *testing.T) {
 		table1 := testTable()
 		var table2 *schema.Table
 		assert.NotEqual(t, table1, table2)
 	})
+
 	t.Run("primary keys not equal", func(t *testing.T) {
 		table1 := testTable()
-		table2 := testTable()
+		table2 := testTableFromArgs(table1.Name, table1.Columns, table1.PrimaryKey)
 		table2.PrimaryKey = []string{"b"}
 		assert.NotEqual(t, table1, table2)
 	})
+
 	t.Run("t has more columns", func(t *testing.T) {
 		table1 := testTable()
-		table2 := testTable()
+		table2 := testTableFromArgs(table1.Name, table1.Columns, table1.PrimaryKey)
 		newCol, err := schema.NewColumn("third", scanner.DATATYPE_STRING)
 		assert.NoError(t, err)
 		table1.Columns = append(table1.Columns, newCol)
 		assert.NotEqual(t, table1, table2)
 	})
+
 	t.Run("other has more columns", func(t *testing.T) {
 		table1 := testTable()
-		table2 := testTable()
+		table2 := testTableFromArgs(table1.Name, table1.Columns, table1.PrimaryKey)
 		newCol, err := schema.NewColumn("third", scanner.DATATYPE_STRING)
 		assert.NoError(t, err)
 		table2.Columns = append(table2.Columns, newCol)
 		assert.NotEqual(t, table1, table2)
 	})
+
 	t.Run("columns are different", func(t *testing.T) {
 		a, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
 		assert.NoError(t, err)
@@ -187,14 +202,13 @@ func TestTableEqual(t *testing.T) {
 }
 
 func TestTableSerialization(t *testing.T) {
-	bytes, err := testTable().Value()
-	if err != nil {
-		t.Fatal(err)
-	}
+	original := testTable()
+	bytes, err := original.Value()
+	assert.NoError(t, err)
+
 	table, err := schema.NewTableFromBytes(bytes)
-	if !testTable().Equal(table) {
-		t.Fatal("expected table to be equal to serialized and deserialized copy")
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, original, table)
 }
 
 func TestTablePrefix(t *testing.T) {
@@ -206,7 +220,8 @@ func TestTablePrefix(t *testing.T) {
 		{"jim", "jim/"},
 	} {
 		t.Run(fmt.Sprintf("name=%s, expected=%s", test.name, test.expected), func(t *testing.T) {
-			prefix := testTableFromArgs(test.name, nil, nil).Prefix()
+			table := testTableFromArgs(test.name, nil, nil)
+			prefix := table.Prefix()
 			assert.Equal(t, prefix.String(), test.expected)
 		})
 	}
@@ -221,7 +236,8 @@ func TestTablePrefixEnd(t *testing.T) {
 		{"jim", "jim/<END>"},
 	} {
 		t.Run(fmt.Sprintf("name=%s, expected=%s", test.name, test.expected), func(t *testing.T) {
-			prefixEnd := testTableFromArgs(test.name, nil, nil).PrefixEnd()
+			table := testTableFromArgs(test.name, nil, nil)
+			prefixEnd := table.PrefixEnd()
 			assert.Equal(t, prefixEnd.String(), test.expected)
 		})
 	}
@@ -236,7 +252,8 @@ func TestTableKey(t *testing.T) {
 		{"jim", "jim"},
 	} {
 		t.Run(fmt.Sprintf("name=%s, expected=%s", test.name, test.expected), func(t *testing.T) {
-			id := testTableFromArgs(test.name, nil, nil).Key()
+			table := testTableFromArgs(test.name, nil, nil)
+			id := table.Key()
 			assert.Equal(t, id, test.expected)
 		})
 	}
