@@ -1,19 +1,12 @@
-package schema
+package catalog
 
 import (
 	"errors"
 	"fmt"
 
 	"github.com/angles-n-daemons/popsql/pkg/kv"
-	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
+	"github.com/angles-n-daemons/popsql/pkg/sys/schema"
 )
-
-// System Table Keys
-var CATALOG_KEYS_PREFIX = keys.New("__tables")
-var CATALOG_KEYS_END = CATALOG_KEYS_PREFIX.Next()
-
-// Meta Table Name
-const MetaTableName = "__schema__"
 
 // Custom error for dropping the Meta table.
 var ErrDropMetaTable = errors.New("cannot drop meta table")
@@ -21,7 +14,7 @@ var ErrDropMetaTable = errors.New("cannot drop meta table")
 // Manager is responsible for holding the entire schema as well as keeping it
 // in sync with the underlying data store.
 type Manager struct {
-	Schema *Schema
+	Schema *schema.Schema
 	Store  kv.Store
 }
 
@@ -32,7 +25,7 @@ func (m *Manager) NewManager(store kv.Store) (*Manager, error) {
 }
 
 func (m *Manager) LoadSchema() error {
-	cur, err := m.Store.GetRange(MetaTable.Prefix().String(), MetaTable.PrefixEnd().String())
+	cur, err := m.Store.GetRange(schema.META_TABLE_START, schema.META_TABLE_END)
 	if err != nil {
 		return fmt.Errorf("failed to read the table catalog from the store %w", err)
 	}
@@ -42,7 +35,7 @@ func (m *Manager) LoadSchema() error {
 		return fmt.Errorf("failed to read the table catalog from a cursor %w", err)
 	}
 
-	schema, err := SchemaFromBytes(tablesBytes)
+	schema, err := schema.SchemaFromBytes(tablesBytes)
 	if err != nil {
 		return err
 	}
@@ -51,7 +44,7 @@ func (m *Manager) LoadSchema() error {
 	return nil
 }
 
-func (m *Manager) AddTable(t *Table) error {
+func (m *Manager) AddTable(t *schema.Table) error {
 	err := m.Schema.AddTable(t)
 	if err != nil {
 		return err
@@ -63,7 +56,7 @@ func (m *Manager) AddTable(t *Table) error {
 	}
 	err = m.Store.Put(t.Key(), tableBytes)
 	if err != nil {
-		err = m.Schema.DropTable(t.Key())
+		err = m.Schema.RemoveTable(t.Key())
 		if err != nil {
 			panic(err)
 		}
@@ -72,21 +65,6 @@ func (m *Manager) AddTable(t *Table) error {
 	return nil
 }
 
-func (m *Manager) DropTable(t *Table) error {
-	if t.Key() == MetaTable.Key() {
-		return ErrDropMetaTable
-	}
-
+func (m *Manager) DropTable(t *schema.Table) error {
 	return errors.New("not implemented")
-}
-
-var MetaTable = &Table{
-	Name: MetaTableName,
-	Columns: []*Column{
-		{
-			Name:     "name",
-			DataType: STRING,
-		},
-	},
-	PrimaryKey: []string{"name"},
 }

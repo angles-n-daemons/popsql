@@ -75,7 +75,7 @@ func TestSchemaDropTable(t *testing.T) {
 	err := sc.AddTable(table)
 	assert.NoError(t, err)
 
-	err = sc.DropTable(table.Key())
+	err = sc.RemoveTable(table.Key())
 	assert.NoError(t, err)
 
 	retrieved, err := sc.GetTable(table.Key())
@@ -85,7 +85,7 @@ func TestSchemaDropTable(t *testing.T) {
 
 func TestSchemaDropMissingTable(t *testing.T) {
 	sc := schema.NewSchema()
-	err := sc.DropTable("doesntexist")
+	err := sc.RemoveTable("doesntexist")
 	assert.IsError(t, err, "could not delete table 'doesntexist'")
 }
 

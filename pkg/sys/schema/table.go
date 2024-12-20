@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strconv"
 
 	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
@@ -15,12 +16,13 @@ var ReservedInternalKeyName = "___zkey"
 var ErrNilColumns = errors.New("nil columns passed into NewTable")
 
 type Table struct {
+	ID         uint64
 	Name       string
 	Columns    []*Column
 	PrimaryKey []string
 }
 
-func NewTable(name string, columns []*Column, pkey []string) (*Table, error) {
+func NewTable(id uint64, name string, columns []*Column, pkey []string) (*Table, error) {
 	if columns == nil {
 		return nil, ErrNilColumns
 	}
@@ -114,7 +116,7 @@ func (t *Table) PrefixEnd() *keys.Key {
 
 // Utility functions for the schema table
 func (t *Table) Key() string {
-	return t.Name
+	return strconv.FormatUint(t.ID, 10)
 }
 
 func (t *Table) Value() ([]byte, error) {

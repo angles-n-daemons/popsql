@@ -32,6 +32,7 @@ func testTableFromArgs(name string, columns []*schema.Column, pkey []string) *sc
 		pkey = []string{"a"}
 	}
 	table, err := schema.NewTable(
+		1,
 		name,
 		columns,
 		pkey,
@@ -53,6 +54,7 @@ func TestNewTable(t *testing.T) {
 			t.Fatal(err)
 		}
 		table, err := schema.NewTable(
+			1,
 			"mytable",
 			[]*schema.Column{a, b},
 			[]string{"a"},
@@ -70,6 +72,7 @@ func TestNewTable(t *testing.T) {
 		}
 		for _, test := range [][]string{nil, {}} {
 			table, err := schema.NewTable(
+				1,
 				"mytable",
 				[]*schema.Column{a},
 				test,
@@ -87,6 +90,7 @@ func TestNewTable(t *testing.T) {
 			t.Fatal(err)
 		}
 		_, err = schema.NewTable(
+			1,
 			"mytable",
 			[]*schema.Column{a},
 			[]string{"b"},

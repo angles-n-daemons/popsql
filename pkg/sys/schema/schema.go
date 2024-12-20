@@ -3,6 +3,8 @@ package schema
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
 )
 
 const SchemaTableName = "__schema__"
@@ -38,6 +40,7 @@ func (s *Schema) AddTable(t *Table) error {
 	if _, ok := s.Tables[key]; ok {
 		return fmt.Errorf("table '%s' already exists", t.Name)
 	}
+	s.Tables[key] = t
 	return nil
 }
 
@@ -49,9 +52,9 @@ func (s *Schema) GetTable(key string) (*Table, error) {
 	return table, nil
 }
 
-// Drop table attempts to drop the table with the given key.
+// Remove table attempts to drop the table with the given key.
 // If the table does not exist, it returns an error.
-func (s *Schema) DropTable(key string) error {
+func (s *Schema) RemoveTable(key string) error {
 	_, ok := s.Tables[key]
 	if !ok {
 		return fmt.Errorf("could not delete table '%s'", key)
@@ -79,4 +82,23 @@ func (s *Schema) Equal(other *Schema) bool {
 		}
 	}
 	return true
+}
+
+// System Table Keys
+var metaTableStartKey = keys.New(MetaTableName)
+var META_TABLE_START = metaTableStartKey.String()
+var META_TABLE_END = metaTableStartKey.Next().String()
+
+// Meta Table Name
+const MetaTableName = "__schema__"
+
+var MetaTable = &Table{
+	Name: MetaTableName,
+	Columns: []*Column{
+		{
+			Name:     "name",
+			DataType: STRING,
+		},
+	},
+	PrimaryKey: []string{"name"},
 }
