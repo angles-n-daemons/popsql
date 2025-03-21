@@ -16,6 +16,7 @@ func testTable() *schema.Table {
 	return testTableFromArgs("", nil, nil)
 }
 
+// Test table creates a simple table with two columns, a a number and b a string.
 func testTableFromArgs(name string, columns []*schema.Column, pkey []string) *schema.Table {
 	tableIDCounter++
 

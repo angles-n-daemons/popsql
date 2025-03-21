@@ -14,8 +14,8 @@ func TestNewColumn(t *testing.T) {
 		t.Fatal(err)
 	}
 	expected := &schema.Column{
-		"name",
-		schema.STRING,
+		Name:     "name",
+		DataType: schema.STRING,
 	}
 	assert.Equal(t, expected, column)
 }
@@ -39,8 +39,8 @@ func TestColumnEqual(t *testing.T) {
 
 	// check non-nil
 	expected := &schema.Column{
-		"name",
-		schema.STRING,
+		Name:     "name",
+		DataType: schema.STRING,
 	}
 	if !column.Equal(expected) {
 		t.Fatalf("expected %v and %v to be equal", column, expected)

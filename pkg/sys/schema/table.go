@@ -49,6 +49,7 @@ func NewTable(id uint64, name string, columns []*Column, pkey []string) (*Table,
 		}
 	}
 	return &Table{
+		ID:         id,
 		Name:       name,
 		Columns:    columns,
 		PrimaryKey: pkey,
@@ -88,19 +89,19 @@ func (t *Table) GetColumn(name string) *Column {
 	return nil
 }
 
-func (t *Table) Equal(other *Table) bool {
-	if other == nil {
+func (t *Table) Equal(o *Table) bool {
+	if o == nil {
 		return false
 	}
-	if len(t.Columns) != len(other.Columns) {
+	if len(t.Columns) != len(o.Columns) {
 		return false
 	}
 	for i, column := range t.Columns {
-		if !column.Equal(other.Columns[i]) {
+		if !column.Equal(o.Columns[i]) {
 			return false
 		}
 	}
-	if !slices.Equal(t.PrimaryKey, other.PrimaryKey) {
+	if !slices.Equal(t.PrimaryKey, o.PrimaryKey) {
 		return false
 	}
 	return true

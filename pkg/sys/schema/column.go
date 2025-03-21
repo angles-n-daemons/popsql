@@ -5,6 +5,7 @@ import "github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 type Column struct {
 	Name     string
 	DataType DataType
+	Sequence uint64
 }
 
 // NewColumn is a utility function which turns a name and a scanned token into

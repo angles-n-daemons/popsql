@@ -2,6 +2,7 @@ package assert
 
 import (
 	"reflect"
+	"runtime/debug"
 	"testing"
 )
 
@@ -15,8 +16,9 @@ type Comparable[T any] interface {
 
 // fail logs a fatal error message indicating that two objects are not equal.
 // It takes a testing object, and two objects of any type to compare.
-func fail(t *testing.T, message string, expected, actual any) {
-	t.Fatalf(message, expected, actual)
+func fail(t *testing.T, message string, args ...any) {
+	message = string(debug.Stack()) + "\n" + message
+	t.Fatalf(message, args...)
 }
 
 // equal is the helper function which executes the logic required for Equal
@@ -62,7 +64,7 @@ func IsError(t *testing.T, err error, message string) {
 		NoError(t, err)
 		return
 	} else if err == nil {
-		t.Fatal("expected an error")
+		fail(t, "expected an error")
 	} else if err.Error() != message {
 		fail(t, "Expected error '%s', got '%s'", message, err.Error())
 	}
@@ -73,14 +75,14 @@ func IsError(t *testing.T, err error, message string) {
 // If the error is not nil, it logs a fatal error with the error message.
 func NoError(t *testing.T, err error) {
 	if err != nil {
-		t.Fatal(err)
+		fail(t, err.Error())
 	}
 }
 
 // isNil checks if a specified object is nil or not.
 // copied from testify/assert, link:
 // https://github.com/stretchr/testify/blob/v1.10.0/assert/assertions.go#L685
-func isNil(object interface{}) bool {
+func isNil(object any) bool {
 	if object == nil {
 		return true
 	}
@@ -101,8 +103,8 @@ func isNil(object interface{}) bool {
 // Nil checks if the provided value is nil.
 // It takes a testing object and an interface value as parameters.
 // If the value is not nil, it logs a fatal error with a message.
-func Nil(t *testing.T, v interface{}) {
+func Nil(t *testing.T, v any) {
 	if !isNil(v) {
-		t.Fatalf("Expected nil, got %v", v)
+		fail(t, "Expected nil, got %v", v)
 	}
 }

@@ -11,20 +11,20 @@ import (
 func TestSchemaFromBytes(t *testing.T) {
 	tt := testTableFromArgs("tt", nil, nil)
 	tf := testTableFromArgs("tf", nil, nil)
-	sc := schema.NewSchema()
 	tablesBytes := [][]byte{}
+	sc := schema.NewSchema()
 
 	for _, table := range []*schema.Table{tt, tf} {
+		sc.AddTable(table)
 		b, err := json.Marshal(table)
 		assert.NoError(t, err)
 		tablesBytes = append(tablesBytes, b)
-		err = sc.AddTable(tt)
-		assert.NoError(t, err)
 	}
 
-	generated, err := schema.SchemaFromBytes(tablesBytes)
+	sc2 := schema.NewSchema()
+	err := sc2.LoadTables(tablesBytes)
 	assert.NoError(t, err)
-	assert.Equal(t, sc, generated)
+	assert.Equal(t, sc, sc2)
 }
 
 func TestSchemaAddTable(t *testing.T) {
@@ -32,7 +32,7 @@ func TestSchemaAddTable(t *testing.T) {
 	expected := testTableFromArgs("tt", nil, nil)
 	err := sc.AddTable(expected)
 	assert.NoError(t, err)
-	actual, err := sc.GetTable(expected.Key())
+	actual, err := sc.GetTable(expected.Name)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
@@ -55,7 +55,7 @@ func TestSchemaGetTable(t *testing.T) {
 	expected := testTableFromArgs("tt", nil, nil)
 	err := sc.AddTable(expected)
 	assert.NoError(t, err)
-	actual, err := sc.GetTable(expected.Key())
+	actual, err := sc.GetTable(expected.Name)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
@@ -75,17 +75,17 @@ func TestSchemaDropTable(t *testing.T) {
 	err := sc.AddTable(table)
 	assert.NoError(t, err)
 
-	err = sc.RemoveTable(table.Key())
+	err = sc.DropTable(table.Name)
 	assert.NoError(t, err)
 
-	retrieved, err := sc.GetTable(table.Key())
+	retrieved, err := sc.GetTable(table.Name)
 	assert.Nil(t, retrieved)
 	assert.IsError(t, err, "could not find table 'tt'")
 }
 
 func TestSchemaDropMissingTable(t *testing.T) {
 	sc := schema.NewSchema()
-	err := sc.RemoveTable("doesntexist")
+	err := sc.DropTable("doesntexist")
 	assert.IsError(t, err, "could not delete table 'doesntexist'")
 }
 
