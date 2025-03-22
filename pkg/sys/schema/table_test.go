@@ -245,17 +245,8 @@ func TestTablePrefixEnd(t *testing.T) {
 }
 
 func TestTableKey(t *testing.T) {
-	for _, test := range []struct {
-		name     string
-		expected string
-	}{
-		{"chuck", "chuck"},
-		{"jim", "jim"},
-	} {
-		t.Run(fmt.Sprintf("name=%s, expected=%s", test.name, test.expected), func(t *testing.T) {
-			table := testTableFromArgs(test.name, nil, nil)
-			id := table.Key()
-			assert.Equal(t, id, test.expected)
-		})
+	table := &schema.Table{
+		ID: 123,
 	}
+	assert.Equal(t, table.Key(), "123")
 }

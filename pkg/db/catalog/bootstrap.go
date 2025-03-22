@@ -35,7 +35,7 @@ func (m *Manager) bootstrapSequence(s *schema.Sequence) error {
 	if err != nil {
 		return err
 	}
-	err = m.storeSequence(s)
+	err = m.storeSequence(InitSequencesTable, s)
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func (m *Manager) bootstrapTable(t *schema.Table) error {
 	if err != nil {
 		return err
 	}
-	err = m.storeTable(t)
+	err = m.storeTable(InitMetaTable, t)
 	if err != nil {
 		return err
 	}

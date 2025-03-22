@@ -42,12 +42,9 @@ func (s *Schema) AddTable(t *Table) error {
 	return nil
 }
 
-func (s *Schema) GetTable(key string) (*Table, error) {
+func (s *Schema) GetTable(key string) (*Table, bool) {
 	table, ok := s.Tables[key]
-	if !ok {
-		return nil, fmt.Errorf("could not find table '%s'", key)
-	}
-	return table, nil
+	return table, ok
 }
 
 // DropTable attempts to drop the table with the given key.

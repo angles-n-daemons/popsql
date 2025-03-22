@@ -79,6 +79,20 @@ func NoError(t *testing.T, err error) {
 	}
 }
 
+// False checks if the provided value is false.
+func False(t *testing.T, value bool) {
+	if value {
+		fail(t, "Expected false, got true")
+	}
+}
+
+// True checks if the provided value is true.
+func True(t *testing.T, value bool) {
+	if !value {
+		fail(t, "Expected true, got false")
+	}
+}
+
 // isNil checks if a specified object is nil or not.
 // copied from testify/assert, link:
 // https://github.com/stretchr/testify/blob/v1.10.0/assert/assertions.go#L685

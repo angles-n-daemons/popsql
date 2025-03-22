@@ -32,9 +32,9 @@ func TestSchemaAddTable(t *testing.T) {
 	expected := testTableFromArgs("tt", nil, nil)
 	err := sc.AddTable(expected)
 	assert.NoError(t, err)
-	actual, err := sc.GetTable(expected.Name)
+	actual, ok := sc.GetTable(expected.Name)
 
-	assert.NoError(t, err)
+	assert.True(t, ok)
 	assert.Equal(t, expected, actual)
 }
 
@@ -55,17 +55,17 @@ func TestSchemaGetTable(t *testing.T) {
 	expected := testTableFromArgs("tt", nil, nil)
 	err := sc.AddTable(expected)
 	assert.NoError(t, err)
-	actual, err := sc.GetTable(expected.Name)
+	actual, ok := sc.GetTable(expected.Name)
 
-	assert.NoError(t, err)
+	assert.True(t, ok)
 	assert.Equal(t, expected, actual)
 }
 
 func TestSchemaGetMissingTable(t *testing.T) {
 	sc := schema.NewSchema()
-	table, err := sc.GetTable("doesntexist")
+	table, ok := sc.GetTable("doesntexist")
 	assert.Nil(t, table)
-	assert.IsError(t, err, "could not find table 'doesntexist'")
+	assert.False(t, ok)
 }
 
 func TestSchemaDropTable(t *testing.T) {
@@ -78,17 +78,13 @@ func TestSchemaDropTable(t *testing.T) {
 	err = sc.DropTable(table.Name)
 	assert.NoError(t, err)
 
-	retrieved, err := sc.GetTable(table.Name)
+	retrieved, ok := sc.GetTable(table.Name)
 	assert.Nil(t, retrieved)
-	assert.IsError(t, err, "could not find table 'tt'")
+	assert.False(t, ok)
 }
 
 func TestSchemaDropMissingTable(t *testing.T) {
 	sc := schema.NewSchema()
 	err := sc.DropTable("doesntexist")
 	assert.IsError(t, err, "could not delete table 'doesntexist'")
-}
-
-func TestSchemaEqual(t *testing.T) {
-	assert.Nil(t, 5)
 }

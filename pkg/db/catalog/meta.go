@@ -42,7 +42,7 @@ var InitMetaTable = &schema.Table{
 
 var InitSequencesTable = &schema.Table{
 	ID:   2,
-	Name: MetaTableName,
+	Name: SequencesTableName,
 	Columns: []*schema.Column{
 		{
 			Name:     "id",

@@ -18,10 +18,25 @@ type Manager struct {
 	Store  kv.Store
 }
 
-func (m *Manager) NewManager(store kv.Store) (*Manager, error) {
+func NewManager(store kv.Store) *Manager {
 	return &Manager{
 		Store: store,
-	}, nil
+	}
+}
+
+func (m *Manager) Init() error {
+	err := m.LoadSchema()
+	if err != nil {
+		return err
+	}
+	// if meta table does not exist, bootstrap the system tables
+	if _, ok := m.Schema.GetTable(MetaTableName); !ok {
+		err = m.Bootstrap()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (m *Manager) LoadSchema() error {
@@ -35,15 +50,17 @@ func (m *Manager) LoadSchema() error {
 		return fmt.Errorf("failed to read the table catalog from a cursor %w", err)
 	}
 
-	schema, err := schema.SchemaFromBytes(tablesBytes)
+	sc := schema.NewSchema()
+	err = sc.LoadTables(tablesBytes)
 	if err != nil {
 		return err
 	}
 
-	m.Schema = schema
+	m.Schema = sc
 	return nil
 }
 
+// TODO: this should take a statement
 func (m *Manager) CreateTable(t *schema.Table) error {
 	// TODO: I need a way to generate an id for this table.
 	err := m.Schema.AddTable(t)
@@ -70,24 +87,26 @@ func (m *Manager) DropTable(t *schema.Table) error {
 	return errors.New("not implemented")
 }
 
-func (m *Manager) storeTable(t *schema.Table) error {
+func (m *Manager) storeTable(metaTable *schema.Table, t *schema.Table) error {
+	key := metaTable.Prefix().WithID(t.Key())
 	tableBytes, err := t.Value()
 	if err != nil {
 		return fmt.Errorf("failed encoding table while saving to store %w", err)
 	}
-	err = m.Store.Put(t.Key(), tableBytes)
+	err = m.Store.Put(key.Encode(), tableBytes)
 	if err != nil {
 		return fmt.Errorf("could not put table definition in store %w", err)
 	}
 	return nil
 }
 
-func (m *Manager) storeSequence(s *schema.Sequence) error {
+func (m *Manager) storeSequence(sequenceTable *schema.Table, s *schema.Sequence) error {
+	key := sequenceTable.Prefix().WithID(s.Key())
 	sequenceBytes, err := s.Value()
 	if err != nil {
 		return fmt.Errorf("failed encoding sequence while saving to store %w", err)
 	}
-	err = m.Store.Put(s.Key(), sequenceBytes)
+	err = m.Store.Put(key.Encode(), sequenceBytes)
 	if err != nil {
 		return fmt.Errorf("could not put sequence definition in store %w", err)
 	}

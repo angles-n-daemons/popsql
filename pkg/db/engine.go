@@ -20,6 +20,7 @@ func (e *Engine) Query(query string, parameters []any) error {
 	if err != nil {
 		return err
 	}
+	ast.PrintStmt(stmt)
 	switch stmt.(type) {
 	case ast.Create:
 		return e.Create(stmt)
@@ -31,6 +32,11 @@ func (e *Engine) Query(query string, parameters []any) error {
 
 func newEngine() *Engine {
 	store := memtable.NewMemstore()
+	manager := catalog.NewManager(store)
+	err := manager.Init()
+	if err != nil {
+		panic(err)
+	}
 	return &Engine{store, nil}
 }
 
