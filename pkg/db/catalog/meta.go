@@ -7,8 +7,13 @@ import (
 
 // System Table Keys
 var metaTableStartKey = keys.New(MetaTableName)
-var META_TABLE_START = metaTableStartKey.String()
-var META_TABLE_END = metaTableStartKey.Next().String()
+var META_TABLE_START = metaTableStartKey.Encode()
+var META_TABLE_END = metaTableStartKey.Next().Encode()
+
+// Sequence Table Keys
+var sequenceTableStartKey = keys.New(SequencesTableName)
+var SEQUENCE_TABLE_START = sequenceTableStartKey.Encode()
+var SEQUENCE_TABLE_END = sequenceTableStartKey.Next().Encode()
 
 // Meta Table Name
 const MetaTableName = "__tables__"
@@ -67,4 +72,12 @@ var InitSequencesTableSequence = &schema.Sequence{
 	ID:   2,
 	Name: SequencesTableSequenceName,
 	V:    3, // skip to 3 because the first two are reserved for the meta and sequences tables
+}
+
+func MetaTableKey(t *schema.Table) string {
+	return keys.New(MetaTableName).WithID(t.Key()).Encode()
+}
+
+func SequenceKey(s *schema.Sequence) string {
+	return keys.New(SequencesTableName).WithID(s.Key()).Encode()
 }

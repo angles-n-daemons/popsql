@@ -56,6 +56,20 @@ func (m *Manager) LoadSchema() error {
 		return err
 	}
 
+	cur, err = m.Store.GetRange(SEQUENCE_TABLE_START, SEQUENCE_TABLE_END)
+	if err != nil {
+		return fmt.Errorf("failed to read the table catalog from the store %w", err)
+	}
+
+	sequencesBytes, err := cur.ReadAll()
+	if err != nil {
+		return fmt.Errorf("failed to read the table catalog from a cursor %w", err)
+	}
+	err = sc.LoadSequences(sequencesBytes)
+	if err != nil {
+		return err
+	}
+
 	m.Schema = sc
 	return nil
 }

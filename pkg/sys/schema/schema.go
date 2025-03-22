@@ -20,6 +20,23 @@ func NewSchema() *Schema {
 	return schema
 }
 
+func (s *Schema) LoadSequences(sequencesBytes [][]byte) error {
+	for _, sequenceBytes := range sequencesBytes {
+		var sequence *Sequence
+		err := json.Unmarshal(sequenceBytes, &sequence)
+		if err != nil {
+			return err
+		}
+
+		err = s.AddSequence(sequence)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (s *Schema) LoadTables(tablesBytes [][]byte) error {
 	for _, tableBytes := range tablesBytes {
 		var table *Table
@@ -27,7 +44,11 @@ func (s *Schema) LoadTables(tablesBytes [][]byte) error {
 		if err != nil {
 			return err
 		}
-		s.AddTable(table)
+
+		err = s.AddTable(table)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -67,12 +88,9 @@ func (s *Schema) AddSequence(t *Sequence) error {
 	return nil
 }
 
-func (s *Schema) GetSequence(key string) (*Sequence, error) {
+func (s *Schema) GetSequence(key string) (*Sequence, bool) {
 	table, ok := s.Sequences[key]
-	if !ok {
-		return nil, fmt.Errorf("could not find table '%s'", key)
-	}
-	return table, nil
+	return table, ok
 }
 
 // DropSequence attempts to drop the table with the given key.
