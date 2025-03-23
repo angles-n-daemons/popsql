@@ -5,16 +5,19 @@ import (
 	"testing"
 
 	"github.com/angles-n-daemons/popsql/pkg/sys/schema"
+	"github.com/angles-n-daemons/popsql/pkg/sys/schema/desc"
 	"github.com/angles-n-daemons/popsql/pkg/test/assert"
+	"github.com/angles-n-daemons/popsql/pkg/test/schematest"
 )
 
 func TestSchemaFromBytes(t *testing.T) {
-	tt := testTableFromArgs("tt", nil, nil)
-	tf := testTableFromArgs("tf", nil, nil)
+	tt := schematest.TestTable()
+	tf := schematest.CopyTable(tt)
+	tf.Name = "tf"
 	tablesBytes := [][]byte{}
 	sc := schema.NewSchema()
 
-	for _, table := range []*schema.Table{tt, tf} {
+	for _, table := range []*desc.Table{tt, tf} {
 		sc.AddTable(table)
 		b, err := json.Marshal(table)
 		assert.NoError(t, err)
@@ -29,7 +32,7 @@ func TestSchemaFromBytes(t *testing.T) {
 
 func TestSchemaAddTable(t *testing.T) {
 	sc := schema.NewSchema()
-	expected := testTableFromArgs("tt", nil, nil)
+	expected := schematest.TestTable()
 	err := sc.AddTable(expected)
 	assert.NoError(t, err)
 	actual, ok := sc.GetTable(expected.Name)
@@ -40,19 +43,19 @@ func TestSchemaAddTable(t *testing.T) {
 
 func TestSchemaAddExistingTable(t *testing.T) {
 	sc := schema.NewSchema()
-	table1 := testTableFromArgs("tt", nil, nil)
+	table1 := schematest.TableWithID(1)
 	err := sc.AddTable(table1)
 	assert.NoError(t, err)
 
-	table2 := testTableFromArgs("tt", nil, nil)
+	table2 := schematest.CopyTable(table1)
 	err = sc.AddTable(table2)
-	assert.IsError(t, err, "table 'tt' already exists")
+	assert.IsError(t, err, "table 'table_1' already exists")
 
 }
 
 func TestSchemaGetTable(t *testing.T) {
 	sc := schema.NewSchema()
-	expected := testTableFromArgs("tt", nil, nil)
+	expected := schematest.TestTable()
 	err := sc.AddTable(expected)
 	assert.NoError(t, err)
 	actual, ok := sc.GetTable(expected.Name)
@@ -70,7 +73,7 @@ func TestSchemaGetMissingTable(t *testing.T) {
 
 func TestSchemaDropTable(t *testing.T) {
 	sc := schema.NewSchema()
-	table := testTableFromArgs("tt", nil, nil)
+	table := schematest.TestTable()
 
 	err := sc.AddTable(table)
 	assert.NoError(t, err)

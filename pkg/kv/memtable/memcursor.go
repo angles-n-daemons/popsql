@@ -16,10 +16,7 @@ func (m *Memcursor) ReadAll() ([][]byte, error) {
 
 func (m *Memcursor) Read(num int) ([][]byte, error) {
 	vals := [][]byte{}
-	for i := 0; i < num; i++ {
-		if m.IsAtEnd() {
-			return vals, nil
-		}
+	for i := 0; i < num && !m.IsAtEnd(); i++ {
 		fmt.Println("reading", m.Node.Key, string(m.Node.Val))
 		vals = append(vals, m.Node.Val)
 		m.Node = m.Node.Next()

@@ -1,4 +1,4 @@
-package schema
+package desc
 
 import (
 	"encoding/json"
@@ -121,7 +121,7 @@ func (t *Table) PrefixEnd() *keys.Key {
 	return t.Prefix().Next()
 }
 
-// Utility functions for the schema table
+// Utility functions for the desc table
 func (t *Table) Key() string {
 	return strconv.FormatUint(t.ID, 10)
 }

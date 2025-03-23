@@ -3,26 +3,28 @@ package schema
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/angles-n-daemons/popsql/pkg/sys/schema/desc"
 )
 
 const SchemaTableName = "__schema__"
 
 type Schema struct {
-	Sequences map[string]*Sequence
-	Tables    map[string]*Table
+	Sequences map[string]*desc.Sequence
+	Tables    map[string]*desc.Table
 }
 
 func NewSchema() *Schema {
 	schema := &Schema{
-		Tables:    map[string]*Table{},
-		Sequences: map[string]*Sequence{},
+		Tables:    map[string]*desc.Table{},
+		Sequences: map[string]*desc.Sequence{},
 	}
 	return schema
 }
 
 func (s *Schema) LoadSequences(sequencesBytes [][]byte) error {
 	for _, sequenceBytes := range sequencesBytes {
-		var sequence *Sequence
+		var sequence *desc.Sequence
 		err := json.Unmarshal(sequenceBytes, &sequence)
 		if err != nil {
 			return err
@@ -39,7 +41,7 @@ func (s *Schema) LoadSequences(sequencesBytes [][]byte) error {
 
 func (s *Schema) LoadTables(tablesBytes [][]byte) error {
 	for _, tableBytes := range tablesBytes {
-		var table *Table
+		var table *desc.Table
 		err := json.Unmarshal(tableBytes, &table)
 		if err != nil {
 			return err
@@ -59,7 +61,7 @@ func (s *Schema) Empty() bool {
 	return len(s.Tables) == 0 && len(s.Sequences) == 0
 }
 
-func (s *Schema) AddTable(t *Table) error {
+func (s *Schema) AddTable(t *desc.Table) error {
 	key := t.Name
 	if _, ok := s.Tables[key]; ok {
 		return fmt.Errorf("table '%s' already exists", t.Name)
@@ -68,7 +70,7 @@ func (s *Schema) AddTable(t *Table) error {
 	return nil
 }
 
-func (s *Schema) GetTable(key string) (*Table, bool) {
+func (s *Schema) GetTable(key string) (*desc.Table, bool) {
 	table, ok := s.Tables[key]
 	return table, ok
 }
@@ -84,7 +86,7 @@ func (s *Schema) DropTable(key string) error {
 	return nil
 }
 
-func (s *Schema) AddSequence(t *Sequence) error {
+func (s *Schema) AddSequence(t *desc.Sequence) error {
 	key := t.Name
 	if _, ok := s.Sequences[key]; ok {
 		return fmt.Errorf("table '%s' already exists", t.Name)
@@ -93,7 +95,7 @@ func (s *Schema) AddSequence(t *Sequence) error {
 	return nil
 }
 
-func (s *Schema) GetSequence(key string) (*Sequence, bool) {
+func (s *Schema) GetSequence(key string) (*desc.Sequence, bool) {
 	table, ok := s.Sequences[key]
 	return table, ok
 }

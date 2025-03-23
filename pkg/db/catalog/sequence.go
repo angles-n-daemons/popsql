@@ -3,10 +3,10 @@ package catalog
 import (
 	"fmt"
 
-	"github.com/angles-n-daemons/popsql/pkg/sys/schema"
+	"github.com/angles-n-daemons/popsql/pkg/sys/schema/desc"
 )
 
-func (m *Manager) storeSequence(sequenceTable *schema.Table, s *schema.Sequence) error {
+func (m *Manager) storeSequence(sequenceTable *desc.Table, s *desc.Sequence) error {
 	key := sequenceTable.Prefix().WithID(s.Key())
 	sequenceBytes, err := s.Value()
 	if err != nil {

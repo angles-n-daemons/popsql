@@ -7,14 +7,15 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/db/catalog"
 	"github.com/angles-n-daemons/popsql/pkg/kv/memtable"
 	"github.com/angles-n-daemons/popsql/pkg/sys/schema"
+	"github.com/angles-n-daemons/popsql/pkg/sys/schema/desc"
 	"github.com/angles-n-daemons/popsql/pkg/test/assert"
 )
 
-func verifyManagerTable(t *testing.T, manager *catalog.Manager, table *schema.Table, name string) {
-	// Verify that the table was added to the schema.
+func verifyManagerTable(t *testing.T, manager *catalog.Manager, table *desc.Table, name string) {
+	// Verify that the table was added to the desc.
 	schemaTable, ok := manager.Schema.GetTable(name)
 	if !ok {
-		t.Fatalf("table '%s' was not in the schema", name)
+		t.Fatalf("table '%s' was not in the desc", name)
 	}
 	assert.Equal(t, schemaTable, table)
 
@@ -22,19 +23,19 @@ func verifyManagerTable(t *testing.T, manager *catalog.Manager, table *schema.Ta
 	tableBytes, err := manager.Store.Get(catalog.MetaTableKey(table))
 	assert.NoError(t, err)
 
-	storeTable := &schema.Table{}
+	storeTable := &desc.Table{}
 	err = json.Unmarshal(tableBytes, storeTable)
 	assert.NoError(t, err)
 	assert.Equal(t, storeTable, table)
 }
 
 func verifyManagerSequence(
-	t *testing.T, manager *catalog.Manager, sequence *schema.Sequence, name string,
+	t *testing.T, manager *catalog.Manager, sequence *desc.Sequence, name string,
 ) {
-	// Verify that the sequence was added to the schema.
+	// Verify that the sequence was added to the desc.
 	schemaSequence, ok := manager.Schema.GetSequence(name)
 	if !ok {
-		t.Fatalf("sequence '%s' was not in the schema", name)
+		t.Fatalf("sequence '%s' was not in the desc", name)
 	}
 	assert.Equal(t, schemaSequence, sequence)
 
@@ -42,7 +43,7 @@ func verifyManagerSequence(
 	sequenceBytes, err := manager.Store.Get(catalog.SequenceKey(sequence))
 	assert.NoError(t, err)
 
-	storeSequence := &schema.Sequence{}
+	storeSequence := &desc.Sequence{}
 	err = json.Unmarshal(sequenceBytes, storeSequence)
 	assert.NoError(t, err)
 	assert.Equal(t, storeSequence, sequence)
@@ -60,7 +61,7 @@ func TestBootstrap(t *testing.T) {
 	verifyManagerSequence(t, manager, catalog.InitMetaTableSequence, catalog.MetaTableSequenceName)
 	verifyManagerSequence(t, manager, catalog.InitSequencesTableSequence, catalog.SequencesTableSequenceName)
 
-	// Test that we can load the schema from the store without a Bootstrap call.
+	// Test that we can load the desc from the store without a Bootstrap call.
 	// Create a new manager to verify persistence
 	newManager, err := catalog.NewManager(store)
 	assert.NoError(t, err)

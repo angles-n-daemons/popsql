@@ -1,4 +1,4 @@
-package schema
+package desc
 
 import "github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 
@@ -9,7 +9,7 @@ type Column struct {
 }
 
 // NewColumn is a utility function which turns a name and a scanned token into
-// a schema column.
+// a desc column.
 func NewColumn(name string, tokenType scanner.TokenType) (*Column, error) {
 	datatype, err := GetDataType(tokenType)
 	if err != nil {

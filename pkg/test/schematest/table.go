@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
-	"github.com/angles-n-daemons/popsql/pkg/sys/schema"
+	"github.com/angles-n-daemons/popsql/pkg/sys/schema/desc"
 )
 
 // Global counter to ensure each test-created table has a unique ID and (if needed) a unique name.
@@ -15,14 +15,18 @@ func TableID() uint64 {
 	return tableIDCounter
 }
 
-func TestTable() *schema.Table {
+func TestTable() *desc.Table {
 	return NewTable(nil)
 }
 
+func TableWithID(id uint64) *desc.Table {
+	return NewTable(&desc.Table{ID: id})
+}
+
 // Testing utility, which takes any portional part of a table and fills it out.
-func NewTable(t *schema.Table) *schema.Table {
+func NewTable(t *desc.Table) *desc.Table {
 	if t == nil {
-		t = &schema.Table{}
+		t = &desc.Table{}
 	}
 
 	if t.ID == 0 {
@@ -30,26 +34,26 @@ func NewTable(t *schema.Table) *schema.Table {
 	}
 
 	if t.Name == "" {
-		t.Name = fmt.Sprintf("mytable%d", tableIDCounter)
+		t.Name = fmt.Sprintf("table_%d", t.ID)
 	}
 
 	if t.Columns == nil {
-		a, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
+		a, err := desc.NewColumn("a", scanner.DATATYPE_NUMBER)
 		if err != nil {
 			panic(err)
 		}
-		b, err := schema.NewColumn("b", scanner.DATATYPE_STRING)
+		b, err := desc.NewColumn("b", scanner.DATATYPE_STRING)
 		if err != nil {
 			panic(err)
 		}
-		t.Columns = []*schema.Column{a, b}
+		t.Columns = []*desc.Column{a, b}
 		t.PrimaryKey = []string{"a"}
 	}
 	return t
 }
 
-func CopyTable(t *schema.Table) *schema.Table {
-	t, err := schema.NewTable(t.ID, t.Name, t.Columns, t.PrimaryKey)
+func CopyTable(t *desc.Table) *desc.Table {
+	t, err := desc.NewTable(t.ID, t.Name, t.Columns, t.PrimaryKey)
 	if err != nil {
 		panic(err)
 	}

@@ -6,24 +6,25 @@ import (
 
 	"github.com/angles-n-daemons/popsql/pkg/kv"
 	"github.com/angles-n-daemons/popsql/pkg/sys/schema"
+	"github.com/angles-n-daemons/popsql/pkg/sys/schema/desc"
 )
 
 // Custom error for dropping the Meta table.
 var ErrDropMetaTable = errors.New("cannot drop meta table")
 
-// Manager is responsible for holding the entire schema as well as keeping it
+// Manager is responsible for holding the entire desc as well as keeping it
 // in sync with the underlying data store.
-// It is also responsible for schema management operations, such as creating
+// It is also responsible for desc management operations, such as creating
 // and dropping tables and sequences.
 type Manager struct {
-	metaTable         *schema.Table
-	metaTableSequence *schema.Sequence
+	metaTable         *desc.Table
+	metaTableSequence *desc.Sequence
 	Schema            *schema.Schema
 	Store             kv.Store
 }
 
 func NewManager(st kv.Store) (*Manager, error) {
-	// Load the schema from the store.
+	// Load the desc from the store.
 	sc, err := LoadSchema(st)
 	if err != nil {
 		return nil, err

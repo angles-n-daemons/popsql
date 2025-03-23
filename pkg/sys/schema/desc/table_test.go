@@ -1,11 +1,11 @@
-package schema_test
+package desc_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
-	"github.com/angles-n-daemons/popsql/pkg/sys/schema"
+	"github.com/angles-n-daemons/popsql/pkg/sys/schema/desc"
 	"github.com/angles-n-daemons/popsql/pkg/test/assert"
 	"github.com/angles-n-daemons/popsql/pkg/test/schematest"
 )
@@ -14,7 +14,7 @@ import (
 var tableIDCounter uint64
 
 // Test table creates a simple table with two columns, a a number and b a string.
-func testTableFromArgs(name string, columns []*schema.Column, pkey []string) *schema.Table {
+func testTableFromArgs(name string, columns []*desc.Column, pkey []string) *desc.Table {
 	tableIDCounter++
 
 	if name == "" {
@@ -22,20 +22,20 @@ func testTableFromArgs(name string, columns []*schema.Column, pkey []string) *sc
 		name = fmt.Sprintf("mytable%d", tableIDCounter)
 	}
 	if columns == nil {
-		a, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
+		a, err := desc.NewColumn("a", scanner.DATATYPE_NUMBER)
 		if err != nil {
 			panic(err)
 		}
-		b, err := schema.NewColumn("b", scanner.DATATYPE_STRING)
+		b, err := desc.NewColumn("b", scanner.DATATYPE_STRING)
 		if err != nil {
 			panic(err)
 		}
-		columns = []*schema.Column{a, b}
+		columns = []*desc.Column{a, b}
 	}
 	if pkey == nil {
 		pkey = []string{"a"}
 	}
-	table, err := schema.NewTable(
+	table, err := desc.NewTable(
 		tableIDCounter, // unique ID for each created table
 		name,
 		columns,
@@ -49,57 +49,57 @@ func testTableFromArgs(name string, columns []*schema.Column, pkey []string) *sc
 
 func TestNewTable(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
-		a, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
+		a, err := desc.NewColumn("a", scanner.DATATYPE_NUMBER)
 		if err != nil {
 			t.Fatal(err)
 		}
-		b, err := schema.NewColumn("b", scanner.DATATYPE_STRING)
+		b, err := desc.NewColumn("b", scanner.DATATYPE_STRING)
 		if err != nil {
 			t.Fatal(err)
 		}
 		tableIDCounter++
-		table, err := schema.NewTable(
+		table, err := desc.NewTable(
 			tableIDCounter,
 			"mytable",
-			[]*schema.Column{a, b},
+			[]*desc.Column{a, b},
 			[]string{"a"},
 		)
 		assert.NoError(t, err)
 		assert.Equal(t, table.Name, "mytable")
-		assert.Equal(t, table.Columns, []*schema.Column{a, b})
+		assert.Equal(t, table.Columns, []*desc.Column{a, b})
 		assert.Equal(t, table.PrimaryKey, []string{"a"})
 	})
 
 	t.Run("missing primary key", func(t *testing.T) {
-		a, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
+		a, err := desc.NewColumn("a", scanner.DATATYPE_NUMBER)
 		if err != nil {
 			t.Fatal(err)
 		}
 		for _, test := range [][]string{nil, {}} {
 			tableIDCounter++
-			table, err := schema.NewTable(
+			table, err := desc.NewTable(
 				tableIDCounter,
 				"mytable_missing_pk",
-				[]*schema.Column{a},
+				[]*desc.Column{a},
 				test,
 			)
 			assert.NoError(t, err)
 			assert.Equal(t, len(table.Columns), 2)
 			assert.Equal(t, len(table.PrimaryKey), 1)
-			assert.Equal(t, table.PrimaryKey[0], schema.ReservedInternalKeyName)
+			assert.Equal(t, table.PrimaryKey[0], desc.ReservedInternalKeyName)
 		}
 	})
 
 	t.Run("invalid primary key", func(t *testing.T) {
-		a, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
+		a, err := desc.NewColumn("a", scanner.DATATYPE_NUMBER)
 		if err != nil {
 			t.Fatal(err)
 		}
 		tableIDCounter++
-		_, err = schema.NewTable(
+		_, err = desc.NewTable(
 			tableIDCounter,
 			"mytable_invalid_pk",
-			[]*schema.Column{a},
+			[]*desc.Column{a},
 			[]string{"b"},
 		)
 		assert.IsError(t, err, "could not find key column 'b' while creating table 'mytable_invalid_pk'")
@@ -113,7 +113,7 @@ func TestTableAddColumn(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		expected, err := schema.NewColumn("c", scanner.DATATYPE_BOOLEAN)
+		expected, err := desc.NewColumn("c", scanner.DATATYPE_BOOLEAN)
 		assert.NoError(t, err)
 		assert.Equal(t, len(table.Columns), 3)
 		assert.Equal(t, table.Columns[2], expected)
@@ -136,7 +136,7 @@ func TestTableGetColumn(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
 		table := schematest.TestTable()
 		column := table.GetColumn("a")
-		expected, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
+		expected, err := desc.NewColumn("a", scanner.DATATYPE_NUMBER)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, column)
 	})
@@ -170,7 +170,7 @@ func TestTableEqual(t *testing.T) {
 
 	t.Run("other is nil", func(t *testing.T) {
 		table1 := schematest.TestTable()
-		var table2 *schema.Table
+		var table2 *desc.Table
 		assert.NotEqual(t, table1, table2)
 	})
 
@@ -184,7 +184,7 @@ func TestTableEqual(t *testing.T) {
 	t.Run("t has more columns", func(t *testing.T) {
 		table1 := schematest.TestTable()
 		table2 := schematest.CopyTable(table1)
-		newCol, err := schema.NewColumn("third", scanner.DATATYPE_STRING)
+		newCol, err := desc.NewColumn("third", scanner.DATATYPE_STRING)
 		assert.NoError(t, err)
 		table1.Columns = append(table1.Columns, newCol)
 		assert.NotEqual(t, table1, table2)
@@ -193,23 +193,23 @@ func TestTableEqual(t *testing.T) {
 	t.Run("other has more columns", func(t *testing.T) {
 		table1 := schematest.TestTable()
 		table2 := schematest.CopyTable(table1)
-		newCol, err := schema.NewColumn("third", scanner.DATATYPE_STRING)
+		newCol, err := desc.NewColumn("third", scanner.DATATYPE_STRING)
 		assert.NoError(t, err)
 		table2.Columns = append(table2.Columns, newCol)
 		assert.NotEqual(t, table1, table2)
 	})
 
 	t.Run("columns are different", func(t *testing.T) {
-		a, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
+		a, err := desc.NewColumn("a", scanner.DATATYPE_NUMBER)
 		assert.NoError(t, err)
-		b, err := schema.NewColumn("b", scanner.DATATYPE_NUMBER)
+		b, err := desc.NewColumn("b", scanner.DATATYPE_NUMBER)
 		assert.NoError(t, err)
-		c, err := schema.NewColumn("c", scanner.DATATYPE_NUMBER)
+		c, err := desc.NewColumn("c", scanner.DATATYPE_NUMBER)
 		assert.NoError(t, err)
 
-		table1 := schematest.NewTable(&schema.Table{ID: 1, Columns: []*schema.Column{a, b}, PrimaryKey: []string{"a"}})
+		table1 := schematest.NewTable(&desc.Table{ID: 1, Columns: []*desc.Column{a, b}, PrimaryKey: []string{"a"}})
 		table2 := schematest.CopyTable(table1)
-		table2.Columns = []*schema.Column{a, c}
+		table2.Columns = []*desc.Column{a, c}
 		assert.NotEqual(t, table1, table2)
 	})
 }
@@ -219,7 +219,7 @@ func TestTableSerialization(t *testing.T) {
 	bytes, err := original.Value()
 	assert.NoError(t, err)
 
-	table, err := schema.NewTableFromBytes(bytes)
+	table, err := desc.NewTableFromBytes(bytes)
 	assert.NoError(t, err)
 	assert.Equal(t, original, table)
 }
@@ -257,7 +257,7 @@ func TestTablePrefixEnd(t *testing.T) {
 }
 
 func TestTableKey(t *testing.T) {
-	table := &schema.Table{
+	table := &desc.Table{
 		ID: 123,
 	}
 	assert.Equal(t, table.Key(), "123")

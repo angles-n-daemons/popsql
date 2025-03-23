@@ -3,11 +3,11 @@ package catalog
 import (
 	"fmt"
 
-	"github.com/angles-n-daemons/popsql/pkg/sys/schema"
+	"github.com/angles-n-daemons/popsql/pkg/sys/schema/desc"
 )
 
 // TODO: this should take a statement
-func (m *Manager) CreateTable(t *schema.Table) error {
+func (m *Manager) CreateTable(t *desc.Table) error {
 	// TODO: I need a way to generate an id for this table.
 	err := m.Schema.AddTable(t)
 	if err != nil {
@@ -29,7 +29,7 @@ func (m *Manager) CreateTable(t *schema.Table) error {
 	return nil
 }
 
-func (m *Manager) storeTable(metaTable *schema.Table, t *schema.Table) error {
+func (m *Manager) storeTable(metaTable *desc.Table, t *desc.Table) error {
 	key := metaTable.Prefix().WithID(t.Key())
 	tableBytes, err := t.Value()
 	if err != nil {
