@@ -51,16 +51,8 @@ func verifyManagerSequence(
 func TestBootstrap(t *testing.T) {
 	// Create a new Memstore and Manager
 	store := memtable.NewMemstore()
-	manager := catalog.NewManager(store)
-
-	// Initialize the schema
-	manager.Schema = schema.NewSchema()
-
-	// Call Bootstrap
-	err := manager.Bootstrap()
-	if err != nil {
-		t.Fatalf("Failed to bootstrap: %v", err)
-	}
+	manager, err := catalog.NewManager(store)
+	assert.NoError(t, err)
 
 	verifyManagerTable(t, manager, catalog.InitMetaTable, catalog.MetaTableName)
 	verifyManagerTable(t, manager, catalog.InitSequencesTable, catalog.SequencesTableName)
@@ -70,9 +62,7 @@ func TestBootstrap(t *testing.T) {
 
 	// Test that we can load the schema from the store without a Bootstrap call.
 	// Create a new manager to verify persistence
-	newManager := catalog.NewManager(store)
-	newManager.Schema = schema.NewSchema()
-	err = newManager.LoadSchema()
+	newManager, err := catalog.NewManager(store)
 	assert.NoError(t, err)
 
 	verifyManagerTable(t, newManager, catalog.InitMetaTable, catalog.MetaTableName)
@@ -86,11 +76,12 @@ func TestBootstrap(t *testing.T) {
 func TestBootstrapIdempotence(t *testing.T) {
 	// Create a new Memstore and Manager
 	store := memtable.NewMemstore()
-	manager := catalog.NewManager(store)
+	manager, err := catalog.NewManager(store)
+	assert.NoError(t, err)
 	manager.Schema = schema.NewSchema()
 
 	// Bootstrap twice - should not error
-	err := manager.Bootstrap()
+	err = manager.Bootstrap()
 	assert.NoError(t, err)
 
 	err = manager.Bootstrap()

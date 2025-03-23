@@ -223,7 +223,7 @@ func TestTablePrefix(t *testing.T) {
 		t.Run(fmt.Sprintf("name=%s, expected=%s", test.name, test.expected), func(t *testing.T) {
 			table := testTableFromArgs(test.name, nil, nil)
 			prefix := table.Prefix()
-			assert.Equal(t, prefix.String(), test.expected)
+			assert.Equal(t, prefix.Encode(), test.expected)
 		})
 	}
 }
@@ -239,7 +239,7 @@ func TestTablePrefixEnd(t *testing.T) {
 		t.Run(fmt.Sprintf("name=%s, expected=%s", test.name, test.expected), func(t *testing.T) {
 			table := testTableFromArgs(test.name, nil, nil)
 			prefixEnd := table.PrefixEnd()
-			assert.Equal(t, prefixEnd.String(), test.expected)
+			assert.Equal(t, prefixEnd.Encode(), test.expected)
 		})
 	}
 }

@@ -32,12 +32,11 @@ func (e *Engine) Query(query string, parameters []any) error {
 
 func newEngine() *Engine {
 	store := memtable.NewMemstore()
-	manager := catalog.NewManager(store)
-	err := manager.Init()
+	manager, err := catalog.NewManager(store)
 	if err != nil {
 		panic(err)
 	}
-	return &Engine{store, nil}
+	return &Engine{store, manager}
 }
 
 var db *Engine

@@ -54,6 +54,11 @@ func (s *Schema) LoadTables(tablesBytes [][]byte) error {
 	return nil
 }
 
+// Empty returns whether the schema has no tables or sequences.
+func (s *Schema) Empty() bool {
+	return len(s.Tables) == 0 && len(s.Sequences) == 0
+}
+
 func (s *Schema) AddTable(t *Table) error {
 	key := t.Name
 	if _, ok := s.Tables[key]; ok {

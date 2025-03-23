@@ -1,0 +1,15 @@
+Need:
+ - Way to differentiate inserts vs updates.
+
+Want:
+ - Error tracing.
+ - Debug settings to log:
+   - KV calls.
+   - Query parses.
+ - A dedicated log package.
+
+2025-03-23
+ - Clean up manager package.
+ - Get everything wired up to create new tables.
+ - Test all new code.
+ - Reorganize packages for schema management / description.

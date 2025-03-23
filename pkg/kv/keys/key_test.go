@@ -54,19 +54,19 @@ func TestWithIDAddition(t *testing.T) {
 	}
 }
 
-func TestString(t *testing.T) {
+func TestEncode(t *testing.T) {
 	key := keys.New("testTable")
-	if key.String() != "testTable/" {
-		t.Errorf("expected string %s, got %s", "testTable", key.String())
+	if key.Encode() != "testTable/" {
+		t.Errorf("expected string %s, got %s", "testTable", key.Encode())
 	}
 	key = key.WithID("testID")
-	if key.String() != "testTable/testID" {
-		t.Errorf("expected string %s, got %s", "testTable/testID", key.String())
+	if key.Encode() != "testTable/testID" {
+		t.Errorf("expected string %s, got %s", "testTable/testID", key.Encode())
 	}
 
 	// special case check for the end string
-	if key.WithID(string(keys.END_ID)).String() != "testTable/<END>" {
-		t.Errorf("expected string %s, got %s", "testTable/<END>", key.String())
+	if key.WithID(string(keys.END_ID)).Encode() != "testTable/<END>" {
+		t.Errorf("expected string %s, got %s", "testTable/<END>", key.Encode())
 	}
 }
 
@@ -94,7 +94,7 @@ func TestNext(t *testing.T) {
 	}
 }
 
-func TestNextString(t *testing.T) {
+func TestNextEncode(t *testing.T) {
 	mr := string(utf8.MaxRune)
 	tests := []struct {
 		input, expected string
