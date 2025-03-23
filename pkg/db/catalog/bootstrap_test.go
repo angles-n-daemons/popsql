@@ -7,7 +7,7 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/db/catalog"
 	"github.com/angles-n-daemons/popsql/pkg/kv/memtable"
 	"github.com/angles-n-daemons/popsql/pkg/sys/schema"
-	"github.com/angles-n-daemons/popsql/pkg/testing/assert"
+	"github.com/angles-n-daemons/popsql/pkg/test/assert"
 )
 
 func verifyManagerTable(t *testing.T, manager *catalog.Manager, table *schema.Table, name string) {

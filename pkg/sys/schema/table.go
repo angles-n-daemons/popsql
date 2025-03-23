@@ -93,6 +93,12 @@ func (t *Table) Equal(o *Table) bool {
 	if o == nil {
 		return false
 	}
+	if t.ID != o.ID {
+		return false
+	}
+	if t.Name != o.Name {
+		return false
+	}
 	if len(t.Columns) != len(o.Columns) {
 		return false
 	}

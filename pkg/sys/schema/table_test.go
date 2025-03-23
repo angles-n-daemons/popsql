@@ -6,15 +6,12 @@ import (
 
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 	"github.com/angles-n-daemons/popsql/pkg/sys/schema"
-	"github.com/angles-n-daemons/popsql/pkg/testing/assert"
+	"github.com/angles-n-daemons/popsql/pkg/test/assert"
+	"github.com/angles-n-daemons/popsql/pkg/test/schematest"
 )
 
 // Global counter to ensure each test-created table has a unique ID and (if needed) a unique name.
 var tableIDCounter uint64
-
-func testTable() *schema.Table {
-	return testTableFromArgs("", nil, nil)
-}
 
 // Test table creates a simple table with two columns, a a number and b a string.
 func testTableFromArgs(name string, columns []*schema.Column, pkey []string) *schema.Table {
@@ -111,7 +108,7 @@ func TestNewTable(t *testing.T) {
 
 func TestTableAddColumn(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
-		table := testTable()
+		table := schematest.TestTable()
 		err := table.AddColumn("c", scanner.DATATYPE_BOOLEAN)
 		if err != nil {
 			t.Fatal(err)
@@ -123,13 +120,13 @@ func TestTableAddColumn(t *testing.T) {
 	})
 
 	t.Run("duplicate column", func(t *testing.T) {
-		table := testTable()
+		table := schematest.TestTable()
 		err := table.AddColumn("b", scanner.DATATYPE_BOOLEAN)
 		assert.IsError(t, err, fmt.Sprintf("a column with the name 'b' already exists on table '%s'", table.Name))
 	})
 
 	t.Run("NewColumn fails", func(t *testing.T) {
-		table := testTable()
+		table := schematest.TestTable()
 		err := table.AddColumn("c", scanner.BANG)
 		assert.IsError(t, err, "unrecognized data type BANG")
 	})
@@ -137,14 +134,14 @@ func TestTableAddColumn(t *testing.T) {
 
 func TestTableGetColumn(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
-		table := testTable()
+		table := schematest.TestTable()
 		column := table.GetColumn("a")
 		expected, err := schema.NewColumn("a", scanner.DATATYPE_NUMBER)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, column)
 	})
 	t.Run("column doesn't exist", func(t *testing.T) {
-		table := testTable()
+		table := schematest.TestTable()
 		column := table.GetColumn("c")
 		assert.Nil(t, column)
 	})
@@ -152,27 +149,41 @@ func TestTableGetColumn(t *testing.T) {
 
 func TestTableEqual(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
-		table1 := testTable()
-		table2 := testTableFromArgs(table1.Name, table1.Columns, table1.PrimaryKey)
+		table1 := schematest.TestTable()
+		table2 := schematest.CopyTable(table1)
 		assert.Equal(t, table1, table2)
 	})
 
+	t.Run("ids are different", func(t *testing.T) {
+		table1 := schematest.TestTable()
+		table2 := schematest.CopyTable(table1)
+		table2.ID = table1.ID + 1
+		assert.NotEqual(t, table1, table2)
+	})
+
+	t.Run("names are different", func(t *testing.T) {
+		table1 := schematest.TestTable()
+		table2 := schematest.CopyTable(table1)
+		table2.Name = "different"
+		assert.NotEqual(t, table1, table2)
+	})
+
 	t.Run("other is nil", func(t *testing.T) {
-		table1 := testTable()
+		table1 := schematest.TestTable()
 		var table2 *schema.Table
 		assert.NotEqual(t, table1, table2)
 	})
 
 	t.Run("primary keys not equal", func(t *testing.T) {
-		table1 := testTable()
-		table2 := testTableFromArgs(table1.Name, table1.Columns, table1.PrimaryKey)
+		table1 := schematest.TestTable()
+		table2 := schematest.CopyTable(table1)
 		table2.PrimaryKey = []string{"b"}
 		assert.NotEqual(t, table1, table2)
 	})
 
 	t.Run("t has more columns", func(t *testing.T) {
-		table1 := testTable()
-		table2 := testTableFromArgs(table1.Name, table1.Columns, table1.PrimaryKey)
+		table1 := schematest.TestTable()
+		table2 := schematest.CopyTable(table1)
 		newCol, err := schema.NewColumn("third", scanner.DATATYPE_STRING)
 		assert.NoError(t, err)
 		table1.Columns = append(table1.Columns, newCol)
@@ -180,8 +191,8 @@ func TestTableEqual(t *testing.T) {
 	})
 
 	t.Run("other has more columns", func(t *testing.T) {
-		table1 := testTable()
-		table2 := testTableFromArgs(table1.Name, table1.Columns, table1.PrimaryKey)
+		table1 := schematest.TestTable()
+		table2 := schematest.CopyTable(table1)
 		newCol, err := schema.NewColumn("third", scanner.DATATYPE_STRING)
 		assert.NoError(t, err)
 		table2.Columns = append(table2.Columns, newCol)
@@ -196,14 +207,15 @@ func TestTableEqual(t *testing.T) {
 		c, err := schema.NewColumn("c", scanner.DATATYPE_NUMBER)
 		assert.NoError(t, err)
 
-		table1 := testTableFromArgs("", []*schema.Column{a, b}, []string{"a"})
-		table2 := testTableFromArgs("", []*schema.Column{a, c}, []string{"a"})
+		table1 := schematest.NewTable(&schema.Table{ID: 1, Columns: []*schema.Column{a, b}, PrimaryKey: []string{"a"}})
+		table2 := schematest.CopyTable(table1)
+		table2.Columns = []*schema.Column{a, c}
 		assert.NotEqual(t, table1, table2)
 	})
 }
 
 func TestTableSerialization(t *testing.T) {
-	original := testTable()
+	original := schematest.TestTable()
 	bytes, err := original.Value()
 	assert.NoError(t, err)
 
