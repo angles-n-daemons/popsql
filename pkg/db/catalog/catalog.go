@@ -12,18 +12,21 @@ import (
 // Custom error for dropping the Meta table.
 var ErrDropMetaTable = errors.New("cannot drop meta table")
 
-// Manager is responsible for holding the entire desc as well as keeping it
+// Catalog is responsible for holding the entire desc as well as keeping it
 // in sync with the underlying data store.
 // It is also responsible for desc management operations, such as creating
 // and dropping tables and sequences.
-type Manager struct {
-	metaTable         *desc.Table
-	metaTableSequence *desc.Sequence
-	Schema            *schema.Schema
-	Store             kv.Store
+type Catalog struct {
+	metaTable              *desc.Table
+	metaTableSequence      *desc.Sequence
+	sequencesTable         *desc.Table
+	sequencesTableSequence *desc.Sequence
+
+	Schema *schema.Schema
+	Store  kv.Store
 }
 
-func NewManager(st kv.Store) (*Manager, error) {
+func NewCatalog(st kv.Store) (*Catalog, error) {
 	// Load the desc from the store.
 	sc, err := LoadSchema(st)
 	if err != nil {
@@ -31,7 +34,7 @@ func NewManager(st kv.Store) (*Manager, error) {
 	}
 
 	// Setup the manager struct.
-	m := &Manager{Store: st, Schema: sc}
+	m := &Catalog{Store: st, Schema: sc}
 
 	// Initialize the manager for use.
 	err = m.Init()
@@ -42,7 +45,7 @@ func NewManager(st kv.Store) (*Manager, error) {
 	return m, nil
 }
 
-func (m *Manager) Init() error {
+func (m *Catalog) Init() error {
 	sc, err := LoadSchema(m.Store)
 	if err != nil {
 		return err
@@ -67,8 +70,20 @@ func (m *Manager) Init() error {
 		return errors.New("meta table sequence not found")
 	}
 
+	// set the sequences table and sequence
+	sequencesTable, ok := m.Schema.GetTable(SequencesTableName)
+	if !ok {
+		return errors.New("meta table not found")
+	}
+	sequencesTableSequence, ok := m.Schema.GetSequence(SequencesTableSequenceName)
+	if !ok {
+		return errors.New("meta table sequence not found")
+	}
+
 	m.metaTable = metaTable
 	m.metaTableSequence = metaTableSequence
+	m.sequencesTable = sequencesTable
+	m.sequencesTableSequence = sequencesTableSequence
 	return nil
 }
 

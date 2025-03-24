@@ -12,7 +12,7 @@ import (
 
 type Engine struct {
 	Store   kv.Store
-	Catalog *catalog.Manager
+	Catalog *catalog.Catalog
 }
 
 func (e *Engine) Query(query string, parameters []any) error {
@@ -32,7 +32,7 @@ func (e *Engine) Query(query string, parameters []any) error {
 
 func newEngine() *Engine {
 	store := memtable.NewMemstore()
-	manager, err := catalog.NewManager(store)
+	manager, err := catalog.NewCatalog(store)
 	if err != nil {
 		panic(err)
 	}

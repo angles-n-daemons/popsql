@@ -15,7 +15,12 @@ import (
 //   - Add the sequences table sequence to the desc and store
 //   - Add the meta table to the desc and store.
 //   - Add the sequences table to the desc and store.
-func (m *Manager) Bootstrap() error {
+func (m *Catalog) Bootstrap() error {
+	m.metaTable = InitMetaTable
+	m.metaTableSequence = InitMetaTableSequence
+	m.sequencesTable = InitSequencesTable
+	m.sequencesTableSequence = InitSequencesTableSequence
+
 	err := m.bootstrapSequence(InitMetaTableSequence)
 	if err != nil {
 		return err
@@ -38,24 +43,24 @@ func (m *Manager) Bootstrap() error {
 	return nil
 }
 
-func (m *Manager) bootstrapSequence(s *desc.Sequence) error {
+func (m *Catalog) bootstrapSequence(s *desc.Sequence) error {
 	err := m.Schema.AddSequence(s)
 	if err != nil {
 		return err
 	}
-	err = m.storeSequence(InitSequencesTable, s)
+	err = m.storeSequence(s)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *Manager) bootstrapTable(t *desc.Table) error {
+func (m *Catalog) bootstrapTable(t *desc.Table) error {
 	err := m.Schema.AddTable(t)
 	if err != nil {
 		return err
 	}
-	err = m.storeTable(InitMetaTable, t)
+	err = m.storeTable(t)
 	if err != nil {
 		return err
 	}
@@ -122,13 +127,13 @@ var InitSequencesTable = &desc.Table{
 var InitMetaTableSequence = &desc.Sequence{
 	ID:   1,
 	Name: MetaTableSequenceName,
-	V:    3, // skip to 3 because the first two are reserved for the meta and sequences tables
+	V:    2, // skip to 2 because the first two are reserved for the meta and sequences tables
 }
 
 var InitSequencesTableSequence = &desc.Sequence{
 	ID:   2,
 	Name: SequencesTableSequenceName,
-	V:    3, // skip to 3 because the first two are reserved for the meta and sequences tables
+	V:    2, // skip to 3 because the first two are reserved for the meta and sequences tables
 }
 
 func MetaTableKey(t *desc.Table) string {

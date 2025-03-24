@@ -70,26 +70,6 @@ func TestNewTable(t *testing.T) {
 		assert.Equal(t, table.PrimaryKey, []string{"a"})
 	})
 
-	t.Run("missing primary key", func(t *testing.T) {
-		a, err := desc.NewColumn("a", scanner.DATATYPE_NUMBER)
-		if err != nil {
-			t.Fatal(err)
-		}
-		for _, test := range [][]string{nil, {}} {
-			tableIDCounter++
-			table, err := desc.NewTable(
-				tableIDCounter,
-				"mytable_missing_pk",
-				[]*desc.Column{a},
-				test,
-			)
-			assert.NoError(t, err)
-			assert.Equal(t, len(table.Columns), 2)
-			assert.Equal(t, len(table.PrimaryKey), 1)
-			assert.Equal(t, table.PrimaryKey[0], desc.ReservedInternalKeyName)
-		}
-	})
-
 	t.Run("invalid primary key", func(t *testing.T) {
 		a, err := desc.NewColumn("a", scanner.DATATYPE_NUMBER)
 		if err != nil {

@@ -8,9 +8,10 @@ Want:
    - Query parses.
  - A dedicated log package.
  - To move the store keys from strings to bytes.
+ - To think long and hard about when to use the word Key, and when to use the word ID.
 
 2025-03-23
- - Clean up manager package.
  - Get everything wired up to create new tables.
- - Test all new code.
  - Reorganize packages for schema management / description.
+ - Clean up manager package.
+ - Test all new code.

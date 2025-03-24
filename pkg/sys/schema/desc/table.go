@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
+	"github.com/angles-n-daemons/popsql/pkg/sql/parser/ast"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
@@ -26,26 +27,15 @@ func NewTable(id uint64, name string, columns []*Column, pkey []string) (*Table,
 	if columns == nil {
 		return nil, ErrNilColumns
 	}
-	if len(pkey) == 0 {
-		// if a primary key wasn't found, create an internal one
-		pkey = []string{ReservedInternalKeyName}
-		pkeyColumn, err := NewColumn(ReservedInternalKeyName, scanner.DATATYPE_STRING)
-		if err != nil {
-			return nil, err
+	for _, key := range pkey {
+		found := false
+		for _, column := range columns {
+			if column.Name == key {
+				found = true
+			}
 		}
-		columns = append(columns, pkeyColumn)
-	} else {
-		// otherwise, verify that the names used for the primary key exist
-		for _, key := range pkey {
-			found := false
-			for _, column := range columns {
-				if column.Name == key {
-					found = true
-				}
-			}
-			if !found {
-				return nil, fmt.Errorf("could not find key column '%s' while creating table '%s'", key, name)
-			}
+		if !found {
+			return nil, fmt.Errorf("could not find key column '%s' while creating table '%s'", key, name)
 		}
 	}
 	return &Table{
@@ -60,6 +50,24 @@ func NewTableFromBytes(tableBytes []byte) (*Table, error) {
 	var table *Table
 	err := json.Unmarshal(tableBytes, &table)
 	return table, err
+}
+
+// NewTableFromStmt creates a new table from a create statement.
+// The table will NOT have an ID to start, as it will be assigned
+// by the catalog when the table is created.
+func NewTableFromStmt(stmt *ast.Create) (*Table, error) {
+	columns := make([]*Column, len(stmt.Columns))
+
+	for i, colSpec := range stmt.Columns {
+		column, err := NewColumnFromStmt(colSpec)
+		if err != nil {
+			return nil, err
+		}
+		columns[i] = column
+	}
+	// TODO: primary key parsing
+	// TODO: validate primary key
+	return NewTable(0, stmt.Name.Lexeme, columns, []string{})
 }
 
 func (t *Table) AddColumn(name string, tokenType scanner.TokenType) error {
@@ -128,4 +136,8 @@ func (t *Table) Key() string {
 
 func (t *Table) Value() ([]byte, error) {
 	return json.Marshal(t)
+}
+
+func (t *Table) DefaultSequenceName() string {
+	return fmt.Sprintf("%s_sequence", t.Name)
 }
