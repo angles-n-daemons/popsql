@@ -71,7 +71,7 @@ func createStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 	if !match(tokens, i, scanner.RIGHT_PAREN) {
 		return nil, i, fmt.Errorf("expected RIGHT_PAREN to close CREATE TABLE statement")
 	}
-	return &ast.Create{Name: *name, Columns: columns}, i + 1, nil
+	return &ast.CreateTable{Name: *name, Columns: columns}, i + 1, nil
 }
 
 func selectStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {

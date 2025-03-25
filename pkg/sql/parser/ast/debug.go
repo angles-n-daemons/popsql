@@ -21,7 +21,7 @@ func (p *StmtPrinter) print(stmt Stmt) {
 	VisitStmt(stmt, p)
 }
 
-func (p *StmtPrinter) VisitCreateStmt(stmt *Create) (*any, error) {
+func (p *StmtPrinter) VisitCreateTableStmt(stmt *CreateTable) (*any, error) {
 	printIndent("- CREATE TABLE", p.depth)
 	p.depth++
 	printIndent(fmt.Sprintf("         name: %s", stmt.Name.Lexeme), p.depth-1)

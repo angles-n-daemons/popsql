@@ -45,6 +45,9 @@ func NewCatalog(st kv.Store) (*Catalog, error) {
 	return m, nil
 }
 
+// Init initializes the manager by loading the schema from the store.
+// If the schema does not exist in the store, it will bootstrap the system
+// tables.
 func (m *Catalog) Init() error {
 	sc, err := LoadSchema(m.Store)
 	if err != nil {
@@ -52,38 +55,39 @@ func (m *Catalog) Init() error {
 	}
 	m.Schema = sc
 
-	// if meta table does not exist, bootstrap the system tables.
 	if m.Schema.Empty() {
+		// if meta table does not exist, bootstrap the system tables.
 		err = m.Bootstrap()
 		if err != nil {
 			return err
 		}
-	}
+	} else {
+		// otherwise, populate the manager with the system tables and
+		// sequences.
+		metaTable, ok := m.Schema.GetTable(MetaTableName)
+		if !ok {
+			return errors.New("meta table not found")
+		}
+		metaTableSequence, ok := m.Schema.GetSequence(MetaTableSequenceName)
+		if !ok {
+			return errors.New("meta table sequence not found")
+		}
 
-	// set the meta table and meta table sequence.
-	metaTable, ok := m.Schema.GetTable(MetaTableName)
-	if !ok {
-		return errors.New("meta table not found")
-	}
-	metaTableSequence, ok := m.Schema.GetSequence(MetaTableSequenceName)
-	if !ok {
-		return errors.New("meta table sequence not found")
-	}
+		// set the sequences table and sequence
+		sequencesTable, ok := m.Schema.GetTable(SequencesTableName)
+		if !ok {
+			return errors.New("meta table not found")
+		}
+		sequencesTableSequence, ok := m.Schema.GetSequence(SequencesTableSequenceName)
+		if !ok {
+			return errors.New("meta table sequence not found")
+		}
 
-	// set the sequences table and sequence
-	sequencesTable, ok := m.Schema.GetTable(SequencesTableName)
-	if !ok {
-		return errors.New("meta table not found")
+		m.metaTable = metaTable
+		m.metaTableSequence = metaTableSequence
+		m.sequencesTable = sequencesTable
+		m.sequencesTableSequence = sequencesTableSequence
 	}
-	sequencesTableSequence, ok := m.Schema.GetSequence(SequencesTableSequenceName)
-	if !ok {
-		return errors.New("meta table sequence not found")
-	}
-
-	m.metaTable = metaTable
-	m.metaTableSequence = metaTableSequence
-	m.sequencesTable = sequencesTable
-	m.sequencesTableSequence = sequencesTableSequence
 	return nil
 }
 

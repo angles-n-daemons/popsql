@@ -24,7 +24,7 @@ func (p *StmtQuerifier) toQuery(stmt Stmt) {
 	VisitStmt(stmt, p)
 }
 
-func (p *StmtQuerifier) VisitCreateStmt(stmt *Create) (*string, error) {
+func (p *StmtQuerifier) VisitCreateTableStmt(stmt *CreateTable) (*string, error) {
 	var sb strings.Builder
 	w := sb.WriteString
 	w(withIndent(p.depth) + "CREATE TABLE ")

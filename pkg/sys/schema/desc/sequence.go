@@ -11,6 +11,10 @@ type Sequence struct {
 	V    uint64
 }
 
+func NewSequence(name string) *Sequence {
+	return &Sequence{Name: name}
+}
+
 // Equal returns true if the two sequences are equal.
 func (s *Sequence) Equal(o *Sequence) bool {
 	return s.ID == o.ID && s.Name == o.Name && s.V == o.V

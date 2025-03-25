@@ -8,11 +8,10 @@ import (
 	"strconv"
 
 	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
-	"github.com/angles-n-daemons/popsql/pkg/sql/parser/ast"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
-var ReservedInternalKeyName = "___zkey"
+var ReservedInternalKeyName = "__key"
 
 var ErrNilColumns = errors.New("nil columns passed into NewTable")
 
@@ -50,24 +49,6 @@ func NewTableFromBytes(tableBytes []byte) (*Table, error) {
 	var table *Table
 	err := json.Unmarshal(tableBytes, &table)
 	return table, err
-}
-
-// NewTableFromStmt creates a new table from a create statement.
-// The table will NOT have an ID to start, as it will be assigned
-// by the catalog when the table is created.
-func NewTableFromStmt(stmt *ast.Create) (*Table, error) {
-	columns := make([]*Column, len(stmt.Columns))
-
-	for i, colSpec := range stmt.Columns {
-		column, err := NewColumnFromStmt(colSpec)
-		if err != nil {
-			return nil, err
-		}
-		columns[i] = column
-	}
-	// TODO: primary key parsing
-	// TODO: validate primary key
-	return NewTable(0, stmt.Name.Lexeme, columns, []string{})
 }
 
 func (t *Table) AddColumn(name string, tokenType scanner.TokenType) error {
@@ -136,6 +117,16 @@ func (t *Table) Key() string {
 
 func (t *Table) Value() ([]byte, error) {
 	return json.Marshal(t)
+}
+
+func (t *Table) AddInternalPrimaryKey() (*Sequence, error) {
+	s := NewSequence(t.DefaultSequenceName())
+	if len(t.PrimaryKey) != 0 {
+		return nil, fmt.Errorf("table '%s' already has a primary key", t.Name)
+	}
+	t.Columns = append(t.Columns, NewSequenceColumn(ReservedInternalKeyName, NUMBER, s.Name))
+	t.PrimaryKey = []string{ReservedInternalKeyName}
+	return s, nil
 }
 
 func (t *Table) DefaultSequenceName() string {

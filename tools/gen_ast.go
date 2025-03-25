@@ -25,9 +25,9 @@ ColumnSpec = scanner.Token Name, scanner.Token DataType
 `
 
 var stmtAST = `
-Select     = []Expr Terms, *Reference From, Expr Where
-Insert     = *Reference Table, []*Reference Columns, [][]Expr Values
-Create     = scanner.Token Name, []*ColumnSpec Columns
+Select      = []Expr Terms, *Reference From, Expr Where
+Insert      = *Reference Table, []*Reference Columns, [][]Expr Values
+CreateTable = scanner.Token Name, []*ColumnSpec Columns
 `
 
 var walkFuncSignature = `

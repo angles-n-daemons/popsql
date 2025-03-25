@@ -97,7 +97,7 @@ var InitMetaTable = &desc.Table{
 		{
 			Name:     "id",
 			DataType: desc.NUMBER,
-			Sequence: 1,
+			Sequence: MetaTableSequenceName,
 		},
 		{
 			Name:     "name",
@@ -114,7 +114,7 @@ var InitSequencesTable = &desc.Table{
 		{
 			Name:     "id",
 			DataType: desc.NUMBER,
-			Sequence: 2,
+			Sequence: SequencesTableSequenceName,
 		},
 		{
 			Name:     "name",

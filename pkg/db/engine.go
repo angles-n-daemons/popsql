@@ -21,10 +21,10 @@ func (e *Engine) Query(query string, parameters []any) error {
 		return err
 	}
 	ast.PrintStmt(stmt)
-	switch stmt.(type) {
-	case ast.Create:
-		return e.Create(stmt)
-	case ast.Insert:
+	switch v := stmt.(type) {
+	case *ast.CreateTable:
+		return e.CreateTable(v)
+	case *ast.Insert:
 		return nil
 	}
 	return nil

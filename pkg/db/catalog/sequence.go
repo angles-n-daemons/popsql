@@ -16,23 +16,23 @@ func (c *Catalog) SequenceNext(s *desc.Sequence) (uint64, error) {
 	return next, nil
 }
 
-func (c *Catalog) createSequence(s *desc.Sequence) error {
+func (c *Catalog) addSequence(s *desc.Sequence) (*desc.Sequence, error) {
 	id, err := c.SequenceNext(c.sequencesTableSequence)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	s.ID = id
 
 	err = c.Schema.AddSequence(s)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = c.storeSequence(s)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return s, nil
 }
 
 func (c *Catalog) storeSequence(s *desc.Sequence) error {

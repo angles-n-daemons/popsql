@@ -55,7 +55,6 @@ type Unary struct {
 	Right    Expr
 }
 
-// How to distingish comparison from binary?
 type Assignment struct {
 	Name  scanner.Token
 	Value Expr
@@ -73,7 +72,7 @@ type ColumnSpec struct {
 type StmtVisitor[T any] interface {
 	VisitSelectStmt(*Select) (*T, error)
 	VisitInsertStmt(*Insert) (*T, error)
-	VisitCreateStmt(*Create) (*T, error)
+	VisitCreateTableStmt(*CreateTable) (*T, error)
 }
 
 func VisitStmt[T any](expr Stmt, visitor StmtVisitor[T]) (*T, error) {
@@ -82,8 +81,8 @@ func VisitStmt[T any](expr Stmt, visitor StmtVisitor[T]) (*T, error) {
 		return visitor.VisitSelectStmt(typedStmt)
 	case *Insert:
 		return visitor.VisitInsertStmt(typedStmt)
-	case *Create:
-		return visitor.VisitCreateStmt(typedStmt)
+	case *CreateTable:
+		return visitor.VisitCreateTableStmt(typedStmt)
 	default:
 		return nil, fmt.Errorf("unable to visit type %T", typedStmt)
 	}
@@ -101,7 +100,7 @@ type Insert struct {
 	Values  [][]Expr
 }
 
-type Create struct {
+type CreateTable struct {
 	Name    scanner.Token
 	Columns []*ColumnSpec
 }

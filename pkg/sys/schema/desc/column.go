@@ -8,7 +8,7 @@ import (
 type Column struct {
 	Name     string
 	DataType DataType
-	Sequence uint64
+	Sequence string
 }
 
 // NewColumn is a utility function which turns a name and a scanned token into
@@ -22,6 +22,14 @@ func NewColumn(name string, tokenType scanner.TokenType) (*Column, error) {
 		Name:     name,
 		DataType: datatype,
 	}, nil
+}
+
+func NewSequenceColumn(name string, dt DataType, seq string) *Column {
+	return &Column{
+		Name:     name,
+		DataType: dt,
+		Sequence: seq,
+	}
 }
 
 // NewColumnFromStmt is a utility function which turns a ColumnSpec into a desc.
