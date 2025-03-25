@@ -2,10 +2,14 @@ package catalog_test
 
 import "testing"
 
-func TestLoadSchema(t *testing.T) {
+func TestNewCatalog(t *testing.T) {
 
 }
 
-func TestManagerInit(t *testing.T) {
+func TestCatalogInit(t *testing.T) {
+
+}
+
+func TestLoadSchema(t *testing.T) {
 
 }
