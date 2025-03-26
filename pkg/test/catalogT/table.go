@@ -11,16 +11,20 @@ import (
 var tableIDCounter uint64
 
 func TableID() uint64 {
-	tableIDCounter++
-	return tableIDCounter
+	sequenceIDCounter++
+	return sequenceIDCounter
 }
 
-func TestTable() *desc.Table {
+func Table() *desc.Table {
 	return NewTable(nil)
 }
 
 func TableWithID(id uint64) *desc.Table {
 	return NewTable(&desc.Table{ID: id})
+}
+
+func TableWithName(name string) *desc.Table {
+	return NewTable(&desc.Table{Name: name})
 }
 
 // Testing utility, which takes any portional part of a table and fills it out.
@@ -30,7 +34,7 @@ func NewTable(t *desc.Table) *desc.Table {
 	}
 
 	if t.ID == 0 {
-		t.ID = TableID()
+		t.ID = SequenceID()
 	}
 
 	if t.Name == "" {

@@ -17,6 +17,9 @@ func NewSequence(name string) *Sequence {
 
 // Equal returns true if the two sequences are equal.
 func (s *Sequence) Equal(o *Sequence) bool {
+	if o == nil {
+		return false
+	}
 	return s.ID == o.ID && s.Name == o.Name && s.V == o.V
 }
 

@@ -11,11 +11,11 @@ import (
 )
 
 func TestLoadTables(t *testing.T) {
-	tt := catalogT.TestTable()
+	tt := catalogT.Table()
 	tf := catalogT.CopyTable(tt)
 	tf.Name = "tf"
 	tablesBytes := [][]byte{}
-	sc := schema.NewSchema()
+	sc := schema.New()
 
 	for _, table := range []*desc.Table{tt, tf} {
 		sc.AddTable(table)
@@ -24,15 +24,15 @@ func TestLoadTables(t *testing.T) {
 		tablesBytes = append(tablesBytes, b)
 	}
 
-	sc2 := schema.NewSchema()
+	sc2 := schema.New()
 	err := sc2.LoadTables(tablesBytes)
 	assert.NoError(t, err)
 	assert.Equal(t, sc, sc2)
 }
 
 func TestAddTable(t *testing.T) {
-	sc := schema.NewSchema()
-	expected := catalogT.TestTable()
+	sc := schema.New()
+	expected := catalogT.Table()
 	err := sc.AddTable(expected)
 	assert.NoError(t, err)
 	actual, ok := sc.GetTable(expected.Name)
@@ -42,7 +42,7 @@ func TestAddTable(t *testing.T) {
 }
 
 func TestAddExistingTable(t *testing.T) {
-	sc := schema.NewSchema()
+	sc := schema.New()
 	table1 := catalogT.TableWithID(1)
 	err := sc.AddTable(table1)
 	assert.NoError(t, err)
@@ -54,8 +54,8 @@ func TestAddExistingTable(t *testing.T) {
 }
 
 func TestGetTable(t *testing.T) {
-	sc := schema.NewSchema()
-	expected := catalogT.TestTable()
+	sc := schema.New()
+	expected := catalogT.Table()
 	err := sc.AddTable(expected)
 	assert.NoError(t, err)
 	actual, ok := sc.GetTable(expected.Name)
@@ -65,15 +65,15 @@ func TestGetTable(t *testing.T) {
 }
 
 func TestGetMissingTable(t *testing.T) {
-	sc := schema.NewSchema()
+	sc := schema.New()
 	table, ok := sc.GetTable("doesntexist")
 	assert.Nil(t, table)
 	assert.False(t, ok)
 }
 
 func TestDropTable(t *testing.T) {
-	sc := schema.NewSchema()
-	table := catalogT.TestTable()
+	sc := schema.New()
+	table := catalogT.Table()
 
 	err := sc.AddTable(table)
 	assert.NoError(t, err)
@@ -87,7 +87,7 @@ func TestDropTable(t *testing.T) {
 }
 
 func TestDropMissingTable(t *testing.T) {
-	sc := schema.NewSchema()
+	sc := schema.New()
 	err := sc.RemoveTable("doesntexist")
 	assert.IsError(t, err, "could not delete table 'doesntexist'")
 }

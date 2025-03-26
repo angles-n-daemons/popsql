@@ -9,7 +9,7 @@ type Schema struct {
 	Tables    map[string]*desc.Table
 }
 
-func NewSchema() *Schema {
+func New() *Schema {
 	schema := &Schema{
 		Tables:    map[string]*desc.Table{},
 		Sequences: map[string]*desc.Sequence{},

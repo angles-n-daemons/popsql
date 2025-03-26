@@ -82,7 +82,7 @@ func LoadSchema(st kv.Store) (*schema.Schema, error) {
 		return nil, fmt.Errorf("failed to read the table catalog from a cursor %w", err)
 	}
 
-	sc := schema.NewSchema()
+	sc := schema.New()
 	err = sc.LoadTables(tablesBytes)
 	if err != nil {
 		return nil, err

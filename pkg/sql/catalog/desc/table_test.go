@@ -88,7 +88,7 @@ func TestNewTable(t *testing.T) {
 
 func TestTableAddColumn(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
-		table := catalogT.TestTable()
+		table := catalogT.Table()
 		err := table.AddColumn("c", scanner.DATATYPE_BOOLEAN)
 		if err != nil {
 			t.Fatal(err)
@@ -100,13 +100,13 @@ func TestTableAddColumn(t *testing.T) {
 	})
 
 	t.Run("duplicate column", func(t *testing.T) {
-		table := catalogT.TestTable()
+		table := catalogT.Table()
 		err := table.AddColumn("b", scanner.DATATYPE_BOOLEAN)
 		assert.IsError(t, err, fmt.Sprintf("a column with the name 'b' already exists on table '%s'", table.Name))
 	})
 
 	t.Run("NewColumn fails", func(t *testing.T) {
-		table := catalogT.TestTable()
+		table := catalogT.Table()
 		err := table.AddColumn("c", scanner.BANG)
 		assert.IsError(t, err, "unrecognized data type BANG")
 	})
@@ -114,14 +114,14 @@ func TestTableAddColumn(t *testing.T) {
 
 func TestTableGetColumn(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
-		table := catalogT.TestTable()
+		table := catalogT.Table()
 		column := table.GetColumn("a")
 		expected, err := desc.NewColumn("a", scanner.DATATYPE_NUMBER)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, column)
 	})
 	t.Run("column doesn't exist", func(t *testing.T) {
-		table := catalogT.TestTable()
+		table := catalogT.Table()
 		column := table.GetColumn("c")
 		assert.Nil(t, column)
 	})
@@ -129,40 +129,40 @@ func TestTableGetColumn(t *testing.T) {
 
 func TestTableEqual(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
-		table1 := catalogT.TestTable()
+		table1 := catalogT.Table()
 		table2 := catalogT.CopyTable(table1)
 		assert.Equal(t, table1, table2)
 	})
 
 	t.Run("ids are different", func(t *testing.T) {
-		table1 := catalogT.TestTable()
+		table1 := catalogT.Table()
 		table2 := catalogT.CopyTable(table1)
 		table2.ID = table1.ID + 1
 		assert.NotEqual(t, table1, table2)
 	})
 
 	t.Run("names are different", func(t *testing.T) {
-		table1 := catalogT.TestTable()
+		table1 := catalogT.Table()
 		table2 := catalogT.CopyTable(table1)
 		table2.Name = "different"
 		assert.NotEqual(t, table1, table2)
 	})
 
 	t.Run("other is nil", func(t *testing.T) {
-		table1 := catalogT.TestTable()
+		table1 := catalogT.Table()
 		var table2 *desc.Table
 		assert.NotEqual(t, table1, table2)
 	})
 
 	t.Run("primary keys not equal", func(t *testing.T) {
-		table1 := catalogT.TestTable()
+		table1 := catalogT.Table()
 		table2 := catalogT.CopyTable(table1)
 		table2.PrimaryKey = []string{"b"}
 		assert.NotEqual(t, table1, table2)
 	})
 
 	t.Run("t has more columns", func(t *testing.T) {
-		table1 := catalogT.TestTable()
+		table1 := catalogT.Table()
 		table2 := catalogT.CopyTable(table1)
 		newCol, err := desc.NewColumn("third", scanner.DATATYPE_STRING)
 		assert.NoError(t, err)
@@ -171,7 +171,7 @@ func TestTableEqual(t *testing.T) {
 	})
 
 	t.Run("other has more columns", func(t *testing.T) {
-		table1 := catalogT.TestTable()
+		table1 := catalogT.Table()
 		table2 := catalogT.CopyTable(table1)
 		newCol, err := desc.NewColumn("third", scanner.DATATYPE_STRING)
 		assert.NoError(t, err)
@@ -195,7 +195,7 @@ func TestTableEqual(t *testing.T) {
 }
 
 func TestTableSerialization(t *testing.T) {
-	original := catalogT.TestTable()
+	original := catalogT.Table()
 	bytes, err := original.Value()
 	assert.NoError(t, err)
 
@@ -241,4 +241,12 @@ func TestTableKey(t *testing.T) {
 		ID: 123,
 	}
 	assert.Equal(t, table.Key(), "123")
+}
+
+func TestAddInternalPrimaryKey(t *testing.T) {
+	t.Fatal("TODO")
+}
+
+func TestDefaultSequenceName(t *testing.T) {
+	t.Fatal("TODO")
 }

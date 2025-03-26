@@ -88,7 +88,7 @@ func TestBootstrapIdempotence(t *testing.T) {
 	store := memtable.NewMemstore()
 	cat, err := catalog.NewManager(store)
 	assert.NoError(t, err)
-	cat.Schema = schema.NewSchema()
+	cat.Schema = schema.New()
 
 	// Bootstrap twice - should not error
 	err = cat.Bootstrap()
