@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
-	"github.com/angles-n-daemons/popsql/pkg/sys/schema/desc"
 	"github.com/angles-n-daemons/popsql/pkg/test/assert"
 )
 

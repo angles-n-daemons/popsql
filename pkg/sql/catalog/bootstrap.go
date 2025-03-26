@@ -2,7 +2,7 @@ package catalog
 
 import (
 	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
-	"github.com/angles-n-daemons/popsql/pkg/sys/schema/desc"
+	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 )
 
 // Bootstrap is the entry point for a fresh database. If nothing is in the store,
@@ -11,16 +11,18 @@ import (
 // It needs to do this however using the direct functions on the desc as well
 // as the store, since normal table and sequence creation depends on their existence.
 // The order of operations for a bootstrap is as follows:
+//   - Set the SystemObjects to be the initial values.
 //   - Add the meta sequence to the desc and store.
 //   - Add the sequences table sequence to the desc and store
 //   - Add the meta table to the desc and store.
 //   - Add the sequences table to the desc and store.
-func (m *Catalog) Bootstrap() error {
-	m.metaTable = InitMetaTable
-	m.metaTableSequence = InitMetaTableSequence
-	m.sequencesTable = InitSequencesTable
-	m.sequencesTableSequence = InitSequencesTableSequence
-
+func (m *Manager) Bootstrap() error {
+	m.Sys = &SystemObjects{
+		MetaTable:              InitMetaTable,
+		MetaTableSequence:      InitMetaTableSequence,
+		SequencesTable:         InitSequencesTable,
+		SequencesTableSequence: InitSequencesTableSequence,
+	}
 	err := m.bootstrapSequence(InitMetaTableSequence)
 	if err != nil {
 		return err
@@ -43,24 +45,28 @@ func (m *Catalog) Bootstrap() error {
 	return nil
 }
 
-func (m *Catalog) bootstrapSequence(s *desc.Sequence) error {
+// These bootstrap functions are identical to their corresponding AddTable /
+// AddSequence with the exception that they do not call SequenceNext on the
+// system sequences, which would increment and save values which did not yet
+// exist.
+func (m *Manager) bootstrapSequence(s *desc.Sequence) error {
 	err := m.Schema.AddSequence(s)
 	if err != nil {
 		return err
 	}
-	err = m.storeSequence(s)
+	err = m.StoreSequence(s)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *Catalog) bootstrapTable(t *desc.Table) error {
+func (m *Manager) bootstrapTable(t *desc.Table) error {
 	err := m.Schema.AddTable(t)
 	if err != nil {
 		return err
 	}
-	err = m.storeTable(t)
+	err = m.StoreTable(t)
 	if err != nil {
 		return err
 	}

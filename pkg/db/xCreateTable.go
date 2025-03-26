@@ -1,8 +1,8 @@
 package db
 
 import (
+	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/ast"
-	"github.com/angles-n-daemons/popsql/pkg/sys/schema/desc"
 )
 
 func (e *Engine) CreateTable(stmt *ast.CreateTable) error {

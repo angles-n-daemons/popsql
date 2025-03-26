@@ -4,15 +4,15 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/angles-n-daemons/popsql/pkg/sys/schema"
-	"github.com/angles-n-daemons/popsql/pkg/sys/schema/desc"
+	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
+	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/schema"
 	"github.com/angles-n-daemons/popsql/pkg/test/assert"
-	"github.com/angles-n-daemons/popsql/pkg/test/schematest"
+	"github.com/angles-n-daemons/popsql/pkg/test/catalogT"
 )
 
-func TestSchemaFromBytes(t *testing.T) {
-	tt := schematest.TestTable()
-	tf := schematest.CopyTable(tt)
+func TestLoadTables(t *testing.T) {
+	tt := catalogT.TestTable()
+	tf := catalogT.CopyTable(tt)
 	tf.Name = "tf"
 	tablesBytes := [][]byte{}
 	sc := schema.NewSchema()
@@ -30,9 +30,9 @@ func TestSchemaFromBytes(t *testing.T) {
 	assert.Equal(t, sc, sc2)
 }
 
-func TestSchemaAddTable(t *testing.T) {
+func TestAddTable(t *testing.T) {
 	sc := schema.NewSchema()
-	expected := schematest.TestTable()
+	expected := catalogT.TestTable()
 	err := sc.AddTable(expected)
 	assert.NoError(t, err)
 	actual, ok := sc.GetTable(expected.Name)
@@ -41,21 +41,21 @@ func TestSchemaAddTable(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func TestSchemaAddExistingTable(t *testing.T) {
+func TestAddExistingTable(t *testing.T) {
 	sc := schema.NewSchema()
-	table1 := schematest.TableWithID(1)
+	table1 := catalogT.TableWithID(1)
 	err := sc.AddTable(table1)
 	assert.NoError(t, err)
 
-	table2 := schematest.CopyTable(table1)
+	table2 := catalogT.CopyTable(table1)
 	err = sc.AddTable(table2)
 	assert.IsError(t, err, "table 'table_1' already exists")
 
 }
 
-func TestSchemaGetTable(t *testing.T) {
+func TestGetTable(t *testing.T) {
 	sc := schema.NewSchema()
-	expected := schematest.TestTable()
+	expected := catalogT.TestTable()
 	err := sc.AddTable(expected)
 	assert.NoError(t, err)
 	actual, ok := sc.GetTable(expected.Name)
@@ -64,21 +64,21 @@ func TestSchemaGetTable(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func TestSchemaGetMissingTable(t *testing.T) {
+func TestGetMissingTable(t *testing.T) {
 	sc := schema.NewSchema()
 	table, ok := sc.GetTable("doesntexist")
 	assert.Nil(t, table)
 	assert.False(t, ok)
 }
 
-func TestSchemaDropTable(t *testing.T) {
+func TestDropTable(t *testing.T) {
 	sc := schema.NewSchema()
-	table := schematest.TestTable()
+	table := catalogT.TestTable()
 
 	err := sc.AddTable(table)
 	assert.NoError(t, err)
 
-	err = sc.DropTable(table.Name)
+	err = sc.RemoveTable(table.Name)
 	assert.NoError(t, err)
 
 	retrieved, ok := sc.GetTable(table.Name)
@@ -86,8 +86,8 @@ func TestSchemaDropTable(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestSchemaDropMissingTable(t *testing.T) {
+func TestDropMissingTable(t *testing.T) {
 	sc := schema.NewSchema()
-	err := sc.DropTable("doesntexist")
+	err := sc.RemoveTable("doesntexist")
 	assert.IsError(t, err, "could not delete table 'doesntexist'")
 }

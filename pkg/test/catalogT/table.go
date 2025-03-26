@@ -1,10 +1,10 @@
-package schematest
+package catalogT
 
 import (
 	"fmt"
 
+	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
-	"github.com/angles-n-daemons/popsql/pkg/sys/schema/desc"
 )
 
 // Global counter to ensure each test-created table has a unique ID and (if needed) a unique name.

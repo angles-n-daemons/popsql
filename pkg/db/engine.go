@@ -3,16 +3,16 @@ package db
 import (
 	"sync"
 
-	"github.com/angles-n-daemons/popsql/pkg/db/catalog"
 	"github.com/angles-n-daemons/popsql/pkg/kv"
 	"github.com/angles-n-daemons/popsql/pkg/kv/memtable"
+	"github.com/angles-n-daemons/popsql/pkg/sql/catalog"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/ast"
 )
 
 type Engine struct {
 	Store   kv.Store
-	Catalog *catalog.Catalog
+	Catalog *catalog.Manager
 }
 
 func (e *Engine) Query(query string, parameters []any) error {
@@ -32,7 +32,7 @@ func (e *Engine) Query(query string, parameters []any) error {
 
 func newEngine() *Engine {
 	store := memtable.NewMemstore()
-	manager, err := catalog.NewCatalog(store)
+	manager, err := catalog.NewManager(store)
 	if err != nil {
 		panic(err)
 	}
