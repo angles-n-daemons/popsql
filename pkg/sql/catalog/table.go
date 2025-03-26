@@ -3,6 +3,7 @@ package catalog
 import (
 	"fmt"
 
+	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 )
 
@@ -45,7 +46,7 @@ func (m *Manager) CreateTable(t *desc.Table) error {
 }
 
 func (m *Manager) StoreTable(t *desc.Table) error {
-	key := m.Sys.MetaTable.Prefix().WithID(t.Key())
+	key := m.TableKey(t)
 	tableBytes, err := t.Value()
 	if err != nil {
 		return fmt.Errorf("failed encoding table while saving to store %w", err)
@@ -55,4 +56,8 @@ func (m *Manager) StoreTable(t *desc.Table) error {
 		return fmt.Errorf("could not put table definition in store %w", err)
 	}
 	return nil
+}
+
+func (m *Manager) TableKey(t *desc.Table) *keys.Key {
+	return keys.New(m.Sys.MetaTable.Key()).WithID(t.Key())
 }

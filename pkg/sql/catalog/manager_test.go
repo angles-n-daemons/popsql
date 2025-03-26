@@ -2,14 +2,14 @@ package catalog_test
 
 import "testing"
 
-func TestNewCatalog(t *testing.T) {
-
-}
-
-func TestCatalogInit(t *testing.T) {
-
+func TestNewManager(t *testing.T) {
+	t.Fatal("TODO")
 }
 
 func TestLoadSchema(t *testing.T) {
+	t.Fatal("TODO")
+}
 
+func TestGetSystemObjects(t *testing.T) {
+	t.Fatal("TODO")
 }

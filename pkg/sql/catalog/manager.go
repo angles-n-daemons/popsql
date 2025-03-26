@@ -55,7 +55,7 @@ func NewManager(st kv.Store) (*Manager, error) {
 	} else {
 		// otherwise, populate the manager with the system tables and
 		// sequences.
-		m.Sys, err = LoadSystemObjects(sc)
+		m.Sys, err = GetSystemObjects(sc)
 	}
 
 	return m, nil
@@ -96,7 +96,7 @@ func LoadSchema(st kv.Store) (*schema.Schema, error) {
 	return sc, nil
 }
 
-func LoadSystemObjects(sc *schema.Schema) (*SystemObjects, error) {
+func GetSystemObjects(sc *schema.Schema) (*SystemObjects, error) {
 	// get the meta table and seqquence
 	mt, ok := sc.GetTable(MetaTableName)
 	if !ok {

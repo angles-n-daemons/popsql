@@ -103,7 +103,7 @@ func (t *Table) Equal(o *Table) bool {
 }
 
 func (t *Table) Prefix() *keys.Key {
-	return keys.New(t.Name)
+	return keys.New(t.Key())
 }
 
 func (t *Table) PrefixEnd() *keys.Key {

@@ -3,6 +3,7 @@ package catalog
 import (
 	"fmt"
 
+	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 )
 
@@ -50,4 +51,8 @@ func (m *Manager) StoreSequence(s *desc.Sequence) error {
 		return fmt.Errorf("could not put sequence definition in store %w", err)
 	}
 	return nil
+}
+
+func (m *Manager) SequenceKey(s *desc.Sequence) *keys.Key {
+	return keys.New(m.Sys.SequencesTable.Key()).WithID(s.Key())
 }

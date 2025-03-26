@@ -1,6 +1,9 @@
 package keys
 
-import "unicode/utf8"
+import (
+	"strings"
+	"unicode/utf8"
+)
 
 // The END_ID is used to denote the end of a table span.
 const END_ID = '\u0000'
@@ -51,6 +54,8 @@ func (k *Key) String() string {
 	if isEnd(k.ID) {
 		id = "<END>"
 	}
+	// remove the delimiter from the string if it exists
+	strings.ReplaceAll(key, "/", "")
 	key += "/" + id
 	return key
 }

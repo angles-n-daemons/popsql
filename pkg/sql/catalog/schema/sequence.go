@@ -38,9 +38,9 @@ func (s *Schema) GetSequence(key string) (*desc.Sequence, bool) {
 	return table, ok
 }
 
-// DropSequence attempts to drop the table with the given key.
+// RemoveSequence attempts to drop the table with the given key.
 // If the table does not exist, it returns an error.
-func (s *Schema) DropSequence(key string) error {
+func (s *Schema) RemoveSequence(key string) error {
 	_, ok := s.Sequences[key]
 	if !ok {
 		return fmt.Errorf("could not delete table '%s'", key)
