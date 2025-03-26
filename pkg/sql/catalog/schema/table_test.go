@@ -71,7 +71,7 @@ func TestGetMissingTable(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestDropTable(t *testing.T) {
+func TestRemoveTable(t *testing.T) {
 	sc := schema.New()
 	table := catalogT.Table()
 
@@ -86,7 +86,7 @@ func TestDropTable(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestDropMissingTable(t *testing.T) {
+func TestRemoveMissingTable(t *testing.T) {
 	sc := schema.New()
 	err := sc.RemoveTable("doesntexist")
 	assert.IsError(t, err, "could not delete table 'doesntexist'")

@@ -40,5 +40,9 @@ func NewSequence(s *desc.Sequence) *desc.Sequence {
 }
 
 func CopySequence(s *desc.Sequence) *desc.Sequence {
-	return NewSequence(desc.NewSequence(s.Name))
+	return &desc.Sequence{
+		ID:   s.ID,
+		Name: s.Name,
+		V:    s.V,
+	}
 }
