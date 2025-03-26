@@ -38,3 +38,7 @@ func NewSequence(s *desc.Sequence) *desc.Sequence {
 
 	return s
 }
+
+func CopySequence(s *desc.Sequence) *desc.Sequence {
+	return NewSequence(desc.NewSequence(s.Name))
+}

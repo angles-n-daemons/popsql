@@ -46,3 +46,13 @@ func TestColumnEqual(t *testing.T) {
 		t.Fatalf("expected %v and %v to be equal", column, expected)
 	}
 }
+
+func TestNewSequenceColumn(t *testing.T) {
+	column := desc.NewSequenceColumn("name", desc.STRING, "seq")
+	expected := &desc.Column{
+		Name:     "name",
+		DataType: desc.STRING,
+		Sequence: "seq",
+	}
+	assert.Equal(t, expected, column)
+}
