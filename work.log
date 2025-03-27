@@ -14,13 +14,60 @@ Want:
 2025-03-27
  - Keys
   - Key part to bytes
+    - This is quite doable
+  - Delimiter
+    - Null byte should work if delimited by bytes
   - Prefixes
+    - Worth having a prefix class?
+    - Might not be
   - Encoding
   - Decoding
+  - Escaping unique values
   - How is prefix end handled?
   - Referring to Spans rather than ranges
 
+
+having a debug store wrapper
+
+type DebugStore interface {
+  
+}
+
+
+type Prefix struct {
+ Table *desc.Table
+}
+
+type Key []byte
+
+func (k Key) Pretty (sc *schema.Schema) {
+ 
+}
+
+ I really do like the idea of being able to put registers. Things which have Key(), Value() functionality.
+
+Even in relational databases, keys refer to two things, the absolute key of the item, stored in the keyspace, and its relative / index key, the tail of an absolute key.
+
+type Register interface {
+  Key() *keys.Key
+}
+
+interface Key {
+ Key() string
+}
+
+type Datum struct {
+ Values []any
+ Key []int
+}
+
+keys.Prefix(Table)
+prefix.Key(Keyable)
+
 If I were to think about using the keys, whatever would I think?
+
+What do I want the surface to look like?
+Should store take a register?
 
 What of the concept of a register?
 

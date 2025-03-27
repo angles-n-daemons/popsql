@@ -1,9 +1,11 @@
 package db
 
 import (
+	"os"
 	"sync"
 
 	"github.com/angles-n-daemons/popsql/pkg/kv"
+	"github.com/angles-n-daemons/popsql/pkg/kv/debug"
 	"github.com/angles-n-daemons/popsql/pkg/kv/memtable"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser"
@@ -20,7 +22,6 @@ func (e *Engine) Query(query string, parameters []any) error {
 	if err != nil {
 		return err
 	}
-	ast.PrintStmt(stmt)
 	switch v := stmt.(type) {
 	case *ast.CreateTable:
 		return e.CreateTable(v)
@@ -30,8 +31,11 @@ func (e *Engine) Query(query string, parameters []any) error {
 	return nil
 }
 
-func newEngine() *Engine {
-	store := memtable.NewMemstore()
+func newEngine(debugStore bool) *Engine {
+	var store kv.Store = memtable.NewMemstore()
+	if debugStore {
+		store = debug.NewStore(store)
+	}
 	manager, err := catalog.NewManager(store)
 	if err != nil {
 		panic(err)
@@ -44,7 +48,11 @@ var once sync.Once
 
 func GetEngine() *Engine {
 	once.Do(func() {
-		db = newEngine()
+		config := NewConfig(os.Getenv)
+		if config.DebugParser {
+			parser.Debug = true
+		}
+		db = newEngine(config.DebugStore)
 	})
 	return db
 }

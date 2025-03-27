@@ -1,9 +1,6 @@
 package memtable
 
-import (
-	"fmt"
-	"math"
-)
+import "math"
 
 type Memcursor struct {
 	Node *SkiplistNode[string, []byte]
@@ -17,7 +14,6 @@ func (m *Memcursor) ReadAll() ([][]byte, error) {
 func (m *Memcursor) Read(num int) ([][]byte, error) {
 	vals := [][]byte{}
 	for i := 0; i < num && !m.IsAtEnd(); i++ {
-		fmt.Println("READ", m.Node.Key, string(m.Node.Val))
 		vals = append(vals, m.Node.Val)
 		m.Node = m.Node.Next()
 

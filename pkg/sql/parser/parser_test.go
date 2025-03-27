@@ -14,7 +14,7 @@ func TestParserBasic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ast.PrintStmt(stmt)
+	ast.Print(stmt)
 }
 
 // features
@@ -108,7 +108,7 @@ func TestParseInvalidPrograms(t *testing.T) {
 			if err == nil {
 				t.Fatalf(`expected query "%s" to fail parse, but didn"t`, query)
 			}
-			ast.PrintStmt(stmt)
+			ast.Print(stmt)
 		})
 	}
 }

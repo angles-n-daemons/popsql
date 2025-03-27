@@ -13,12 +13,8 @@ type StmtPrinter struct {
 	depth int
 }
 
-func PrintStmt(stmt Stmt) {
+func Print(stmt Stmt) {
 	VisitStmt(stmt, &StmtPrinter{})
-}
-
-func (p *StmtPrinter) print(stmt Stmt) {
-	VisitStmt(stmt, p)
 }
 
 func (p *StmtPrinter) VisitCreateTableStmt(stmt *CreateTable) (*any, error) {

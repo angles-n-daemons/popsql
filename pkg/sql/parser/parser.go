@@ -8,6 +8,8 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
+var Debug = false
+
 func Parse(s string) (ast.Stmt, error) {
 	tokens, err := scanner.Scan(s)
 	if err != nil {
@@ -19,6 +21,9 @@ func Parse(s string) (ast.Stmt, error) {
 	}
 	if !isAtEnd(tokens, i) {
 		return nil, fmt.Errorf("finished parsing without consuming all input")
+	}
+	if Debug {
+		ast.Print(stmt)
 	}
 	return stmt, err
 }
