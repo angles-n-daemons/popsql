@@ -60,7 +60,7 @@ func NewTable(t *desc.Table) *desc.Table {
 }
 
 func CopyTable(t *desc.Table) *desc.Table {
-	tn, err := desc.NewTable(t.ID, t.Name, t.Columns, t.PrimaryKey)
+	tn, err := desc.NewTableWithID(t.ID, t.Name, t.Columns, t.PrimaryKey)
 	if err != nil {
 		panic(err)
 	}

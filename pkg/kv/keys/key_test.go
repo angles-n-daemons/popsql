@@ -65,8 +65,8 @@ func TestEncode(t *testing.T) {
 	}
 
 	// special case check for the end string
-	if key.WithID(string(keys.END_ID)).Encode() != "testTable/<END>" {
-		t.Errorf("expected string %s, got %s", "testTable/<END>", key.Encode())
+	if key.WithID(string(keys.END_ID)).Encode() != "testTable?" {
+		t.Errorf("expected string %s, got %s", "testTable?", key.Encode())
 	}
 }
 

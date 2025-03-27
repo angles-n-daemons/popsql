@@ -32,9 +32,7 @@ func checkManagerSequence(t *testing.T, m *catalog.Manager, s *desc.Sequence) {
 
 func TestNewManager(t *testing.T) {
 	t.Run("test empty use case", func(t *testing.T) {
-		st := memtable.NewMemstore()
-		m, err := catalog.NewManager(st)
-		assert.NoError(t, err)
+		m := catalogT.Manager(t)
 
 		checkManagerTable(t, m, catalog.InitMetaTable())
 		checkManagerSequence(t, m, catalog.InitMetaTableSequence())
@@ -48,17 +46,15 @@ func TestNewManager(t *testing.T) {
 	})
 
 	t.Run("test already populated with system objects", func(t *testing.T) {
-		st := memtable.NewMemstore()
-		m, err := catalog.NewManager(st)
-		assert.NoError(t, err)
+		m := catalogT.Manager(t)
 
 		assert.Equal(t, m.Sys.MetaTableSequence.V, 2)
 		assert.Equal(t, m.Sys.MetaTableSequence.V, 2)
 
 		// fiddle around with the sequence values.
-		m.SequenceNext(m.Sys.MetaTableSequence)
-		m.SequenceNext(m.Sys.MetaTableSequence)
-		m.SequenceNext(m.Sys.SequencesTableSequence)
+		m.SequenceNext(m.Sys.MetaTableSequence.Name)
+		m.SequenceNext(m.Sys.MetaTableSequence.Name)
+		m.SequenceNext(m.Sys.SequencesTableSequence.Name)
 
 		// verify reiniting a manager from the above store has the updated values.
 		assert.Equal(t, 4, m.Sys.MetaTableSequence.V)
@@ -83,12 +79,10 @@ func TestLoadSchema(t *testing.T) {
 	})
 
 	t.Run("only system data", func(t *testing.T) {
-		st := memtable.NewMemstore()
-		m, err := catalog.NewManager(st)
-		assert.NoError(t, err)
+		m := catalogT.Manager(t)
 
 		// load a new schema from the store.
-		sc, err := catalog.LoadSchema(st)
+		sc, err := catalog.LoadSchema(m.Store)
 		assert.NoError(t, err)
 
 		_, ok := sc.GetTable(m.Sys.MetaTable.Name)
@@ -96,16 +90,14 @@ func TestLoadSchema(t *testing.T) {
 	})
 
 	t.Run("system and user data", func(t *testing.T) {
-		st := memtable.NewMemstore()
-		m, err := catalog.NewManager(st)
-		assert.NoError(t, err)
+		m := catalogT.Manager(t)
 
 		// add a user table
 		tb := catalogT.Table()
 		assert.NoError(t, m.CreateTable(tb))
 
 		// load a new schema from the store.
-		sc, err := catalog.LoadSchema(st)
+		sc, err := catalog.LoadSchema(m.Store)
 		assert.NoError(t, err)
 
 		_, ok := sc.GetTable(m.Sys.MetaTable.Name)

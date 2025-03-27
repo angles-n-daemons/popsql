@@ -8,7 +8,7 @@ import (
 
 func Identifier(t scanner.Token) (string, error) {
 	if t.Type != scanner.IDENTIFIER {
-		errors.New("expected identifier token")
+		return "", errors.New("expected identifier token")
 	}
 	return t.Lexeme, nil
 }

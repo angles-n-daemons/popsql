@@ -10,43 +10,6 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/test/catalogT"
 )
 
-// Global counter to ensure each test-created table has a unique ID and (if needed) a unique name.
-var tableIDCounter uint64
-
-// Test table creates a simple table with two columns, a a number and b a string.
-func testTableFromArgs(name string, columns []*desc.Column, pkey []string) *desc.Table {
-	tableIDCounter++
-
-	if name == "" {
-		// Give each table a unique name if none was provided
-		name = fmt.Sprintf("mytable%d", tableIDCounter)
-	}
-	if columns == nil {
-		a, err := desc.NewColumn("a", scanner.DATATYPE_NUMBER)
-		if err != nil {
-			panic(err)
-		}
-		b, err := desc.NewColumn("b", scanner.DATATYPE_STRING)
-		if err != nil {
-			panic(err)
-		}
-		columns = []*desc.Column{a, b}
-	}
-	if pkey == nil {
-		pkey = []string{"a"}
-	}
-	table, err := desc.NewTable(
-		tableIDCounter, // unique ID for each created table
-		name,
-		columns,
-		pkey,
-	)
-	if err != nil {
-		panic(err)
-	}
-	return table
-}
-
 func TestNewTable(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
 		a, err := desc.NewColumn("a", scanner.DATATYPE_NUMBER)
@@ -57,13 +20,7 @@ func TestNewTable(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		tableIDCounter++
-		table, err := desc.NewTable(
-			tableIDCounter,
-			"mytable",
-			[]*desc.Column{a, b},
-			[]string{"a"},
-		)
+		table, err := desc.NewTable("mytable", []*desc.Column{a, b}, []string{"a"})
 		assert.NoError(t, err)
 		assert.Equal(t, table.Name, "mytable")
 		assert.Equal(t, table.Columns, []*desc.Column{a, b})
@@ -75,13 +32,7 @@ func TestNewTable(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		tableIDCounter++
-		_, err = desc.NewTable(
-			tableIDCounter,
-			"mytable_invalid_pk",
-			[]*desc.Column{a},
-			[]string{"b"},
-		)
+		_, err = desc.NewTable("mytable_invalid_pk", []*desc.Column{a}, []string{"b"})
 		assert.IsError(t, err, "could not find key column 'b' while creating table 'mytable_invalid_pk'")
 	})
 }
@@ -206,14 +157,14 @@ func TestTableSerialization(t *testing.T) {
 
 func TestTablePrefix(t *testing.T) {
 	for _, test := range []struct {
-		name     string
+		id       uint64
 		expected string
 	}{
-		{"chuck", "chuck/"},
-		{"jim", "jim/"},
+		{1, "1/"},
+		{2, "2/"},
 	} {
-		t.Run(fmt.Sprintf("name=%s, expected=%s", test.name, test.expected), func(t *testing.T) {
-			table := testTableFromArgs(test.name, nil, nil)
+		t.Run(fmt.Sprintf("id=%d, expected=%s", test.id, test.expected), func(t *testing.T) {
+			table := catalogT.TableWithID(test.id)
 			prefix := table.Prefix()
 			assert.Equal(t, prefix.Encode(), test.expected)
 		})
@@ -222,14 +173,14 @@ func TestTablePrefix(t *testing.T) {
 
 func TestTablePrefixEnd(t *testing.T) {
 	for _, test := range []struct {
-		name     string
+		id       uint64
 		expected string
 	}{
-		{"chuck", "chuck/<END>"},
-		{"jim", "jim/<END>"},
+		{1, "1?"},
+		{2, "2?"},
 	} {
-		t.Run(fmt.Sprintf("name=%s, expected=%s", test.name, test.expected), func(t *testing.T) {
-			table := testTableFromArgs(test.name, nil, nil)
+		t.Run(fmt.Sprintf("id=%d, expected=%s", test.id, test.expected), func(t *testing.T) {
+			table := catalogT.TableWithID(test.id)
 			prefixEnd := table.PrefixEnd()
 			assert.Equal(t, prefixEnd.Encode(), test.expected)
 		})
@@ -245,7 +196,7 @@ func TestTableKey(t *testing.T) {
 
 func TestAddInternalPrimaryKey(t *testing.T) {
 	t.Run("basic use case", func(t *testing.T) {
-		tb, err := desc.NewTable(1, "mytable", nil, nil)
+		tb, err := desc.NewTable("mytable", nil, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, tb.Columns, []*desc.Column{})
 		assert.Equal(t, tb.PrimaryKey, []string{})
@@ -267,7 +218,7 @@ func TestAddInternalPrimaryKey(t *testing.T) {
 	})
 
 	t.Run("cannot call it twice", func(t *testing.T) {
-		tb, err := desc.NewTable(1, "mytable", nil, nil)
+		tb, err := desc.NewTable("mytable", nil, nil)
 		assert.NoError(t, err)
 
 		// No error on the first go.

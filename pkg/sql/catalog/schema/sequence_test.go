@@ -77,5 +77,5 @@ func TestRemoveSequence(t *testing.T) {
 func TestRemoveMissingSequence(t *testing.T) {
 	sc := schema.New()
 	err := sc.RemoveSequence("doesntexist")
-	assert.IsError(t, err, "could not delete table 'doesntexist'")
+	assert.IsError(t, err, "could not delete sequence 'doesntexist'")
 }

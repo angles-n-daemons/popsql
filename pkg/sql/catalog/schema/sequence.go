@@ -43,7 +43,7 @@ func (s *Schema) GetSequence(key string) (*desc.Sequence, bool) {
 func (s *Schema) RemoveSequence(key string) error {
 	_, ok := s.Sequences[key]
 	if !ok {
-		return fmt.Errorf("could not delete schema '%s'", key)
+		return fmt.Errorf("could not delete sequence '%s'", key)
 	}
 	delete(s.Sequences, key)
 	return nil

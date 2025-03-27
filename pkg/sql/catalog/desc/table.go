@@ -19,7 +19,11 @@ type Table struct {
 	PrimaryKey []string
 }
 
-func NewTable(id uint64, name string, columns []*Column, pkey []string) (*Table, error) {
+func NewTable(name string, columns []*Column, pkey []string) (*Table, error) {
+	return NewTableWithID(0, name, columns, pkey)
+}
+
+func NewTableWithID(id uint64, name string, columns []*Column, pkey []string) (*Table, error) {
 	if columns == nil {
 		columns = []*Column{}
 	}

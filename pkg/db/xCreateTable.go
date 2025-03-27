@@ -29,5 +29,5 @@ func NewTableFromStmt(stmt *ast.CreateTable) (*desc.Table, error) {
 	}
 	// TODO: primary key parsing
 	// TODO: validate primary key
-	return desc.NewTable(0, stmt.Name.Lexeme, columns, []string{})
+	return desc.NewTable(stmt.Name.Lexeme, columns, []string{})
 }

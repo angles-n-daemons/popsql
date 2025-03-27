@@ -52,7 +52,8 @@ func (k *Key) String() string {
 	key := k.Table
 	id := k.ID
 	if isEnd(k.ID) {
-		id = "<END>"
+		// special case, use a delimiter greater than /
+		return key + "?"
 	}
 	// remove the delimiter from the string if it exists
 	strings.ReplaceAll(key, "/", "")

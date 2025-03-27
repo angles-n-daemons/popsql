@@ -9,7 +9,7 @@ import (
 
 func (m *Manager) CreateTable(t *desc.Table) error {
 	// create an id for the new table.
-	id, err := m.SequenceNext(m.Sys.MetaTableSequence)
+	id, err := m.SequenceNext(m.Sys.MetaTableSequence.Name)
 	if err != nil {
 		return err
 	}

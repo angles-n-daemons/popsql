@@ -79,7 +79,7 @@ func (m *Memstore) GetRange(start, end string) (kv.Cursor, error) {
 //
 //	error - An error if there is an issue storing the key-value pair, otherwise nil.
 func (m *Memstore) Put(key string, value []byte) error {
-	fmt.Println("putting", key, string(value))
+	fmt.Println("PUT", key, string(value))
 	_, err := m.List.Put(key, value)
 	return err
 }

@@ -9,7 +9,7 @@ import (
 
 func (m *Manager) CreateSequence(s *desc.Sequence) (*desc.Sequence, error) {
 	// create an id for the new sequence.
-	id, err := m.SequenceNext(m.Sys.SequencesTableSequence)
+	id, err := m.SequenceNext(m.Sys.SequencesTableSequence.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -28,11 +28,11 @@ func (m *Manager) CreateSequence(s *desc.Sequence) (*desc.Sequence, error) {
 	return s, nil
 }
 
-func (m *Manager) SequenceNext(s *desc.Sequence) (uint64, error) {
+func (m *Manager) SequenceNext(name string) (uint64, error) {
 	// Verify that the sequence is in the schema.
-	_, ok := m.Schema.GetSequence(s.Name)
+	s, ok := m.Schema.GetSequence(name)
 	if !ok {
-		return 0, fmt.Errorf("sequence '%s' does not exist", s.Name)
+		return 0, fmt.Errorf("sequence '%s' does not exist", name)
 	}
 
 	// Get the next value in the sequence.

@@ -7,6 +7,7 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/schema"
 	"github.com/angles-n-daemons/popsql/pkg/test/assert"
+	"github.com/angles-n-daemons/popsql/pkg/test/catalogT"
 )
 
 func TestBootstrap(t *testing.T) {
@@ -25,15 +26,13 @@ func TestBootstrap(t *testing.T) {
 
 func TestBootstrapIdempotence(t *testing.T) {
 	// Create a new Memstore and Manager
-	store := memtable.NewMemstore()
-	m, err := catalog.NewManager(store)
-	assert.NoError(t, err)
+	m := catalogT.Manager(t)
 	m.Schema = schema.New()
 
 	// Bootstrap twice - should not error
-	err = m.Bootstrap()
+	err := m.Bootstrap()
 	assert.NoError(t, err)
 
 	err = m.Bootstrap()
-	assert.IsError(t, err, "table '__tables___sequence' already exists")
+	assert.IsError(t, err, "table '__tables__' already exists")
 }
