@@ -11,6 +11,22 @@ Want:
  - To think long and hard about when to use the word Key, and when to use the word ID.
  - Prettifying of keys on request.
 
+2025-03-27
+ - Keys
+  - Key part to bytes
+  - Prefixes
+  - Encoding
+  - Decoding
+  - How is prefix end handled?
+  - Referring to Spans rather than ranges
+
+If I were to think about using the keys, whatever would I think?
+
+What of the concept of a register?
+
+TableRegister
+SequenceRegister
+
 2025-03-26
  - Test all new code.
 
