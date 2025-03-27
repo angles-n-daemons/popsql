@@ -2,7 +2,6 @@ package desc
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"slices"
 	"strconv"
@@ -13,8 +12,6 @@ import (
 
 var ReservedInternalKeyName = "__key"
 
-var ErrNilColumns = errors.New("nil columns passed into NewTable")
-
 type Table struct {
 	ID         uint64
 	Name       string
@@ -24,7 +21,10 @@ type Table struct {
 
 func NewTable(id uint64, name string, columns []*Column, pkey []string) (*Table, error) {
 	if columns == nil {
-		return nil, ErrNilColumns
+		columns = []*Column{}
+	}
+	if pkey == nil {
+		pkey = []string{}
 	}
 	for _, key := range pkey {
 		found := false

@@ -7,18 +7,6 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 )
 
-func (m *Manager) SequenceNext(s *desc.Sequence) (uint64, error) {
-	// Get the next value in the sequence.
-	next := s.Next()
-
-	// Update the sequence in the store.
-	err := m.StoreSequence(s)
-	if err != nil {
-		return 0, err
-	}
-	return next, nil
-}
-
 func (m *Manager) CreateSequence(s *desc.Sequence) (*desc.Sequence, error) {
 	// create an id for the new sequence.
 	id, err := m.SequenceNext(m.Sys.SequencesTableSequence)
@@ -38,6 +26,24 @@ func (m *Manager) CreateSequence(s *desc.Sequence) (*desc.Sequence, error) {
 		return nil, err
 	}
 	return s, nil
+}
+
+func (m *Manager) SequenceNext(s *desc.Sequence) (uint64, error) {
+	// Verify that the sequence is in the schema.
+	_, ok := m.Schema.GetSequence(s.Name)
+	if !ok {
+		return 0, fmt.Errorf("sequence '%s' does not exist", s.Name)
+	}
+
+	// Get the next value in the sequence.
+	next := s.Next()
+
+	// Update the sequence in the store.
+	err := m.StoreSequence(s)
+	if err != nil {
+		return 0, err
+	}
+	return next, nil
 }
 
 func (m *Manager) StoreSequence(s *desc.Sequence) error {

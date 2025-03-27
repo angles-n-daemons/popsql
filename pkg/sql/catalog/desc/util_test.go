@@ -23,7 +23,11 @@ func TestGetDataType(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("tokenType=%s, dataType=%s", test.tokenType, test.datatype), func(t *testing.T) {
 			datatype, err := desc.GetDataType(test.tokenType)
-			assert.IsError(t, err, test.error)
+			if test.error == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.IsError(t, err, test.error)
+			}
 			assert.Equal(t, datatype, test.datatype)
 		})
 	}

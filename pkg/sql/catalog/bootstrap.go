@@ -17,31 +17,37 @@ import (
 //   - Add the meta table to the desc and store.
 //   - Add the sequences table to the desc and store.
 func (m *Manager) Bootstrap() error {
+	metaTable := InitMetaTable()
+	metaTableSequence := InitMetaTableSequence()
+	sequencesTable := InitSequencesTable()
+	sequencesTableSequence := InitSequencesTableSequence()
 	m.Sys = &SystemObjects{
-		MetaTable:              InitMetaTable,
-		MetaTableSequence:      InitMetaTableSequence,
-		SequencesTable:         InitSequencesTable,
-		SequencesTableSequence: InitSequencesTableSequence,
+		MetaTable:              metaTable,
+		MetaTableSequence:      metaTableSequence,
+		SequencesTable:         sequencesTable,
+		SequencesTableSequence: sequencesTableSequence,
 	}
-	err := m.bootstrapSequence(InitMetaTableSequence)
+
+	err := m.bootstrapTable(metaTable)
 	if err != nil {
 		return err
 	}
 
-	err = m.bootstrapSequence(InitSequencesTableSequence)
+	err = m.bootstrapSequence(metaTableSequence)
 	if err != nil {
 		return err
 	}
 
-	err = m.bootstrapTable(InitMetaTable)
+	err = m.bootstrapTable(sequencesTable)
 	if err != nil {
 		return err
 	}
 
-	err = m.bootstrapTable(InitSequencesTable)
+	err = m.bootstrapSequence(sequencesTableSequence)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -74,12 +80,12 @@ func (m *Manager) bootstrapTable(t *desc.Table) error {
 }
 
 // Below are the objects required for bootstrapping the system.
-var metaTableStartKey = keys.New(MetaTableName)
+var metaTableStartKey = keys.New("1") // key string
 var META_TABLE_START = metaTableStartKey.Encode()
 var META_TABLE_END = metaTableStartKey.Next().Encode()
 
 // Sequence Table Keys
-var sequenceTableStartKey = keys.New(SequencesTableName)
+var sequenceTableStartKey = keys.New("2") // key string
 var SEQUENCE_TABLE_START = sequenceTableStartKey.Encode()
 var SEQUENCE_TABLE_END = sequenceTableStartKey.Next().Encode()
 
@@ -96,56 +102,56 @@ const SequencesTableSequenceName = SequencesTableName + "_sequence"
 // Below are the sequence and table definitions for the meta and sequences tables.
 // These are used to bootstrap the database when it is first created.
 
-var InitMetaTable = &desc.Table{
-	ID:   1,
-	Name: MetaTableName,
-	Columns: []*desc.Column{
-		{
-			Name:     "id",
-			DataType: desc.NUMBER,
-			Sequence: MetaTableSequenceName,
+func InitMetaTable() *desc.Table {
+	return &desc.Table{
+		ID:   1,
+		Name: MetaTableName,
+		Columns: []*desc.Column{
+			{
+				Name:     "id",
+				DataType: desc.NUMBER,
+				Sequence: MetaTableSequenceName,
+			},
+			{
+				Name:     "name",
+				DataType: desc.STRING,
+			},
 		},
-		{
-			Name:     "name",
-			DataType: desc.STRING,
+		PrimaryKey: []string{"id"},
+	}
+}
+
+func InitSequencesTable() *desc.Table {
+	return &desc.Table{
+		ID:   2,
+		Name: SequencesTableName,
+		Columns: []*desc.Column{
+			{
+				Name:     "id",
+				DataType: desc.NUMBER,
+				Sequence: SequencesTableSequenceName,
+			},
+			{
+				Name:     "name",
+				DataType: desc.STRING,
+			},
 		},
-	},
-	PrimaryKey: []string{"id"},
+		PrimaryKey: []string{"id"},
+	}
 }
 
-var InitSequencesTable = &desc.Table{
-	ID:   2,
-	Name: SequencesTableName,
-	Columns: []*desc.Column{
-		{
-			Name:     "id",
-			DataType: desc.NUMBER,
-			Sequence: SequencesTableSequenceName,
-		},
-		{
-			Name:     "name",
-			DataType: desc.STRING,
-		},
-	},
-	PrimaryKey: []string{"id"},
+func InitMetaTableSequence() *desc.Sequence {
+	return &desc.Sequence{
+		ID:   1,
+		Name: MetaTableSequenceName,
+		V:    2, // skip to 2 because the first two are reserved for the meta and sequences tables
+	}
 }
 
-var InitMetaTableSequence = &desc.Sequence{
-	ID:   1,
-	Name: MetaTableSequenceName,
-	V:    2, // skip to 2 because the first two are reserved for the meta and sequences tables
-}
-
-var InitSequencesTableSequence = &desc.Sequence{
-	ID:   2,
-	Name: SequencesTableSequenceName,
-	V:    2, // skip to 3 because the first two are reserved for the meta and sequences tables
-}
-
-func MetaTableKey(t *desc.Table) string {
-	return keys.New(MetaTableName).WithID(t.Key()).Encode()
-}
-
-func SequenceKey(s *desc.Sequence) string {
-	return keys.New(SequencesTableName).WithID(s.Key()).Encode()
+func InitSequencesTableSequence() *desc.Sequence {
+	return &desc.Sequence{
+		ID:   2,
+		Name: SequencesTableSequenceName,
+		V:    2, // skip to 3 because the first two are reserved for the meta and sequences tables
+	}
 }

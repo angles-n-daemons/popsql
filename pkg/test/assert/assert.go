@@ -1,6 +1,7 @@
 package assert
 
 import (
+	"fmt"
 	"reflect"
 	"runtime/debug"
 	"testing"
@@ -59,13 +60,10 @@ func NotEqual[T any](t *testing.T, first, second T) {
 // expected. Otherwise, the function uses the Equal function to compare the
 // error's message with the expected message. If the messages do not match, it
 // logs a fatal error.
-func IsError(t *testing.T, err error, message string) {
-	if message == "" {
-		NoError(t, err)
-		return
-	} else if err == nil {
+func IsError(t *testing.T, err error, message string, args ...any) {
+	if err == nil {
 		fail(t, "expected an error")
-	} else if err.Error() != message {
+	} else if err.Error() != fmt.Sprintf(message, args...) {
 		fail(t, "Expected error '%s', got '%s'", message, err.Error())
 	}
 }

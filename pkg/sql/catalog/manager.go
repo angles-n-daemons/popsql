@@ -21,9 +21,9 @@ var ErrDropMetaTable = errors.New("cannot drop meta table")
 // required to execute them as well as the in-memory and storage persistence
 // of them.
 type Manager struct {
-	Sys    *SystemObjects
-	Schema *schema.Schema
-	Store  kv.Store
+	*schema.Schema
+	Sys   *SystemObjects
+	Store kv.Store
 }
 
 // SystemObjects are the objects required for the catalog to read and write

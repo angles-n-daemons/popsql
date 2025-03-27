@@ -1,8 +1,11 @@
 package catalogT
 
 import (
+	"encoding/json"
 	"fmt"
+	"testing"
 
+	"github.com/angles-n-daemons/popsql/pkg/kv"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 )
 
@@ -45,4 +48,17 @@ func CopySequence(s *desc.Sequence) *desc.Sequence {
 		Name: s.Name,
 		V:    s.V,
 	}
+}
+
+func ReadSequence(t *testing.T, st kv.Store, key string) *desc.Sequence {
+	sequenceBytes, err := st.Get(key)
+	if err != nil {
+		t.Fatal(t)
+	}
+	var s *desc.Sequence
+	err = json.Unmarshal(sequenceBytes, &s)
+	if err != nil {
+		t.Fatal(t)
+	}
+	return s
 }

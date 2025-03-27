@@ -1,8 +1,11 @@
 package catalogT
 
 import (
+	"encoding/json"
 	"fmt"
+	"testing"
 
+	"github.com/angles-n-daemons/popsql/pkg/kv"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
@@ -62,4 +65,17 @@ func CopyTable(t *desc.Table) *desc.Table {
 		panic(err)
 	}
 	return tn
+}
+
+func ReadTable(t *testing.T, st kv.Store, key string) *desc.Table {
+	tableBytes, err := st.Get(key)
+	if err != nil {
+		t.Fatal(t)
+	}
+	var tb *desc.Table
+	err = json.Unmarshal(tableBytes, &tb)
+	if err != nil {
+		t.Fatal(t)
+	}
+	return tb
 }

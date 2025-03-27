@@ -244,9 +244,44 @@ func TestTableKey(t *testing.T) {
 }
 
 func TestAddInternalPrimaryKey(t *testing.T) {
-	t.Fatal("TODO")
+	t.Run("basic use case", func(t *testing.T) {
+		tb, err := desc.NewTable(1, "mytable", nil, nil)
+		assert.NoError(t, err)
+		assert.Equal(t, tb.Columns, []*desc.Column{})
+		assert.Equal(t, tb.PrimaryKey, []string{})
+
+		s, err := tb.AddInternalPrimaryKey()
+		assert.NoError(t, err)
+		assert.Equal(t, s, desc.NewSequence(tb.DefaultSequenceName()))
+
+		assert.Equal(t, tb.Columns, []*desc.Column{desc.NewSequenceColumn(desc.ReservedInternalKeyName, desc.NUMBER, s.Name)})
+		assert.Equal(t, tb.PrimaryKey, []string{desc.ReservedInternalKeyName})
+	})
+
+	t.Run("already has a primary key", func(t *testing.T) {
+		tb := catalogT.Table()
+
+		s, err := tb.AddInternalPrimaryKey()
+		assert.Nil(t, s)
+		assert.IsError(t, err, "table '%s' already has a primary key", tb.Name)
+	})
+
+	t.Run("cannot call it twice", func(t *testing.T) {
+		tb, err := desc.NewTable(1, "mytable", nil, nil)
+		assert.NoError(t, err)
+
+		// No error on the first go.
+		_, err = tb.AddInternalPrimaryKey()
+		assert.NoError(t, err)
+
+		// Errors afterwards.
+		_, err = tb.AddInternalPrimaryKey()
+		assert.IsError(t, err, "table '%s' already has a primary key", tb.Name)
+	})
+
 }
 
 func TestDefaultSequenceName(t *testing.T) {
-	t.Fatal("TODO")
+	tb := catalogT.TableWithName("johnson")
+	assert.Equal(t, tb.DefaultSequenceName(), "johnson_sequence")
 }

@@ -27,7 +27,7 @@ func (s *Schema) LoadSequences(sequencesBytes [][]byte) error {
 func (s *Schema) AddSequence(t *desc.Sequence) error {
 	key := t.Name
 	if _, ok := s.Sequences[key]; ok {
-		return fmt.Errorf("table '%s' already exists", t.Name)
+		return fmt.Errorf("sequence '%s' already exists", t.Name)
 	}
 	s.Sequences[key] = t
 	return nil
@@ -43,7 +43,7 @@ func (s *Schema) GetSequence(key string) (*desc.Sequence, bool) {
 func (s *Schema) RemoveSequence(key string) error {
 	_, ok := s.Sequences[key]
 	if !ok {
-		return fmt.Errorf("could not delete table '%s'", key)
+		return fmt.Errorf("could not delete schema '%s'", key)
 	}
 	delete(s.Sequences, key)
 	return nil
