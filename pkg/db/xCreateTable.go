@@ -1,6 +1,7 @@
 package db
 
 import (
+	"github.com/angles-n-daemons/popsql/pkg/sql/catalog"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/ast"
 )
@@ -10,8 +11,19 @@ func (e *Engine) CreateTable(stmt *ast.CreateTable) error {
 	if err != nil {
 		return err
 	}
-	err = e.Catalog.CreateTable(dt)
-	return nil
+
+	if dt.PrimaryKey == nil || len(dt.PrimaryKey) == 0 {
+		seq, err := dt.AddInternalPrimaryKey()
+		if err != nil {
+			return err
+		}
+		_, err = catalog.Create(e.Catalog, seq)
+		if err != nil {
+			return err
+		}
+	}
+	_, err = catalog.Create(e.Catalog, dt)
+	return err
 }
 
 // NewTableFromStmt creates a new table from a create statement.

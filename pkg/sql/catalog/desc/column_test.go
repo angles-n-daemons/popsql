@@ -9,7 +9,7 @@ import (
 )
 
 func TestNewColumn(t *testing.T) {
-	column, err := desc.NewColumn("name", scanner.DATATYPE_STRING)
+	column, err := desc.SequenceColumn("name", scanner.DATATYPE_STRING)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -21,14 +21,14 @@ func TestNewColumn(t *testing.T) {
 }
 
 func TestNewColumnWrongDataType(t *testing.T) {
-	column, err := desc.NewColumn("test", scanner.STRING)
+	column, err := desc.SequenceColumn("test", scanner.STRING)
 	assert.Nil(t, column)
 	assert.IsError(t, err, "unrecognized data type STRING")
 }
 
 func TestColumnEqual(t *testing.T) {
 	// check nil condition
-	column, err := desc.NewColumn("name", scanner.DATATYPE_STRING)
+	column, err := desc.SequenceColumn("name", scanner.DATATYPE_STRING)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,10 +48,10 @@ func TestColumnEqual(t *testing.T) {
 }
 
 func TestNewSequenceColumn(t *testing.T) {
-	column := desc.NewSequenceColumn("name", desc.STRING, "seq")
+	column := desc.NewSequenceColumn("name", "seq")
 	expected := &desc.Column{
 		Name:     "name",
-		DataType: desc.STRING,
+		DataType: desc.NUMBER,
 		Sequence: "seq",
 	}
 	assert.Equal(t, expected, column)

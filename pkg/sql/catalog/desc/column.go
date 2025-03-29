@@ -11,9 +11,16 @@ type Column struct {
 	Sequence string
 }
 
-// NewColumn is a utility function which turns a name and a scanned token into
+func NewColumn(name string, dt DataType) *Column {
+	return &Column{
+		Name:     name,
+		DataType: dt,
+	}
+}
+
+// SequenceColumn is a utility function which turns a name and a scanned token into
 // a desc column.
-func NewColumn(name string, tokenType scanner.TokenType) (*Column, error) {
+func SequenceColumn(name string, tokenType scanner.TokenType) (*Column, error) {
 	datatype, err := GetDataType(tokenType)
 	if err != nil {
 		return nil, err
@@ -24,10 +31,10 @@ func NewColumn(name string, tokenType scanner.TokenType) (*Column, error) {
 	}, nil
 }
 
-func NewSequenceColumn(name string, dt DataType, seq string) *Column {
+func NewSequenceColumn(name string, seq string) *Column {
 	return &Column{
 		Name:     name,
-		DataType: dt,
+		DataType: NUMBER,
 		Sequence: seq,
 	}
 }
@@ -36,7 +43,7 @@ func NewSequenceColumn(name string, dt DataType, seq string) *Column {
 func NewColumnFromStmt(col *ast.ColumnSpec) (*Column, error) {
 	// TODO: error handling:
 	//  - check name type
-	return NewColumn(col.Name.Lexeme, col.DataType.Type)
+	return SequenceColumn(col.Name.Lexeme, col.DataType.Type)
 }
 
 func (c *Column) Equal(o *Column) bool {

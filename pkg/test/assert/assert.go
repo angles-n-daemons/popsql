@@ -120,3 +120,12 @@ func Nil(t *testing.T, v any) {
 		fail(t, "Expected nil, got %v", v)
 	}
 }
+
+// NotNil checks if the provided value is not nil.
+// It takes a testing object and an interface value as parameters.
+// If the value is nil, it logs a fatal error with a message.
+func NotNil(t *testing.T, v any) {
+	if isNil(v) {
+		fail(t, "Expected nil, got %v", v)
+	}
+}

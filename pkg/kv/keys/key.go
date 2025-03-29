@@ -91,3 +91,10 @@ func NextString(s string) string {
 	}
 	return string(runes)
 }
+
+// Span is a span of the key space inclusive of the start key and exclusive of
+// the end.
+type Span struct {
+	Start *Key
+	End   *Key
+}
