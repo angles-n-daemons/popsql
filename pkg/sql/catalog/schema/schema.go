@@ -2,24 +2,62 @@ package schema
 
 import "github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 
-const SchemaTableName = "__schema__"
-
+// The Schema struct is the in-memory representation of the database's schema.
+// It exists so that the database can quickly access the definition of tables
+// value of sequences among other things.
 type Schema struct {
-	Sequences map[string]*desc.Sequence
-	Tables    map[string]*desc.Table
+	Tables    *Collection[*desc.Table]
+	Sequences *Collection[*desc.Sequence]
 }
 
-func New() *Schema {
-	schema := &Schema{
-		Tables:    map[string]*desc.Table{},
-		Sequences: map[string]*desc.Sequence{},
+func NewSchema() *Schema {
+	return &Schema{
+		Tables:    NewCollection[*desc.Table](),
+		Sequences: NewCollection[*desc.Sequence](),
 	}
-	return schema
+}
+
+func SchemaFromCollections(
+	tables *Collection[*desc.Table], sequences *Collection[*desc.Sequence],
+) *Schema {
+	return &Schema{
+		Tables:    tables,
+		Sequences: sequences,
+	}
+}
+
+func Add[V Collectible[V]](s *Schema, v V) error {
+	return getCollection[V](s).Add(v)
+}
+
+func Get[V Collectible[V]](s *Schema, id uint64) V {
+	return getCollection[V](s).Get(id)
+}
+
+func GetByName[V Collectible[V]](s *Schema, name string) V {
+	return getCollection[V](s).GetByName(name)
+}
+
+func Remove[V Collectible[V]](s *Schema, id uint64) error {
+	return getCollection[V](s).Remove(id)
+}
+
+func getCollection[V Collectible[V]](s *Schema) *Collection[V] {
+	var zero V
+	switch any(zero).(type) {
+	case *desc.Table:
+		return any(s.Tables).(*Collection[V])
+	case *desc.Sequence:
+		return any(s.Sequences).(*Collection[V])
+	default:
+		// this seems a little dangerous
+		return nil
+	}
 }
 
 // Empty returns whether the schema has no tables or sequences.
-func (s *Schema) Empty() bool {
-	return len(s.Tables) == 0 && len(s.Sequences) == 0
+func Empty(s *Schema) bool {
+	return s.Tables.Empty() && s.Sequences.Empty()
 }
 
 // Equal is a simple comparator which says whether two schema references
@@ -27,28 +65,14 @@ func (s *Schema) Empty() bool {
 // internal maps are equivalent in size, and whether the values for each of
 // their keys are equivalent.
 func (s *Schema) Equal(o *Schema) bool {
-	// if only one is nil, they cannot be equivalent
 	if o == nil {
 		return false
 	}
-	// if their internal maps are different sizes, they are not equivalent
-	if len(s.Tables) != len(o.Tables) {
+	if !s.Tables.Equal(o.Tables) {
 		return false
 	}
-	for key, table := range s.Tables {
-		if !table.Equal(o.Tables[key]) {
-			return false
-		}
-	}
-
-	// if their internal maps are different sizes, they are not equivalent
-	if len(s.Sequences) != len(o.Sequences) {
+	if !s.Sequences.Equal(o.Sequences) {
 		return false
-	}
-	for key, sequence := range s.Sequences {
-		if !sequence.Equal(o.Sequences[key]) {
-			return false
-		}
 	}
 	return true
 }

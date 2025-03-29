@@ -23,11 +23,11 @@ func Table() *desc.Table {
 }
 
 func TableWithID(id uint64) *desc.Table {
-	return NewTable(&desc.Table{ID: id})
+	return NewTable(&desc.Table{TID: id})
 }
 
 func TableWithName(name string) *desc.Table {
-	return NewTable(&desc.Table{Name: name})
+	return NewTable(&desc.Table{TName: name})
 }
 
 // Testing utility, which takes any portional part of a table and fills it out.
@@ -36,20 +36,20 @@ func NewTable(t *desc.Table) *desc.Table {
 		t = &desc.Table{}
 	}
 
-	if t.ID == 0 {
-		t.ID = SequenceID()
+	if t.TID == 0 {
+		t.TID = SequenceID()
 	}
 
-	if t.Name == "" {
-		t.Name = fmt.Sprintf("table_%d", t.ID)
+	if t.TName == "" {
+		t.TName = fmt.Sprintf("table_%d", t.TID)
 	}
 
 	if t.Columns == nil {
-		a, err := desc.NewColumn("a", scanner.DATATYPE_NUMBER)
+		a, err := desc.SequenceColumn("a", scanner.DATATYPE_NUMBER)
 		if err != nil {
 			panic(err)
 		}
-		b, err := desc.NewColumn("b", scanner.DATATYPE_STRING)
+		b, err := desc.SequenceColumn("b", scanner.DATATYPE_STRING)
 		if err != nil {
 			panic(err)
 		}
@@ -60,7 +60,7 @@ func NewTable(t *desc.Table) *desc.Table {
 }
 
 func CopyTable(t *desc.Table) *desc.Table {
-	tn, err := desc.NewTableWithID(t.ID, t.Name, t.Columns, t.PrimaryKey)
+	tn, err := desc.NewTableWithID(t.TID, t.TName, t.Columns, t.PrimaryKey)
 	if err != nil {
 		panic(err)
 	}

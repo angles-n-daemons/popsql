@@ -14,8 +14,8 @@ func TestNewSequence(t *testing.T) {
 	name := "test_seq"
 	seq := desc.NewSequence(name)
 
-	assert.Equal(t, seq.Name, name)
-	assert.Equal(t, seq.ID, uint64(0))
+	assert.Equal(t, seq.SName, name)
+	assert.Equal(t, seq.SID, uint64(0))
 	assert.Equal(t, seq.V, uint64(0))
 }
 
@@ -27,12 +27,12 @@ func TestSequenceEqual(t *testing.T) {
 
 	// Test different ID
 	seq3 := catalogT.CopySequence(seq1)
-	seq3.ID = seq1.ID + 1
+	seq3.SID = seq1.SID + 1
 	assert.False(t, seq1.Equal(seq3))
 
 	// Test different Name
 	seq4 := catalogT.CopySequence(seq1)
-	seq4.Name = "seq4"
+	seq4.SName = "seq4"
 	assert.False(t, seq1.Equal(seq4))
 
 	// Test different V
@@ -63,11 +63,11 @@ func TestSequenceKey(t *testing.T) {
 	seq := catalogT.Sequence()
 
 	// Test the key is the string representation of the ID
-	expected := strconv.FormatUint(seq.ID, 10)
+	expected := strconv.FormatUint(seq.SID, 10)
 	assert.Equal(t, seq.Key(), expected)
 
 	// Test with specific ID
-	seq.ID = 123
+	seq.SID = 123
 	assert.Equal(t, seq.Key(), "123")
 }
 
