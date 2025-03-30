@@ -21,14 +21,6 @@ import (
 // We get around this by initalizing an new meta object, which is only
 // to be used for startup.
 func NewManager(st kv.Store) (*Manager, error) {
-	// There's a bit of a chicken and the egg situation.
-	// To read the schema from the store, we need a meta object.
-	// The meta object itself may be contained within that very
-	// schema.
-	// To get around this, we initialize a meta object, for the
-	// purpose of reading the schema.
-	// This initial meta object has the extra benefit of being
-	// used to bootstrap the database if necessary.
 	initMeta := meta.InitSystemMeta()
 
 	sc, err := LoadSchema(initMeta, st)
