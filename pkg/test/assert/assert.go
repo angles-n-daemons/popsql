@@ -17,7 +17,7 @@ type Comparable[T any] interface {
 
 // fail logs a fatal error message indicating that two objects are not equal.
 // It takes a testing object, and two objects of any type to compare.
-func fail(t *testing.T, message string, args ...any) {
+func fail(t testing.TB, message string, args ...any) {
 	message = string(debug.Stack()) + "\n" + message
 	t.Fatalf(message, args...)
 }
@@ -38,7 +38,7 @@ func equal[T any](expected, actual T) bool {
 // implement the Comparable interface, it uses the Equal method for comparison.
 // Otherwise, it uses reflect.DeepEqual to compare the objects. If the objects
 // are not equal, it calls the fail function to log a fatal error.
-func Equal[T any](t *testing.T, expected, actual T) {
+func Equal[T any](t testing.TB, expected, actual T) {
 	if !equal(expected, actual) {
 		fail(t, "Values not equal, expected:\n\t%v\nactual:\n\t%v", expected, actual)
 	}
@@ -47,7 +47,7 @@ func Equal[T any](t *testing.T, expected, actual T) {
 // NotEqual is the exact inverse of Equal. It uses the Equal function if the
 // passed values are Comparators, otherwise it uses reflect to assert that the
 // two values are not equal.
-func NotEqual[T any](t *testing.T, first, second T) {
+func NotEqual[T any](t testing.TB, first, second T) {
 	if equal(first, second) {
 		fail(t, "expected values not to be equal, first:\n\t%v\nsecond:\n\t%v", first, second)
 	}
@@ -60,7 +60,7 @@ func NotEqual[T any](t *testing.T, first, second T) {
 // expected. Otherwise, the function uses the Equal function to compare the
 // error's message with the expected message. If the messages do not match, it
 // logs a fatal error.
-func IsError(t *testing.T, err error, message string, args ...any) {
+func IsError(t testing.TB, err error, message string, args ...any) {
 	if err == nil {
 		fail(t, "expected an error")
 	} else if err.Error() != fmt.Sprintf(message, args...) {
@@ -71,21 +71,21 @@ func IsError(t *testing.T, err error, message string, args ...any) {
 // NoError checks if the provided error is nil.
 // It takes a testing object and an error as parameters.
 // If the error is not nil, it logs a fatal error with the error message.
-func NoError(t *testing.T, err error) {
+func NoError(t testing.TB, err error) {
 	if err != nil {
 		fail(t, err.Error())
 	}
 }
 
 // False checks if the provided value is false.
-func False(t *testing.T, value bool) {
+func False(t testing.TB, value bool) {
 	if value {
 		fail(t, "Expected false, got true")
 	}
 }
 
 // True checks if the provided value is true.
-func True(t *testing.T, value bool) {
+func True(t testing.TB, value bool) {
 	if !value {
 		fail(t, "Expected true, got false")
 	}
@@ -115,7 +115,7 @@ func isNil(object any) bool {
 // Nil checks if the provided value is nil.
 // It takes a testing object and an interface value as parameters.
 // If the value is not nil, it logs a fatal error with a message.
-func Nil(t *testing.T, v any) {
+func Nil(t testing.TB, v any) {
 	if !isNil(v) {
 		fail(t, "Expected nil, got %v", v)
 	}
@@ -124,7 +124,7 @@ func Nil(t *testing.T, v any) {
 // NotNil checks if the provided value is not nil.
 // It takes a testing object and an interface value as parameters.
 // If the value is nil, it logs a fatal error with a message.
-func NotNil(t *testing.T, v any) {
+func NotNil(t testing.TB, v any) {
 	if isNil(v) {
 		fail(t, "Expected nil, got %v", v)
 	}
