@@ -3,33 +3,27 @@ package schema
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 )
 
 // Collection is a generic collection utility, made for managing
-// system objects. It is parameterized by a Collectible type, which represents
+// system objects. It is parameterized by a desc.Object type, which represents
 // any object that would need to be cached in the schema. In practice, this
 // consists of descriptors for things like tables and sequences.
-type Collection[V Collectible[V]] struct {
+type Collection[V desc.Object[V]] struct {
 	byID   map[uint64]V
 	byName map[string]V
 }
 
-type Collectible[V any] interface {
-	WithID(id uint64)
-	ID() uint64
-	Key() string
-	Name() string
-	Equal(o V) bool
-}
-
-func NewCollection[V Collectible[V]]() *Collection[V] {
+func NewCollection[V desc.Object[V]]() *Collection[V] {
 	return &Collection[V]{
 		byID:   make(map[uint64]V),
 		byName: make(map[string]V),
 	}
 }
 
-func CollectionFromBytes[V Collectible[V]](bytesArr [][]byte) (*Collection[V], error) {
+func CollectionFromBytes[V desc.Object[V]](bytesArr [][]byte) (*Collection[V], error) {
 	c := NewCollection[V]()
 	for _, b := range bytesArr {
 		var v V

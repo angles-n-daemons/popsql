@@ -70,9 +70,7 @@ func LoadSchema(meta *meta.Meta, st kv.Store) (*schema.Schema, error) {
 	return schema.SchemaFromCollections(tables, sequences), nil
 }
 
-func LoadCollection[V schema.Collectible[V]](
-	span *keys.Span, st kv.Store,
-) (*schema.Collection[V], error) {
+func LoadCollection[V desc.Object[V]](span *keys.Span, st kv.Store) (*schema.Collection[V], error) {
 	var zero V
 	cur, err := st.GetRange(span.Start.Encode(), span.End.Encode())
 	if err != nil {

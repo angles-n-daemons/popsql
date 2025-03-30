@@ -16,7 +16,7 @@ type Manager struct {
 }
 
 // Create is a manager function for adding new system objects to the catalog.
-func Create[V schema.Collectible[V]](m *Manager, v V) error {
+func Create[V desc.Object[V]](m *Manager, v V) error {
 	// add it to the underlying schema.
 	err := schema.Add(m.Schema, v)
 	if err != nil {
@@ -34,7 +34,7 @@ func Create[V schema.Collectible[V]](m *Manager, v V) error {
 // Save exists to store a collectible in the underlying store.
 // It's used both by Add for new objects, and on its own to save changes to
 // existing objects.
-func Save[V schema.Collectible[V]](m *Manager, v V) error {
+func Save[V desc.Object[V]](m *Manager, v V) error {
 	// Get the system table so that we can save the object.
 	sysTable := GetSystemTable[V](m)
 	b, err := json.Marshal(v)
@@ -44,7 +44,7 @@ func Save[V schema.Collectible[V]](m *Manager, v V) error {
 	return m.Store.Put(sysTable.Prefix().WithID(v.Key()).Encode(), b)
 }
 
-func NextID[V schema.Collectible[V]](m *Manager, v V) (uint64, error) {
+func NextID[V desc.Object[V]](m *Manager, v V) (uint64, error) {
 	// get the sequence fot this type.
 	s := GetSystemSequence[V](m)
 
@@ -59,7 +59,7 @@ func NextID[V schema.Collectible[V]](m *Manager, v V) (uint64, error) {
 	return next, nil
 }
 
-func GetSystemSequence[V schema.Collectible[V]](m *Manager) *desc.Sequence {
+func GetSystemSequence[V desc.Object[V]](m *Manager) *desc.Sequence {
 	var zero V
 	switch any(zero).(type) {
 	case *desc.Table:
@@ -70,7 +70,7 @@ func GetSystemSequence[V schema.Collectible[V]](m *Manager) *desc.Sequence {
 	return nil
 }
 
-func GetSystemTable[V schema.Collectible[V]](m *Manager) *desc.Table {
+func GetSystemTable[V desc.Object[V]](m *Manager) *desc.Table {
 	var zero V
 	switch any(zero).(type) {
 	case *desc.Table:
