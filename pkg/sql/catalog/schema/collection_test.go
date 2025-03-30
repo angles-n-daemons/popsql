@@ -29,6 +29,9 @@ func (m *MockCollectible) Name() string {
 }
 
 func (c *MockCollectible) Equal(o *MockCollectible) bool {
+	if o == nil {
+		return false
+	}
 	return c.ID() == o.ID() && c.Name() == o.Name()
 }
 

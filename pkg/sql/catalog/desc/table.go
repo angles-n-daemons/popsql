@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
-	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
 type Table struct {
@@ -55,24 +54,6 @@ func NewTableFromBytes(tableBytes []byte) (*Table, error) {
 
 func (t *Table) WithID(id uint64) {
 	t.TID = id
-}
-
-func (t *Table) AddColumn(name string, tokenType scanner.TokenType) error {
-	if t.GetColumn(name) != nil {
-		return fmt.Errorf(
-			"a column with the name '%s' already exists on table '%s'",
-			name,
-			t.TName,
-		)
-	}
-
-	column, err := SequenceColumn(name, tokenType)
-	if err != nil {
-		return err
-	}
-
-	t.Columns = append(t.Columns, column)
-	return nil
 }
 
 func (t *Table) GetColumn(name string) *Column {

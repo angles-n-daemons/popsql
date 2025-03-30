@@ -7,7 +7,6 @@ import (
 
 	"github.com/angles-n-daemons/popsql/pkg/kv"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
-	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
 // Global counter to ensure each test-created table has a unique ID and (if needed) a unique name.
@@ -45,14 +44,8 @@ func NewTable(t *desc.Table) *desc.Table {
 	}
 
 	if t.Columns == nil {
-		a, err := desc.SequenceColumn("a", scanner.DATATYPE_NUMBER)
-		if err != nil {
-			panic(err)
-		}
-		b, err := desc.SequenceColumn("b", scanner.DATATYPE_STRING)
-		if err != nil {
-			panic(err)
-		}
+		a := desc.NewColumn("a", desc.NUMBER)
+		b := desc.NewColumn("b", desc.STRING)
 		t.Columns = []*desc.Column{a, b}
 		t.PrimaryKey = []string{"a"}
 	}

@@ -1,9 +1,6 @@
 package desc
 
-import (
-	"github.com/angles-n-daemons/popsql/pkg/sql/parser/ast"
-	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
-)
+import "github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 
 type Column struct {
 	Name     string
@@ -37,13 +34,6 @@ func NewSequenceColumn(name string, seq string) *Column {
 		DataType: NUMBER,
 		Sequence: seq,
 	}
-}
-
-// NewColumnFromStmt is a utility function which turns a ColumnSpec into a desc.
-func NewColumnFromStmt(col *ast.ColumnSpec) (*Column, error) {
-	// TODO: error handling:
-	//  - check name type
-	return SequenceColumn(col.Name.Lexeme, col.DataType.Type)
 }
 
 func (c *Column) Equal(o *Column) bool {
