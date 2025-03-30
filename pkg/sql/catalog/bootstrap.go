@@ -25,11 +25,12 @@ func Bootstrap(st kv.Store, sc *schema.Schema, meta *meta.Meta) error {
 	}
 	for _, obj := range tmp.Meta.Objects() {
 		var err error
+		// hmm..my generic fu isn't strong enough to escape this switch.
 		switch v := obj.(type) {
 		case *desc.Table:
-			_, err = createWithID(tmp, v, v.TID)
+			err = Create(tmp, v)
 		case *desc.Sequence:
-			_, err = createWithID(tmp, v, v.SID)
+			err = Create(tmp, v)
 		}
 		if err != nil {
 			return err

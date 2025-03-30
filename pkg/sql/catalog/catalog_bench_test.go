@@ -93,10 +93,6 @@ func generateRandomTable() (*desc.Table, error) {
 		if err != nil {
 			return nil, err
 		}
-		_, err = table.AddInternalPrimaryKey()
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	// Random table ID

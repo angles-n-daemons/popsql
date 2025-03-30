@@ -16,33 +16,19 @@ type Manager struct {
 }
 
 // Create is a manager function for adding new system objects to the catalog.
-func Create[V schema.Collectible[V]](m *Manager, v V) (uint64, error) {
-	// Get the id for the new object.
-	sysSeq := GetSystemSequence[V](m)
-	id, err := SequenceNext(m, sysSeq)
-	if err != nil {
-		return 0, err
-	}
-
-	return createWithID(m, v, id)
-}
-
-func createWithID[V schema.Collectible[V]](m *Manager, v V, id uint64) (uint64, error) {
-	// Set the ID of the new object.
-	v.WithID(id)
-
+func Create[V schema.Collectible[V]](m *Manager, v V) error {
 	// add it to the underlying schema.
 	err := schema.Add(m.Schema, v)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	// save it to the storage engine.
 	err = Save(m, v)
 	if err != nil {
-		return 0, nil
+		return nil
 	}
 
-	return id, nil
+	return nil
 }
 
 // Save exists to store a collectible in the underlying store.
@@ -58,7 +44,10 @@ func Save[V schema.Collectible[V]](m *Manager, v V) error {
 	return m.Store.Put(sysTable.Prefix().WithID(v.Key()).Encode(), b)
 }
 
-func SequenceNext(m *Manager, s *desc.Sequence) (uint64, error) {
+func NextID[V schema.Collectible[V]](m *Manager, v V) (uint64, error) {
+	// get the sequence fot this type.
+	s := GetSystemSequence[V](m)
+
 	// Get the next value in the sequence.
 	next := s.Next()
 

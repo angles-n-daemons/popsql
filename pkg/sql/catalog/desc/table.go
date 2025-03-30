@@ -10,8 +10,6 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
-var ReservedInternalKeyName = "__key"
-
 type Table struct {
 	TID        uint64
 	TName      string
@@ -137,18 +135,4 @@ func (t *Table) Key() string {
 
 func (t *Table) Value() ([]byte, error) {
 	return json.Marshal(t)
-}
-
-func (t *Table) AddInternalPrimaryKey() (*Sequence, error) {
-	s := NewSequence(t.DefaultSequenceName())
-	if len(t.PrimaryKey) != 0 {
-		return nil, fmt.Errorf("table '%s' already has a primary key", t.TName)
-	}
-	t.Columns = append(t.Columns, NewSequenceColumn(ReservedInternalKeyName, s.SName))
-	t.PrimaryKey = []string{ReservedInternalKeyName}
-	return s, nil
-}
-
-func (t *Table) DefaultSequenceName() string {
-	return fmt.Sprintf("%s_sequence", t.TName)
 }

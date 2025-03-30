@@ -6,6 +6,8 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/ast"
 )
 
+var ReservedInternalKeyName = "__key"
+
 func (e *Engine) CreateTable(stmt *ast.CreateTable) error {
 	dt, err := NewTableFromStmt(stmt)
 	if err != nil {
@@ -13,17 +15,37 @@ func (e *Engine) CreateTable(stmt *ast.CreateTable) error {
 	}
 
 	if dt.PrimaryKey == nil || len(dt.PrimaryKey) == 0 {
-		seq, err := dt.AddInternalPrimaryKey()
+		pkeyCol, err := e.createTableSequence(dt)
 		if err != nil {
 			return err
 		}
-		_, err = catalog.Create(e.Catalog, seq)
-		if err != nil {
-			return err
-		}
+
+		dt.Columns = append(dt.Columns, pkeyCol)
+		dt.PrimaryKey = []string{ReservedInternalKeyName}
 	}
-	_, err = catalog.Create(e.Catalog, dt)
+
+	dt.TID, err = catalog.NextID(e.Catalog, dt)
+	if err != nil {
+		return err
+	}
+	err = catalog.Create(e.Catalog, dt)
 	return err
+}
+
+func (e *Engine) createTableSequence(t *desc.Table) (*desc.Column, error) {
+	seqName := t.TName + "_seq"
+	seq := desc.NewSequence(seqName)
+	id, err := catalog.NextID(e.Catalog, seq)
+	seq.SID = id
+	if err != nil {
+		return nil, err
+	}
+
+	err = catalog.Create(e.Catalog, seq)
+	if err != nil {
+		return nil, err
+	}
+	return desc.NewSequenceColumn(ReservedInternalKeyName, seqName), nil
 }
 
 // NewTableFromStmt creates a new table from a create statement.
