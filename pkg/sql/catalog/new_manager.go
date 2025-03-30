@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/angles-n-daemons/popsql/pkg/kv"
-	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/meta"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/schema"
@@ -35,9 +34,9 @@ func NewManager(st kv.Store) (*Manager, error) {
 		}
 	}
 
-	// At this point, the meta tables should exist, either
+	// At this point, the mt tables should exist, either
 	// from load into the schema, or from explicit bootstrap.
-	meta, err := meta.FromSchema(sc)
+	mt, err := meta.FromSchema(sc)
 	if err != nil {
 		return nil, err
 	}
@@ -45,25 +44,26 @@ func NewManager(st kv.Store) (*Manager, error) {
 	return &Manager{
 		Schema: sc,
 		Store:  st,
-		Meta:   meta,
+		Meta:   mt,
 	}, nil
 }
 
-func LoadSchema(meta *meta.Meta, st kv.Store) (*schema.Schema, error) {
-	tables, err := LoadCollection[*desc.Table](meta.Tables.Table.Span(), st)
+func LoadSchema(mt *meta.Meta, st kv.Store) (*schema.Schema, error) {
+	tables, err := LoadCollection[*desc.Table](mt, st)
 	if err != nil {
 		return nil, err
 	}
 
-	sequences, err := LoadCollection[*desc.Sequence](meta.Sequences.Table.Span(), st)
+	sequences, err := LoadCollection[*desc.Sequence](mt, st)
 	if err != nil {
 		return nil, err
 	}
 	return schema.SchemaFromCollections(tables, sequences), nil
 }
 
-func LoadCollection[V desc.Object[V]](span *keys.Span, st kv.Store) (*schema.Collection[V], error) {
+func LoadCollection[V desc.Object[V]](mt *meta.Meta, st kv.Store) (*schema.Collection[V], error) {
 	var zero V
+	span := getSystemTable[V](mt).Span()
 	cur, err := st.GetRange(span.Start.Encode(), span.End.Encode())
 	if err != nil {
 		return nil, err

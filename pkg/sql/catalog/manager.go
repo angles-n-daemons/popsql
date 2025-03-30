@@ -23,7 +23,7 @@ func Create[V desc.Object[V]](m *Manager, v V) error {
 		return err
 	}
 	// save it to the storage engine.
-	err = Save(m, v)
+	err = save(m, v)
 	if err != nil {
 		return nil
 	}
@@ -31,12 +31,27 @@ func Create[V desc.Object[V]](m *Manager, v V) error {
 	return nil
 }
 
-// Save exists to store a collectible in the underlying store.
+func NextID[V desc.Object[V]](m *Manager, v V) (uint64, error) {
+	// get the sequence fot this type.
+	s := getSystemSequence[V](m.Meta)
+
+	// Get the next value in the sequence.
+	next := s.Next()
+
+	// Update the sequence in the store.
+	err := save(m, s)
+	if err != nil {
+		return 0, err
+	}
+	return next, nil
+}
+
+// save exists to store a collectible in the underlying store.
 // It's used both by Add for new objects, and on its own to save changes to
 // existing objects.
-func Save[V desc.Object[V]](m *Manager, v V) error {
+func save[V desc.Object[V]](m *Manager, v V) error {
 	// Get the system table so that we can save the object.
-	sysTable := GetSystemTable[V](m)
+	sysTable := getSystemTable[V](m.Meta)
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -44,39 +59,24 @@ func Save[V desc.Object[V]](m *Manager, v V) error {
 	return m.Store.Put(sysTable.Prefix().WithID(v.Key()).Encode(), b)
 }
 
-func NextID[V desc.Object[V]](m *Manager, v V) (uint64, error) {
-	// get the sequence fot this type.
-	s := GetSystemSequence[V](m)
-
-	// Get the next value in the sequence.
-	next := s.Next()
-
-	// Update the sequence in the store.
-	err := Save(m, s)
-	if err != nil {
-		return 0, err
-	}
-	return next, nil
-}
-
-func GetSystemSequence[V desc.Object[V]](m *Manager) *desc.Sequence {
+func getSystemTable[V desc.Object[V]](mt *meta.Meta) *desc.Table {
 	var zero V
 	switch any(zero).(type) {
 	case *desc.Table:
-		return m.Meta.Tables.Sequence
+		return mt.Tables.Table
 	case *desc.Sequence:
-		return m.Meta.Sequences.Sequence
+		return mt.Sequences.Table
 	}
 	return nil
 }
 
-func GetSystemTable[V desc.Object[V]](m *Manager) *desc.Table {
+func getSystemSequence[V desc.Object[V]](mt *meta.Meta) *desc.Sequence {
 	var zero V
 	switch any(zero).(type) {
 	case *desc.Table:
-		return m.Meta.Tables.Table
+		return mt.Tables.Sequence
 	case *desc.Sequence:
-		return m.Meta.Sequences.Table
+		return mt.Sequences.Sequence
 	}
 	return nil
 }
