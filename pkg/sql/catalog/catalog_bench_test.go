@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/angles-n-daemons/popsql/pkg/kv/memtable"
+	"github.com/angles-n-daemons/popsql/pkg/kv/store"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
@@ -141,7 +141,7 @@ func generateRandomSequence() *desc.Sequence {
 func BenchmarkCatalogWrites(b *testing.B) {
 	tables := []*desc.Table{}
 	sequences := []*desc.Sequence{}
-	store := memtable.NewMemstore()
+	store := store.NewMemStore()
 	ct, err := catalog.NewManager(store)
 	assert.NoError(b, err)
 	for i := 0; i < 1000000; i++ {

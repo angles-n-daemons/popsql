@@ -5,11 +5,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/angles-n-daemons/popsql/pkg/kv/memtable"
+	"github.com/angles-n-daemons/popsql/pkg/kv/store/memtable"
 )
 
 func TestMemcursorRead(t *testing.T) {
-	store := memtable.NewMemstore()
+	store := memtable.NewStore()
 	values := [][]byte{}
 	// generates { 2 : a, 4: b, 6: c }
 	for i := 1; i < 4; i++ {
@@ -92,7 +92,7 @@ func TestMemcursorRead(t *testing.T) {
 }
 
 func TestMemcursorMultipleRead(t *testing.T) {
-	store := memtable.NewMemstore()
+	store := memtable.NewStore()
 	values := [][]byte{}
 	// generates { 0 : 0, 2: 1, 4: 2 }
 	for i := 0; i < 3; i++ {

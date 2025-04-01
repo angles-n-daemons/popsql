@@ -5,8 +5,7 @@ import (
 	"sync"
 
 	"github.com/angles-n-daemons/popsql/pkg/kv"
-	"github.com/angles-n-daemons/popsql/pkg/kv/debug"
-	"github.com/angles-n-daemons/popsql/pkg/kv/memtable"
+	"github.com/angles-n-daemons/popsql/pkg/kv/store"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/ast"
@@ -32,15 +31,15 @@ func (e *Engine) Query(query string, parameters []any) error {
 }
 
 func newEngine(debugStore bool) *Engine {
-	var store kv.Store = memtable.NewMemstore()
+	var st kv.Store = store.NewMemStore()
 	if debugStore {
-		store = debug.NewStore(store)
+		st = store.NewDebugStore(st)
 	}
-	manager, err := catalog.NewManager(store)
+	manager, err := catalog.NewManager(st)
 	if err != nil {
 		panic(err)
 	}
-	return &Engine{store, manager}
+	return &Engine{st, manager}
 }
 
 var db *Engine

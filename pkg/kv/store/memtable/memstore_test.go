@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/angles-n-daemons/popsql/pkg/kv/memtable"
+	"github.com/angles-n-daemons/popsql/pkg/kv/store/memtable"
 )
 
 func TestMemstoreBasic(t *testing.T) {
-	store := memtable.NewMemstore()
+	store := memtable.NewStore()
 	if err := store.Put("key1", []byte("val1")); err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +47,7 @@ func assertArraysEqual(t *testing.T, expected [][]byte, actual [][]byte) {
 }
 
 func TestMemstoreRanges(t *testing.T) {
-	store := memtable.NewMemstore()
+	store := memtable.NewStore()
 	values := [][]byte{}
 	// generates { 0 : 0, 2: 1, 4: 2 }
 	for i := 0; i < 3; i++ {
