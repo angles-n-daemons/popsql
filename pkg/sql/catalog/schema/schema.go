@@ -26,23 +26,23 @@ func SchemaFromCollections(
 	}
 }
 
-func Add[V desc.Object[V]](s *Schema, v V) error {
+func Add[V desc.Any[V]](s *Schema, v V) error {
 	return getCollection[V](s).Add(v)
 }
 
-func Get[V desc.Object[V]](s *Schema, id uint64) V {
+func Get[V desc.Any[V]](s *Schema, id uint64) V {
 	return getCollection[V](s).Get(id)
 }
 
-func GetByName[V desc.Object[V]](s *Schema, name string) V {
+func GetByName[V desc.Any[V]](s *Schema, name string) V {
 	return getCollection[V](s).GetByName(name)
 }
 
-func Remove[V desc.Object[V]](s *Schema, id uint64) error {
+func Remove[V desc.Any[V]](s *Schema, id uint64) error {
 	return getCollection[V](s).Remove(id)
 }
 
-func getCollection[V desc.Object[V]](s *Schema) *Collection[V] {
+func getCollection[V desc.Any[V]](s *Schema) *Collection[V] {
 	var zero V
 	switch any(zero).(type) {
 	case *desc.Table:

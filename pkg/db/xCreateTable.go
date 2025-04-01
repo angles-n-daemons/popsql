@@ -24,7 +24,7 @@ func (e *Engine) CreateTable(stmt *ast.CreateTable) error {
 		dt.PrimaryKey = []string{ReservedInternalKeyName}
 	}
 
-	dt.TID, err = catalog.NextID(e.Catalog, dt)
+	dt.TID, err = catalog.NextDescriptorID(e.Catalog, dt)
 	if err != nil {
 		return err
 	}
@@ -35,7 +35,7 @@ func (e *Engine) CreateTable(stmt *ast.CreateTable) error {
 func (e *Engine) createTableSequence(t *desc.Table) (*desc.Column, error) {
 	seqName := t.TName + "_seq"
 	seq := desc.NewSequence(seqName)
-	id, err := catalog.NextID(e.Catalog, seq)
+	id, err := catalog.NextDescriptorID(e.Catalog, seq)
 	seq.SID = id
 	if err != nil {
 		return nil, err

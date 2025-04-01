@@ -1,4 +1,4 @@
-package meta
+package sys
 
 import (
 	"errors"
@@ -7,21 +7,21 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/schema"
 )
 
-// The meta package is a small utility package for managing the meta, or system
+// The sys package is a small utility package for managing the system
 // tables in popsql. It provides constant values for reference, like the
-// names of the meta objects, as well as utilities for constructing the
+// names of the system objects, as well as utilities for constructing the
 // meta containers, to be used by the catalog manager.
-type MetaTable struct {
+type SystemTable struct {
 	Table    *desc.Table
 	Sequence *desc.Sequence
 }
 
-type Meta struct {
-	Tables    MetaTable
-	Sequences MetaTable
+type SystemSchema struct {
+	Tables    SystemTable
+	Sequences SystemTable
 }
 
-func (m *Meta) Objects() []any {
+func (m *SystemSchema) Objects() []any {
 	return []any{
 		m.Tables.Table,
 		m.Tables.Sequence,
@@ -59,15 +59,15 @@ func InitSystemTable(id uint64, name, seqName string) *desc.Table {
 	}
 }
 
-func InitSystemMeta() *Meta {
+func InitSystemMeta() *SystemSchema {
 	metaTable := InitSystemTable(TablesID, Tables, TablesSequence)
 	sequenceTable := InitSystemTable(SequencesID, Sequences, SequencesSequence)
-	return &Meta{
-		Tables: MetaTable{
+	return &SystemSchema{
+		Tables: SystemTable{
 			Table:    metaTable,
 			Sequence: desc.NewSequenceFromArgs(TablesID, TablesSequence, 2),
 		},
-		Sequences: MetaTable{
+		Sequences: SystemTable{
 			Table:    sequenceTable,
 			Sequence: desc.NewSequenceFromArgs(SequencesID, SequencesSequence, 2),
 		},
@@ -77,7 +77,7 @@ func InitSystemMeta() *Meta {
 // FromSchema creates a new Meta from the given schema.
 // It does this by reading the meta objects from the collections contained
 // within the schema, erroring if any of the meta objects are missing.
-func FromSchema(sc *schema.Schema) (*Meta, error) {
+func FromSchema(sc *schema.Schema) (*SystemSchema, error) {
 	tables := schema.GetByName[*desc.Table](sc, Tables)
 	sequences := schema.GetByName[*desc.Table](sc, Sequences)
 	tablesSequence := schema.GetByName[*desc.Sequence](sc, TablesSequence)
@@ -88,12 +88,12 @@ func FromSchema(sc *schema.Schema) (*Meta, error) {
 			return nil, errors.New("could not find system object in schema")
 		}
 	}
-	return &Meta{
-		Tables: MetaTable{
+	return &SystemSchema{
+		Tables: SystemTable{
 			Table:    tables,
 			Sequence: tablesSequence,
 		},
-		Sequences: MetaTable{
+		Sequences: SystemTable{
 			Table:    sequences,
 			Sequence: sequencesSequence,
 		},

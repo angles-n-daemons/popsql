@@ -3,8 +3,8 @@ package catalog
 import (
 	"github.com/angles-n-daemons/popsql/pkg/kv"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
-	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/meta"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/schema"
+	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/sys"
 )
 
 /*
@@ -17,7 +17,7 @@ Because it depends on the logic required to create system objects from the
 manager, it initalizes a temporary, throwaway manager instance to handle the
 storage of the meta objects.
 */
-func Bootstrap(st kv.Store, sc *schema.Schema, meta *meta.Meta) error {
+func Bootstrap(st kv.Store, sc *schema.Schema, meta *sys.SystemSchema) error {
 	tmp := &Manager{
 		Schema: sc,
 		Store:  st,
