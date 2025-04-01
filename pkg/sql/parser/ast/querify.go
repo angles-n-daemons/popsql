@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+// queryify.go is a utility package for turning AST trees back
+// into SQL query strings. It's useful for debugging a parse
+// and testing whether the parsed out structure is similar to
+// the original incoming query.
 type StmtQuerifier struct {
 	depth int
 }

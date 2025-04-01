@@ -11,61 +11,59 @@ import (
 
 // NewManager is a constructor for the Manager struct.
 //
-// On its own, it's a fairly gnarly startup sequence, either cold or hot.
-// The first tricky bit is that the system has a chicken and egg problem.
-// Ideally, the meta tables (see meta.go) are read from the story, but
-// in order to read anything from the store, the key spans of the meta
-// tables are required.
+// The general sequence of events is as follows:
 //
-// We get around this by initalizing an new meta object, which is only
-// to be used for startup.
+//  1. Create a new Schema object, consisting of only system
+//     descriptors.
+//  2. Using that schema, attempt to load the schema from the
+//     store if one exists.
+//  3. If there is no data in the store, "bootstrap" or store
+//     the system schema from step 1. Return the manager created
+//     in bootstrap.
+//  4. Otherwise, return a new manager created from the loaded
+//     (2) schema and passed in store.
 func NewManager(st kv.Store) (*Manager, error) {
-	initMeta := sys.InitSystemMeta()
+	initSchema, err := sys.InitSchema()
+	if err != nil {
+		return nil, err
+	}
 
-	sc, err := LoadSchema(initMeta, st)
+	sc, err := LoadSchema(initSchema, st)
 	if err != nil {
 		return nil, err
 	}
 
 	if schema.Empty(sc) {
-		err = Bootstrap(st, sc, initMeta)
+		// Set the schema to be the init schema and persist it.
+		sc = initSchema
+		err = Bootstrap(st, sc)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	// At this point, the mt tables should exist, either
-	// from load into the schema, or from explicit bootstrap.
-	mt, err := sys.FromSchema(sc)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Manager{
 		Schema: sc,
 		Store:  st,
-		Meta:   mt,
 	}, nil
 }
 
-func LoadSchema(mt *sys.SystemSchema, st kv.Store) (*schema.Schema, error) {
-	tables, err := LoadCollection[*desc.Table](mt, st)
+func LoadSchema(sc *schema.Schema, st kv.Store) (*schema.Schema, error) {
+	tables, err := LoadCollection[*desc.Table](sc, st)
 	if err != nil {
 		return nil, err
 	}
 
-	sequences, err := LoadCollection[*desc.Sequence](mt, st)
+	sequences, err := LoadCollection[*desc.Sequence](sc, st)
 	if err != nil {
 		return nil, err
 	}
 	return schema.SchemaFromCollections(tables, sequences), nil
 }
 
-func LoadCollection[V desc.Any[V]](
-	mt *sys.SystemSchema, st kv.Store,
-) (*schema.Collection[V], error) {
+func LoadCollection[V desc.Any[V]](sc *schema.Schema, st kv.Store) (*schema.Collection[V], error) {
 	var zero V
-	span := getSystemTable[V](mt).Span()
+	span := getSystemTable[V](sc).Span()
 	cur, err := st.GetRange(span.Start.Encode(), span.End.Encode())
 	if err != nil {
 		return nil, err

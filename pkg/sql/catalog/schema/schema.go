@@ -2,9 +2,9 @@ package schema
 
 import "github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 
-// The Schema struct is the in-memory representation of the database's schema.
-// It exists so that the database can quickly access the definition of tables
-// value of sequences among other things.
+// The Schema struct is the in-memory representation of the
+// database's schema. It exists so that the database can quickly
+// access the definition of tables value of sequences among other things.
 type Schema struct {
 	Tables    *Collection[*desc.Table]
 	Sequences *Collection[*desc.Sequence]

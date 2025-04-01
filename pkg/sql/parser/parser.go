@@ -8,6 +8,10 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
+// parser.go implements the parsing logic for the SQL language.
+// assuming an input of tokens, lexed out of a sql string, Parse
+// recursively constructs a syntax tree using the grammar defined
+// in grammar.bnf.
 var Debug = false
 
 func Parse(s string) (ast.Stmt, error) {

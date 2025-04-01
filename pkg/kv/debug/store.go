@@ -6,6 +6,10 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/kv"
 )
 
+// DebugStore is a utility class, which sits in between callers
+// and downstream store implementations. It exists so that the
+// reads and writes can be inspected in the logs for data
+// integrity or correctness.
 func NewStore(store kv.Store) *DebugStore {
 	return &DebugStore{store: store}
 }

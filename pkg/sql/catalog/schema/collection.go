@@ -8,9 +8,10 @@ import (
 )
 
 // Collection is a generic collection utility, made for managing
-// system objects. It is parameterized by a desc.Object type, which represents
-// any object that would need to be cached in the schema. In practice, this
-// consists of descriptors for things like tables and sequences.
+// system objects. It is parameterized by a desc.Object type,
+// which represents any object that would need to be cached
+// in the schema. In practice, this consists of descriptors
+// for things like tables and sequences.
 type Collection[V desc.Any[V]] struct {
 	byID   map[uint64]V
 	byName map[string]V
@@ -48,6 +49,14 @@ func (c *Collection[V]) Add(v V) error {
 	c.byName[name] = v
 	c.byID[id] = v
 	return nil
+}
+
+func (c *Collection[V]) All() []V {
+	results := []V{}
+	for _, v := range c.byID {
+		results = append(results, v)
+	}
+	return results
 }
 
 func (c *Collection[V]) Get(id uint64) V {

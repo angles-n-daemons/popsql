@@ -2,6 +2,8 @@ package memtable
 
 import "math"
 
+// Memcursor is a simple Cursor implementation using a memory
+// store.
 type Memcursor struct {
 	Node *SkiplistNode[string, []byte]
 	End  string

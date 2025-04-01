@@ -1,16 +1,5 @@
 package kv
 
-import "github.com/angles-n-daemons/popsql/pkg/kv/keys"
-
-/*
-Row is a full key value pair in the KV space.
-*/
-type Record struct {
-	// primary key index
-	Prefix   keys.Key
-	Register Register
-}
-
 /*
 Register is a savable object in the KV space.
 */
@@ -20,12 +9,18 @@ type Register interface {
 	Value() ([]byte, error)
 }
 
+// Store is the primary interface which will be exposed to the
+// rest of the database system. It defines a simple key-value
+// interface, which can be implemented in any chosen way; in
+// memory for example, as an LSM, or even with a B+ tree.
 type Store interface {
-	Get(key string) ([]byte, error)
-	Put(key string, value []byte) error
+	Get(string) ([]byte, error)
+	Put(string, []byte) error
 	GetRange(start, end string) (Cursor, error)
 }
 
+// Cursor holds the results for a scan, to be read out in batches
+// so that a caller can control the volume of data they're processing.
 type Cursor interface {
 	ReadAll() ([][]byte, error)
 	Read(num int) ([][]byte, error)

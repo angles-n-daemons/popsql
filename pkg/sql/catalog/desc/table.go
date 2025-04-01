@@ -117,3 +117,7 @@ func (t *Table) Key() string {
 func (t *Table) Value() ([]byte, error) {
 	return json.Marshal(t)
 }
+
+func (t *Table) DefaultSequenceName() string {
+	return t.TName + "_seq"
+}

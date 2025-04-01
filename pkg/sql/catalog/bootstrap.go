@@ -2,36 +2,32 @@ package catalog
 
 import (
 	"github.com/angles-n-daemons/popsql/pkg/kv"
-	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/schema"
-	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/sys"
 )
 
 /*
 Bootstrap is a utility function for populating a fresh database.
-It adds new meta objects to the schema and the store. It should only be
-called if the database is empty, unexpected behavior may occur if executed
-otherwise.
+It adds new system objects to the store. It should only be called
+if the database is empty, unexpected behavior may occur if
+executed otherwise.
 
-Because it depends on the logic required to create system objects from the
-manager, it initalizes a temporary, throwaway manager instance to handle the
-storage of the meta objects.
+Because it depends on the logic required to create system objects
+from the manager, it initalizes a temporary, throwaway manager
+instance to handle the storage of the meta objects.
 */
-func Bootstrap(st kv.Store, sc *schema.Schema, meta *sys.SystemSchema) error {
+func Bootstrap(st kv.Store, sc *schema.Schema) error {
 	tmp := &Manager{
 		Schema: sc,
 		Store:  st,
-		Meta:   meta,
 	}
-	for _, obj := range tmp.Meta.Objects() {
-		var err error
-		// hmm..my generic fu isn't strong enough to escape this switch.
-		switch v := obj.(type) {
-		case *desc.Table:
-			err = Create(tmp, v)
-		case *desc.Sequence:
-			err = Create(tmp, v)
+	for _, t := range sc.Tables.All() {
+		err := save(tmp, t)
+		if err != nil {
+			return err
 		}
+	}
+	for _, s := range sc.Sequences.All() {
+		err := save(tmp, s)
 		if err != nil {
 			return err
 		}

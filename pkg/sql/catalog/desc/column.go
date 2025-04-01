@@ -15,8 +15,8 @@ func NewColumn(name string, dt DataType) *Column {
 	}
 }
 
-// SequenceColumn is a utility function which turns a name and a scanned token into
-// a desc column.
+// SequenceColumn is a utility function which turns a name
+// and a scanned token into a desc column.
 func SequenceColumn(name string, tokenType scanner.TokenType) (*Column, error) {
 	datatype, err := GetDataType(tokenType)
 	if err != nil {

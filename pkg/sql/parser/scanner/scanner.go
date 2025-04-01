@@ -8,14 +8,8 @@ import (
 	"strings"
 )
 
-/*
-NUMBER         → DIGIT+ ( "." DIGIT+ )? ;
-STRING         → "\"" <any char except "\"">* "\"" ;
-IDENTIFIER     → ALPHA ( ALPHA | DIGIT )* ;
-ALPHA          → "a" ... "z" | "A" ... "Z" | "_" ;
-DIGIT          → "0" ... "9" ;
-KEYWORDS       → "SELECT" | "FROM" | "WHERE" | "GROUP BY" | "OFFSET" | "LIMIT"
-*/
+// scanner.go implements the logic for tokenizing a sql query.
+// For the lexical grammar, consult grammar.bnf.
 
 var whitespace = []byte{' ', '\n', '\t'}
 

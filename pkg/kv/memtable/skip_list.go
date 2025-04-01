@@ -90,7 +90,7 @@ func (list *Skiplist[K, V]) Put(key K, val V) (bool, error) {
 
 	// for each level in the nodes height, insert the node
 	// into that level's list
-	for i := 0; i < height; i++ {
+	for i := range height {
 		if list.heads[i] == nil {
 			// if the head is nil at this level, the level is empty
 			list.heads[i] = node
@@ -227,7 +227,7 @@ func (list *Skiplist[K, V]) DebugGetRow(level int) ([]K, error) {
 // [8 11 13 15 25 26 29 31 33 37 45 47 56 58 59 66 74 78 81 85 87 88 89 90 94 95 100 106 111 118 124 128 137 140 141 147 153 156 159 162 163 187 190 194]
 func DebugPrintList[K cmp.Ordered, V any](list *Skiplist[K, V], levels int) {
 	lists := make([][]string, 5)
-	for i := 0; i < levels; i++ {
+	for i := range levels {
 		lists[i] = []string{}
 	}
 
@@ -235,7 +235,7 @@ func DebugPrintList[K cmp.Ordered, V any](list *Skiplist[K, V], levels int) {
 	for node != nil {
 		height := len(node.next)
 		str := fmt.Sprintf("%v", node.Key)
-		for i := 0; i < levels; i++ {
+		for i := range levels {
 			if i < height {
 				lists[i] = append(lists[i], str)
 			} else {
