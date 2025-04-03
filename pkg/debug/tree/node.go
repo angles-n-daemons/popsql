@@ -142,7 +142,8 @@ func prepContent(lines []string, box bool) []string {
 	bottom := "└" + strings.Repeat("─", x) + "┘"
 	result := []string{top}
 	for _, line := range lines {
-		result = append(result, "│"+line+"│")
+		rightPad := strings.Repeat(" ", x-len(line))
+		result = append(result, "│"+line+rightPad+"│")
 	}
 	result = append(result, bottom)
 	return result

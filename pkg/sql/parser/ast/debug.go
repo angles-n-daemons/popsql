@@ -8,7 +8,7 @@ import (
 )
 
 func Print(stmt Stmt) {
-	t, err := VisitStmt(stmt, &stmtTreeifier{})
+	t, err := VisitStmt(stmt, &stmtTreeifier{verbose: true, querifier: &ExprQuerifier{}})
 	if err != nil {
 		fmt.Println("Error in treeifier:", err)
 		return
