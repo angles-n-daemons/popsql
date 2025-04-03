@@ -10,7 +10,9 @@ import (
 
 type walkFunc func(Expr) error
 
-type Expr interface{}
+type Expr interface {
+	isExpr()
+}
 
 type ExprVisitor[T any] interface {
 	VisitBinaryExpr(*Binary) (*T, error)
@@ -46,28 +48,40 @@ type Binary struct {
 	Right    Expr
 }
 
+func (t *Binary) isExpr() {}
+
 type Literal struct {
 	Value scanner.Token
 }
+
+func (t *Literal) isExpr() {}
 
 type Unary struct {
 	Operator scanner.Token
 	Right    Expr
 }
 
+func (t *Unary) isExpr() {}
+
 type Assignment struct {
 	Name  scanner.Token
 	Value Expr
 }
 
+func (t *Assignment) isExpr() {}
+
 type Reference struct {
 	Names []*scanner.Token
 }
+
+func (t *Reference) isExpr() {}
 
 type ColumnSpec struct {
 	Name     scanner.Token
 	DataType scanner.Token
 }
+
+func (t *ColumnSpec) isExpr() {}
 
 type StmtVisitor[T any] interface {
 	VisitSelectStmt(*Select) (*T, error)
@@ -94,15 +108,23 @@ type Select struct {
 	Where Expr
 }
 
+func (t *Select) isStmt() {}
+
 type Insert struct {
 	Table   *Reference
 	Columns []*Reference
 	Values  [][]Expr
 }
 
+func (t *Insert) isStmt() {}
+
 type CreateTable struct {
 	Name    scanner.Token
 	Columns []*ColumnSpec
 }
 
-type Stmt interface{}
+func (t *CreateTable) isStmt() {}
+
+type Stmt interface {
+	isStmt()
+}

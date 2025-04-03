@@ -35,11 +35,15 @@ type walkFunc func(Expr) error
 `
 
 var exprInterface = `
-type Expr interface { }
+type Expr interface {
+	isExpr()
+}
 `
 
 var stmtInterface = `
-type Stmt interface { }
+type Stmt interface {
+	isStmt()
+}
 `
 
 var errNilStr = `
@@ -53,8 +57,9 @@ var disclaimer = `
 `
 
 type treeType struct {
-	name   string
-	fields []field
+	parentType string
+	name       string
+	fields     []field
 }
 
 type field struct {
@@ -68,7 +73,7 @@ func errNilReturn(indent int) string {
 	return fmt.Sprintf(errNilStr, pad)
 }
 
-func parseGrammar(grammarStr string) []treeType {
+func parseGrammar(grammarStr, grammarType string) []treeType {
 	types := []treeType{}
 	typesStr := strings.Split(grammarStr, "\n")
 	for _, ttype := range typesStr {
@@ -86,7 +91,7 @@ func parseGrammar(grammarStr string) []treeType {
 			isarray := ftype[:2] == "[]"
 			fields = append(fields, field{name, ftype, isarray})
 		}
-		types = append(types, treeType{name, fields})
+		types = append(types, treeType{grammarType, name, fields})
 	}
 	return types
 
@@ -119,7 +124,7 @@ func GenAST() string {
 }
 
 func formatGrammar(grammarStr string, grammarType string) string {
-	grammar := parseGrammar(grammarStr)
+	grammar := parseGrammar(grammarStr, grammarType)
 	output := ""
 	newline := func(s string) {
 		output += s + "\n"
@@ -146,6 +151,8 @@ func formatStruct(ttype treeType) string {
 		newline(fmt.Sprintf("\t%s %s", field.name, field.ftype))
 	}
 	newline("}")
+
+	newline(fmt.Sprintf("func (t *%s) is%s() {}", ttype.name, ttype.parentType))
 	return structStr
 }
 
