@@ -64,7 +64,7 @@ func LoadSchema(sc *schema.Schema, st kv.Store) (*schema.Schema, error) {
 func LoadCollection[V desc.Any[V]](sc *schema.Schema, st kv.Store) (*schema.Collection[V], error) {
 	var zero V
 	span := getSystemTable[V](sc).Span()
-	cur, err := st.GetRange(span.Start.Encode(), span.End.Encode())
+	cur, err := st.Scan(span.Start.Encode(), span.End.Encode())
 	if err != nil {
 		return nil, err
 	}

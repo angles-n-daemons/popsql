@@ -38,8 +38,8 @@ func (d *DebugStore) Put(key string, value []byte) error {
 	return nil
 }
 
-func (d *DebugStore) GetRange(start, end string) (kv.Cursor, error) {
-	c, err := d.store.GetRange(start, end)
+func (d *DebugStore) Scan(start, end string) (kv.Cursor, error) {
+	c, err := d.store.Scan(start, end)
 	if err != nil {
 		fmt.Println("GET RANGE ERROR", err)
 	}

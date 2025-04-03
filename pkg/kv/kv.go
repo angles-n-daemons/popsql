@@ -16,7 +16,7 @@ type Register interface {
 type Store interface {
 	Get(string) ([]byte, error)
 	Put(string, []byte) error
-	GetRange(start, end string) (Cursor, error)
+	Scan(start, end string) (Cursor, error)
 }
 
 // Cursor holds the results for a scan, to be read out in batches

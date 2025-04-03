@@ -75,7 +75,7 @@ func TestMemcursorRead(t *testing.T) {
 		{start: afterStart, end: beforeEnd, num: 0, isAtEnd: false, expected: [][]byte{}},
 	} {
 		t.Run(fmt.Sprintf("start %s, end=%s, num=%d", test.start, test.end, test.num), func(t *testing.T) {
-			cur, err := store.GetRange(test.start, test.end)
+			cur, err := store.Scan(test.start, test.end)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -106,7 +106,7 @@ func TestMemcursorMultipleRead(t *testing.T) {
 	}
 
 	actual := [][]byte{}
-	cur, err := store.GetRange("", "9999")
+	cur, err := store.Scan("", "9999")
 	if err != nil {
 		t.Fatal(err)
 	}

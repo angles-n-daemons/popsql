@@ -120,7 +120,7 @@ func TestMemstoreRanges(t *testing.T) {
 		},
 	} {
 		t.Run(fmt.Sprintf("start %s, end %s", test.start, test.end), func(t *testing.T) {
-			cur, err := store.GetRange(test.start, test.end)
+			cur, err := store.Scan(test.start, test.end)
 			if err != nil {
 				t.Fatal(err)
 			}
