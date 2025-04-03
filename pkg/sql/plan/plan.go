@@ -1,25 +1,26 @@
 package plan
 
+import "github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
+
 type PlanVisitor[T any] interface {
-	VisitProjection(*Projection) (*T, error)
-	VisitInsert(*Insert) (*T, error)
+	VisitCreateTable(*CreateTable) (T, error)
+}
+
+func VisitPlan[T any](plan Plan, visitor PlanVisitor[T]) (T, error) {
+	switch typedPlan := plan.(type) {
+	case *CreateTable:
+		return visitor.VisitCreateTable(typedPlan)
+	default:
+		return *new(T), nil
+	}
 }
 
 type Plan interface {
 	isPlan()
 }
 
-type Projection struct{}
-
-func (p *Projection) isPlan() {}
-
-type Insert struct {
-	table  string
-	source Plan
+type CreateTable struct {
+	Table *desc.Table
 }
 
-func (p *Insert) isPlan() {}
-
-type Rows struct{}
-
-func (p *Rows) isPlan() {}
+func (p *CreateTable) isPlan() {}

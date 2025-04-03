@@ -1,14 +1,16 @@
 package db
 
 import (
+	"fmt"
 	"os"
 	"sync"
 
 	"github.com/angles-n-daemons/popsql/pkg/kv"
 	"github.com/angles-n-daemons/popsql/pkg/kv/store"
+	"github.com/angles-n-daemons/popsql/pkg/sql"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser"
-	"github.com/angles-n-daemons/popsql/pkg/sql/parser/ast"
+	"github.com/angles-n-daemons/popsql/pkg/sql/plan"
 )
 
 type Engine struct {
@@ -21,12 +23,17 @@ func (e *Engine) Query(query string, parameters []any) error {
 	if err != nil {
 		return err
 	}
-	switch v := stmt.(type) {
-	case *ast.CreateTable:
-		return e.CreateTable(v)
-	case *ast.Insert:
-		return nil
+	plan, err := plan.PlanQuery(stmt)
+	if err != nil {
+		return err
 	}
+
+	exec := sql.NewExecutor(e.Store, e.Catalog)
+	rows, err := exec.Execute(plan)
+	if err != nil {
+		return err
+	}
+	fmt.Println(rows)
 	return nil
 }
 

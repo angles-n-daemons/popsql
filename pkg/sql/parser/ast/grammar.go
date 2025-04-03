@@ -84,12 +84,12 @@ type ColumnSpec struct {
 func (t *ColumnSpec) isExpr() {}
 
 type StmtVisitor[T any] interface {
-	VisitSelectStmt(*Select) (*T, error)
-	VisitInsertStmt(*Insert) (*T, error)
-	VisitCreateTableStmt(*CreateTable) (*T, error)
+	VisitSelectStmt(*Select) (T, error)
+	VisitInsertStmt(*Insert) (T, error)
+	VisitCreateTableStmt(*CreateTable) (T, error)
 }
 
-func VisitStmt[T any](expr Stmt, visitor StmtVisitor[T]) (*T, error) {
+func VisitStmt[T any](expr Stmt, visitor StmtVisitor[T]) (T, error) {
 	switch typedStmt := expr.(type) {
 	case *Select:
 		return visitor.VisitSelectStmt(typedStmt)
@@ -98,7 +98,7 @@ func VisitStmt[T any](expr Stmt, visitor StmtVisitor[T]) (*T, error) {
 	case *CreateTable:
 		return visitor.VisitCreateTableStmt(typedStmt)
 	default:
-		return nil, fmt.Errorf("unable to visit type %T", typedStmt)
+		return *new(T), fmt.Errorf("unable to visit type %T", typedStmt)
 	}
 }
 
