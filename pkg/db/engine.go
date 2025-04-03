@@ -9,6 +9,7 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/kv"
 	"github.com/angles-n-daemons/popsql/pkg/kv/store"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog"
+	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser"
 	"github.com/angles-n-daemons/popsql/pkg/sql/plan"
 )
@@ -60,6 +61,9 @@ func GetEngine() *Engine {
 		}
 		if config.DebugPlanner {
 			plan.Debug = true
+		}
+		if config.DebugStore {
+			desc.DebugTables = true
 		}
 		db = newEngine(config.DebugStore)
 	})

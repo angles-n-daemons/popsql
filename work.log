@@ -10,10 +10,10 @@ Want:
  - To move the store keys from strings to bytes.
  - To think long and hard about when to use the word Key, and when to use the word ID.
  - Prettifying of keys on request.
-
-2025-04-01
  - A sql query planner.
  - WAL backing for the store.
+
+2025-04-01
 
 2025-03-30
  - DescriptorBuilders

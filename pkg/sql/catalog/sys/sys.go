@@ -5,30 +5,6 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/schema"
 )
 
-// The sys package is a small utility package for managing the
-// system tables in popsql. It provides constant values for
-// reference, like the names of the system objects, as well as
-// utilities for constructing the meta containers, to be used by
-// the catalog manager.
-type SystemTable struct {
-	Table    *desc.Table
-	Sequence *desc.Sequence
-}
-
-type SystemSchema struct {
-	Tables    SystemTable
-	Sequences SystemTable
-}
-
-func (m *SystemSchema) Objects() []any {
-	return []any{
-		m.Tables.Table,
-		m.Tables.Sequence,
-		m.Sequences.Table,
-		m.Sequences.Sequence,
-	}
-}
-
 // These ids are reserved for the system tables. They are also
 // generated on bootup, but these values are required to read
 // from the meta tables on bootup.

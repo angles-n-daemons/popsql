@@ -15,15 +15,15 @@ type Expr interface {
 }
 
 type ExprVisitor[T any] interface {
-	VisitBinaryExpr(*Binary) (*T, error)
-	VisitLiteralExpr(*Literal) (*T, error)
-	VisitUnaryExpr(*Unary) (*T, error)
-	VisitAssignmentExpr(*Assignment) (*T, error)
-	VisitReferenceExpr(*Reference) (*T, error)
-	VisitColumnSpecExpr(*ColumnSpec) (*T, error)
+	VisitBinaryExpr(*Binary) (T, error)
+	VisitLiteralExpr(*Literal) (T, error)
+	VisitUnaryExpr(*Unary) (T, error)
+	VisitAssignmentExpr(*Assignment) (T, error)
+	VisitReferenceExpr(*Reference) (T, error)
+	VisitColumnSpecExpr(*ColumnSpec) (T, error)
 }
 
-func VisitExpr[T any](expr Expr, visitor ExprVisitor[T]) (*T, error) {
+func VisitExpr[T any](expr Expr, visitor ExprVisitor[T]) (T, error) {
 	switch typedExpr := expr.(type) {
 	case *Binary:
 		return visitor.VisitBinaryExpr(typedExpr)
@@ -38,7 +38,7 @@ func VisitExpr[T any](expr Expr, visitor ExprVisitor[T]) (*T, error) {
 	case *ColumnSpec:
 		return visitor.VisitColumnSpecExpr(typedExpr)
 	default:
-		return nil, fmt.Errorf("unable to visit type %T", typedExpr)
+		return *new(T), fmt.Errorf("unable to visit type %T", typedExpr)
 	}
 }
 

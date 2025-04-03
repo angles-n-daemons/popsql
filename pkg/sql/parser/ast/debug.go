@@ -3,132 +3,89 @@ package ast
 import (
 	"fmt"
 	"strings"
+
+	"github.com/angles-n-daemons/popsql/pkg/debug/tree"
 )
 
-func printIndent(s string, indent int) {
-	fmt.Println(strings.Repeat("\t", indent) + s)
-}
-
-type StmtPrinter struct {
-	depth int
-}
-
 func Print(stmt Stmt) {
-	VisitStmt(stmt, &StmtPrinter{})
+	t, err := VisitStmt(stmt, &stmtTreeifier{})
+	if err != nil {
+		fmt.Println("Error in treeifier:", err)
+		return
+	}
+	fmt.Println(tree.Visualize(t))
 }
 
-func (p *StmtPrinter) VisitCreateTableStmt(stmt *CreateTable) (*any, error) {
-	printIndent("- CREATE TABLE", p.depth)
-	p.depth++
-	printIndent(fmt.Sprintf("         name: %s", stmt.Name.Lexeme), p.depth-1)
-	for _, column := range stmt.Columns {
-		(&ExprPrinter{p.depth}).print(column)
-	}
-	p.depth--
-	return nil, nil
+// - stmt treeifier
+// - trickier with ast?
+type stmtTreeifier struct {
+	verbose   bool
+	querifier *ExprQuerifier
 }
 
-func (p *StmtPrinter) VisitSelectStmt(stmt *Select) (*any, error) {
-	printIndent("SELECT", p.depth)
-	p.depth++
-	printIndent("   terms:", p.depth-1)
-	for _, term := range stmt.Terms {
-		(&ExprPrinter{p.depth}).print(term)
-	}
-	printIndent("   from:", p.depth-1)
-	if stmt.From != nil {
-		(&ExprPrinter{p.depth}).print(stmt.From)
-	}
-	printIndent("  where:", p.depth-1)
-	if stmt.From != nil {
-		(&ExprPrinter{p.depth}).print(stmt.Where)
-	}
-	p.depth--
-	return nil, nil
-}
-
-func (p *StmtPrinter) VisitInsertStmt(stmt *Insert) (*any, error) {
-	printIndent("- Insert", p.depth)
-	p.depth++
-	printIndent("  table:", p.depth-1)
-	(&ExprPrinter{p.depth}).print(stmt.Table)
-	printIndent("columns:", p.depth-1)
-	if stmt.Columns != nil {
-		for _, column := range stmt.Columns {
-			(&ExprPrinter{p.depth}).print(column)
+func (t *stmtTreeifier) VisitCreateTableStmt(stmt *CreateTable) (*tree.Node, error) {
+	content := []string{"CREATE TABLE: " + stmt.Name.Lexeme}
+	if t.verbose {
+		for _, col := range stmt.Columns {
+			content = append(content, fmt.Sprintf(" - %s %s", col.Name.Lexeme, col.DataType.Lexeme))
 		}
 	}
-	printIndent(" values:", p.depth-1)
-	if stmt.Values != nil {
-		for _, tup := range stmt.Values {
-			printIndent("  tup:", p.depth)
-			p.depth++
-			for _, exp := range tup {
-				(&ExprPrinter{p.depth}).print(exp)
+	return tree.NewNode(content), nil
+}
+
+func (t *stmtTreeifier) VisitSelectStmt(stmt *Select) (*tree.Node, error) {
+	content := []string{"SELECT: " + stmt.From.Names[0].Lexeme}
+	if t.verbose {
+		terms := " terms: ["
+		termsArr := []string{}
+		for _, term := range stmt.Terms {
+			ts, err := VisitExpr(term, t.querifier)
+			if err != nil {
+				return nil, err
 			}
-			p.depth--
+			termsArr = append(termsArr, ts)
 		}
+		terms += strings.Join(termsArr, ", ") + "]"
+
+		fs, err := VisitExpr(stmt.Where, t.querifier)
+		if err != nil {
+			return nil, err
+		}
+		filters := " filters: " + fs
+		content = append(content, terms, filters)
 	}
-	p.depth--
-	return nil, nil
+	return tree.NewNode(content), nil
 }
 
-type ExprPrinter struct {
-	depth int
-}
+func (t *stmtTreeifier) VisitInsertStmt(stmt *Insert) (*tree.Node, error) {
+	content := []string{"INSERT: " + stmt.Table.Names[0].Lexeme}
+	if t.verbose {
+		cols := " cols: ["
+		colsArr := []string{}
+		for _, col := range stmt.Columns {
+			ts, err := VisitExpr(col, t.querifier)
+			if err != nil {
+				return nil, err
+			}
+			colsArr = append(colsArr, ts)
+		}
+		cols += strings.Join(colsArr, ", ") + "]"
 
-func PrintExpr(expr Expr) {
-	VisitExpr(expr, &ExprPrinter{})
-}
+		content = append(content, cols)
+		content = append(content, " values: [")
+		for _, tup := range stmt.Values {
+			tupArr := []string{}
+			for _, exp := range tup {
+				ts, err := VisitExpr(exp, t.querifier)
+				if err != nil {
+					return nil, err
+				}
+				tupArr = append(tupArr, ts)
+			}
+			content = append(content, "  "+strings.Join(tupArr, ", "))
 
-func (p *ExprPrinter) print(expr Expr) {
-	VisitExpr(expr, p)
-}
-
-func (p *ExprPrinter) VisitBinaryExpr(expr *Binary) (*any, error) {
-	printIndent("- Binary", p.depth)
-	p.depth++
-	printIndent(fmt.Sprintf("     op: %s", expr.Operator.Type), p.depth-1)
-	printIndent("   left:", p.depth-1)
-	p.print(expr.Left)
-	printIndent("  right:", p.depth-1)
-	p.print(expr.Right)
-	p.depth--
-	return nil, nil
-}
-
-func (p *ExprPrinter) VisitLiteralExpr(expr *Literal) (*any, error) {
-	printIndent(fmt.Sprintf("- Literal {%v}", expr.Value.Literal), p.depth)
-	return nil, nil
-}
-
-func (p *ExprPrinter) VisitUnaryExpr(expr *Unary) (*any, error) {
-	printIndent("- Unary", p.depth)
-	p.depth++
-	printIndent(fmt.Sprintf("   operator: %s", expr.Operator.Type), p.depth-1)
-	printIndent("      right:", p.depth-1)
-	p.print(expr.Right)
-	p.depth--
-	return nil, nil
-}
-
-func (p *ExprPrinter) VisitAssignmentExpr(expr *Assignment) (*any, error) {
-	p.depth++
-	p.print(expr.Value)
-	p.depth--
-	return nil, nil
-}
-
-func (p *ExprPrinter) VisitReferenceExpr(expr *Reference) (*any, error) {
-	names := []string{}
-	for _, token := range expr.Names {
-		names = append(names, token.Lexeme)
+		}
+		content = append(content, " ]")
 	}
-	printIndent(fmt.Sprintf("- Reference: %s", strings.Join(names, ".")), p.depth)
-	return nil, nil
-}
-
-func (p *ExprPrinter) VisitColumnSpecExpr(expr *ColumnSpec) (*any, error) {
-	printIndent(fmt.Sprintf("- Column Spec: %s %s", expr.Name.Lexeme, expr.DataType.Lexeme), p.depth)
-	return nil, nil
+	return tree.NewNode(content), nil
 }

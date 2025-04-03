@@ -71,7 +71,7 @@ func TestParseValidPrograms(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			fmt.Println("test out: ", strings.Replace(*s, "\n", "", -1))
+			fmt.Println("test out: ", strings.Replace(s, "\n", "", -1))
 			fmt.Println()
 		})
 	}

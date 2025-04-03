@@ -9,6 +9,8 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
 )
 
+var DebugTables = false
+
 type Table struct {
 	TID        uint64
 	TName      string
@@ -90,6 +92,9 @@ func (t *Table) Equal(o *Table) bool {
 }
 
 func (t *Table) Prefix() *keys.Key {
+	if DebugTables {
+		return keys.New(t.Name())
+	}
 	return keys.New(t.Key())
 }
 

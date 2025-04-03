@@ -1,6 +1,9 @@
 package plan
 
-type PlanDebugger struct{}
+type PlanDebugger struct {
+	verbose bool
+	depth   int
+}
 
 func DebugPlan(plan Plan) (string, error) {
 	debugger := &PlanDebugger{}
@@ -8,6 +11,10 @@ func DebugPlan(plan Plan) (string, error) {
 }
 
 func (p *PlanDebugger) VisitCreateTable(plan *CreateTable) (string, error) {
+	output := "CreateTable: " + plan.Table.Name()
+	if p.verbose {
+		output += "\n"
+	}
 	return "CreateTable: " + plan.Table.Name(), nil
 }
 
