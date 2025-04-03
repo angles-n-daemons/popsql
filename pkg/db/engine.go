@@ -5,9 +5,9 @@ import (
 	"os"
 	"sync"
 
+	"github.com/angles-n-daemons/popsql/pkg/db/executor"
 	"github.com/angles-n-daemons/popsql/pkg/kv"
 	"github.com/angles-n-daemons/popsql/pkg/kv/store"
-	"github.com/angles-n-daemons/popsql/pkg/sql"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser"
 	"github.com/angles-n-daemons/popsql/pkg/sql/plan"
@@ -23,12 +23,12 @@ func (e *Engine) Query(query string, parameters []any) error {
 	if err != nil {
 		return err
 	}
-	plan, err := plan.PlanQuery(stmt)
+	plan, err := plan.PlanQuery(e.Catalog.Schema, stmt)
 	if err != nil {
 		return err
 	}
 
-	exec := sql.NewExecutor(e.Store, e.Catalog)
+	exec := executor.New(e.Store, e.Catalog)
 	rows, err := exec.Execute(plan)
 	if err != nil {
 		return err
@@ -57,6 +57,9 @@ func GetEngine() *Engine {
 		config := NewConfig(os.Getenv)
 		if config.DebugParser {
 			parser.Debug = true
+		}
+		if config.DebugPlanner {
+			plan.Debug = true
 		}
 		db = newEngine(config.DebugStore)
 	})

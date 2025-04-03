@@ -20,13 +20,13 @@ Binary     = Expr Left, scanner.Token Operator, Expr Right
 Literal    = scanner.Token Value
 Unary      = scanner.Token Operator, Expr Right
 Assignment = scanner.Token Name, Expr Value
-Reference  = []*scanner.Token Names
+Reference  = []scanner.Token Names
 ColumnSpec = scanner.Token Name, scanner.Token DataType
 `
 
 var stmtAST = `
 Select      = []Expr Terms, *Reference From, Expr Where
-Insert      = *Reference Table, []*Reference Columns, [][]Expr Values
+Insert      = scanner.Token Table, []*Reference Columns, [][]Expr Values
 CreateTable = scanner.Token Name, []*ColumnSpec Columns
 `
 

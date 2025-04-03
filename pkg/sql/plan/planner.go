@@ -2,16 +2,33 @@ package plan
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
+	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/schema"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/ast"
 )
 
-type Planner struct{}
+var Debug = false
 
-func PlanQuery(stmt ast.Stmt) (Plan, error) {
+type Planner struct {
+	Schema *schema.Schema
+}
+
+func PlanQuery(sc *schema.Schema, stmt ast.Stmt) (Plan, error) {
 	planner := &Planner{}
-	return ast.VisitStmt(stmt, planner)
+	plan, err := ast.VisitStmt(stmt, planner)
+	if err != nil {
+		return nil, err
+	}
+	if Debug {
+		planStr, err := DebugPlan(plan)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Println(planStr)
+	}
+	return plan, err
 }
 
 func (p *Planner) VisitCreateTableStmt(stmt *ast.CreateTable) (Plan, error) {
@@ -60,7 +77,42 @@ func NewColumnFromStmt(col *ast.ColumnSpec) (*desc.Column, error) {
 }
 
 func (p *Planner) VisitInsertStmt(stmt *ast.Insert) (Plan, error) {
-	return nil, errors.New("not implemented")
+	tname, err := ast.Identifier(*stmt.Table.Names[0])
+	if err != nil {
+		return nil, err
+	}
+
+	dt := schema.GetByName[*desc.Table](p.Schema, tname)
+	if dt == nil {
+		return nil, fmt.Errorf("Could not find table with name %s", tname)
+	}
+
+	columns := make([]*desc.Column, len(stmt.Columns))
+	for i, col := range stmt.Columns {
+		name, err := ast.Identifier(*col.Names[0])
+		if err != nil {
+			return nil, err
+		}
+		columns[i] = dt.GetColumn(name)
+		if columns[i] == nil {
+			return nil, fmt.Errorf("Could not find column with name %s", name)
+		}
+	}
+
+	inputLen := len(columns)
+	for i, tuple := range stmt.Values {
+		if len(tuple) != inputLen {
+			return nil, fmt.Errorf("Tuple %d has %d values, but %d columns were specified", i, len(tuple), inputLen)
+		}
+	}
+
+	// validate type?
+
+	return &Insert{
+		Table:   dt,
+		Columns: columns,
+		Values:  stmt.Values,
+	}, nil
 }
 
 func (p *Planner) VisitSelectStmt(stmt *ast.Select) (Plan, error) {
