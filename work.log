@@ -14,6 +14,8 @@ Want:
  - WAL backing for the store.
 
 2025-04-01
+ - Create a plan for insert that works
+ - Create a debugger for plans
 
 2025-03-30
  - DescriptorBuilders

@@ -16,7 +16,7 @@ type Planner struct {
 }
 
 func PlanQuery(sc *schema.Schema, stmt ast.Stmt) (Plan, error) {
-	planner := &Planner{}
+	planner := &Planner{Schema: sc}
 	plan, err := ast.VisitStmt(stmt, planner)
 	if err != nil {
 		return nil, err
@@ -95,18 +95,21 @@ func (p *Planner) VisitInsertStmt(stmt *ast.Insert) (Plan, error) {
 		}
 		columns[i] = dt.GetColumn(name)
 		if columns[i] == nil {
-			return nil, fmt.Errorf("Could not find column with name %s", name)
+			return nil, fmt.Errorf("Could not find column in table %s with name %s", tname, name)
 		}
 	}
 
 	inputLen := len(columns)
+
+	if inputLen == 0 {
+		return nil, fmt.Errorf("Nothing to insert")
+	}
+
 	for i, tuple := range stmt.Values {
 		if len(tuple) != inputLen {
 			return nil, fmt.Errorf("Tuple %d has %d values, but %d columns were specified", i, len(tuple), inputLen)
 		}
 	}
-
-	// validate type?
 
 	return &Insert{
 		Table:   dt,

@@ -2,6 +2,21 @@ package tree
 
 import "strings"
 
+/*
+reference characters
+┌─┬─┐  ╔═╦═╗  ╭─┬─╮
+│ │ │  ║ ║ ║  │ │ │
+├─┼─┤  ╠═╬═╣  ├─┼─┤
+└─┴─┘  ╚═╩═╝  ╰─┴─╯
+
+→ ← ↑ ↓ ↔ ↕
+⇒ ⇐ ⇑ ⇓ ⇄ ⇅
+
+├── (branch)
+└── (last branch)
+│   (vertical)
+*/
+
 type Node struct {
 	Content  []string
 	Children []*Node
@@ -46,21 +61,6 @@ type Visualizer struct {
 	open      []bool
 	direction Direction
 }
-
-/*
-reference characters
-┌─┬─┐  ╔═╦═╗  ╭─┬─╮
-│ │ │  ║ ║ ║  │ │ │
-├─┼─┤  ╠═╬═╣  ├─┼─┤
-└─┴─┘  ╚═╩═╝  ╰─┴─╯
-
-→ ← ↑ ↓ ↔ ↕
-⇒ ⇐ ⇑ ⇓ ⇄ ⇅
-
-├── (branch)
-└── (last branch)
-│   (vertical)
-*/
 
 func (v *Visualizer) Render(n *Node) []string {
 	result := []string{}
