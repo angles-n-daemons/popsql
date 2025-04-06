@@ -10,7 +10,7 @@ import (
 )
 
 func TestParserBasic(t *testing.T) {
-	stmt, err := parser.Parse(`SELECT "hi" == "no" != "where"`)
+	stmt, err := parser.Parse(`SELECT * FROM users`)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -50,12 +50,14 @@ func (t *stmtTreeifier) VisitSelectStmt(stmt *Select) (*tree.Node, error) {
 		}
 		terms += strings.Join(termsArr, ", ") + "]"
 
-		fs, err := VisitExpr(stmt.Where, t.querifier)
-		if err != nil {
-			return nil, err
+		if stmt.Where != nil {
+			fs, err := VisitExpr(stmt.Where, t.querifier)
+			if err != nil {
+				return nil, err
+			}
+			filters := " filters: " + fs
+			content = append(content, terms, filters)
 		}
-		filters := " filters: " + fs
-		content = append(content, terms, filters)
 	}
 	return tree.NewNode(content), nil
 }
