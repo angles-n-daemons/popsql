@@ -41,7 +41,7 @@ func (k *Key) WithID(id string) *Key {
 }
 
 func (k *Key) WithIDAddition(id string) *Key {
-	return newKey(k.Table, k.ID+id)
+	return newKey(k.Table, k.ID+"."+id)
 }
 
 func (k *Key) Encode() string {

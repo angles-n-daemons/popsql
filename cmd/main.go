@@ -7,5 +7,5 @@ import (
 )
 
 func main() {
-	cli.REPL(os.Args)
+	cli.Main(os.Args)
 }

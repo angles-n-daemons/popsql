@@ -82,6 +82,10 @@ func (p *Planner) VisitInsertStmt(stmt *ast.Insert) (Plan, error) {
 	}
 
 	columns := make([]*desc.Column, len(stmt.Columns))
+	if len(stmt.Columns) == 0 {
+		// if no columns supplied, just use the table's columns
+		columns = dt.Columns
+	}
 	for i, col := range stmt.Columns {
 		columns[i] = dt.GetColumn(col.Name.Lexeme)
 		if columns[i] == nil {
@@ -109,5 +113,6 @@ func (p *Planner) VisitInsertStmt(stmt *ast.Insert) (Plan, error) {
 }
 
 func (p *Planner) VisitSelectStmt(stmt *ast.Select) (Plan, error) {
+	// TOOD
 	return nil, errors.New("not implemented")
 }

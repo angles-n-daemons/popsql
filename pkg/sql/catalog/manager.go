@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/angles-n-daemons/popsql/pkg/kv"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
@@ -58,6 +59,16 @@ func SequenceNext(m *Manager, s *desc.Sequence) (uint64, error) {
 		return 0, err
 	}
 	return next, nil
+}
+
+// TableSequenceNext call SequenceNext on the default sequence for a table.
+func TableSequenceNext(m *Manager, t *desc.Table) (uint64, error) {
+	seq := schema.GetByName[*desc.Sequence](m.Schema, t.DefaultSequenceName())
+	if seq == nil {
+		return 0, fmt.Errorf("could not find key column for table %s", t.Name())
+	}
+
+	return SequenceNext(m, seq)
 }
 
 // save exists to store a collectible in the underlying store.

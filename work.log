@@ -13,7 +13,11 @@ Want:
  - A sql query planner.
  - WAL backing for the store.
 
-2025-04-25
+2025-04-06
+ - Maybe switch the implementation to have no cursor.
+
+2025-04-05
+ - implement the insert functionality
  - Remove references from the codebase (for now)
 
 2025-04-01

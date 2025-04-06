@@ -17,7 +17,7 @@ var banner = `
 ┛   ┛       
 `
 
-func REPL(args []string) {
+func REPL() {
 	fmt.Println(banner)
 	fmt.Println("version 0.0")
 	loop()
