@@ -8,5 +8,5 @@ import (
 
 func TestQuery(t *testing.T) {
 	db := db.GetEngine()
-	db.Query("insert into james(id) values(1)", []any{})
+	db.Query("select * from users", []any{})
 }

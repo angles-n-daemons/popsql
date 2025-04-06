@@ -13,6 +13,9 @@ Want:
  - A sql query planner.
  - WAL backing for the store.
 
+2025-04-25
+ - Remove references from the codebase (for now)
+
 2025-04-01
  - Create a plan for insert that works
  - Create a debugger for plans

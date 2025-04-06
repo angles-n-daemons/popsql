@@ -3,6 +3,7 @@ package parser
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/ast"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
@@ -54,15 +55,15 @@ func createStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 	if !match(tokens, i, scanner.TABLE) {
 		return nil, i, fmt.Errorf("expected TABLE to follow CREATE")
 	}
-	if !match(tokens, i+1, scanner.IDENTIFIER) {
-		return nil, i + 1, fmt.Errorf("expected name to follow CREATE TABLE")
+	name, i, err := identifier(tokens, i+1)
+	if err != nil {
+		return nil, i, err
 	}
-	name := tokens[i+1]
-	if !match(tokens, i+2, scanner.LEFT_PAREN) {
-		return nil, i + 2, fmt.Errorf("expected LEFT_PAREN to follow CREATE TABLE <name>")
+	if !match(tokens, i, scanner.LEFT_PAREN) {
+		return nil, i, fmt.Errorf("expected LEFT_PAREN to follow CREATE TABLE <name>")
 	}
 	columns := []*ast.ColumnSpec{}
-	i += 3
+	i += 1
 	for match(tokens, i, scanner.IDENTIFIER) {
 		var spec *ast.ColumnSpec
 		var err error
@@ -80,7 +81,7 @@ func createStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 	if !match(tokens, i, scanner.RIGHT_PAREN) {
 		return nil, i, fmt.Errorf("expected RIGHT_PAREN to close CREATE TABLE statement")
 	}
-	return &ast.CreateTable{Name: *name, Columns: columns}, i + 1, nil
+	return &ast.CreateTable{Name: name, Columns: columns}, i + 1, nil
 }
 
 func selectStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
@@ -89,13 +90,13 @@ func selectStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 		return nil, i, err
 	}
 	stmt := &ast.Select{Terms: terms}
+	var from *ast.Identifier
 	if match(tokens, i, scanner.FROM) {
 		if len(tokens) <= i+1 {
 			return nil, i, fmt.Errorf("reached end of input looking for 'from' expression")
 		}
 
-		var from *ast.Reference
-		from, i, err = reference(tokens, i+1)
+		from, i, err = identifier(tokens, i+1)
 		if err != nil {
 			return nil, i, err
 		}
@@ -124,14 +125,14 @@ func insertStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 		return nil, i, err
 	}
 
-	table, i, err := reference(tokens, i+1)
+	table, i, err := identifier(tokens, i+1)
 	if err != nil {
 		return nil, i, err
 	}
 
-	var columns []*ast.Reference
+	var columns []*ast.Identifier
 	if match(tokens, i, scanner.LEFT_PAREN) {
-		columns, i, err = referenceList(tokens, i+1)
+		columns, i, err = identifierList(tokens, i+1)
 		if err != nil {
 			return nil, i, err
 		}
@@ -156,14 +157,15 @@ func insertStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 }
 
 func columnSpec(tokens []*scanner.Token, i int) (*ast.ColumnSpec, int, error) {
-	if !match(tokens, i, scanner.IDENTIFIER) {
-		return nil, i, fmt.Errorf("expected name in column spec")
+	name, i, err := identifier(tokens, i)
+	if err != nil {
+		return nil, i, nil
 	}
-	if !match(tokens, i+1, scanner.DATATYPE_BOOLEAN, scanner.DATATYPE_STRING, scanner.DATATYPE_NUMBER) {
-		return nil, i + 1, fmt.Errorf("expected data type in column spec")
+	if !match(tokens, i, scanner.DATATYPE_BOOLEAN, scanner.DATATYPE_STRING, scanner.DATATYPE_NUMBER) {
+		return nil, i, fmt.Errorf("expected data type in column spec")
 	}
 
-	return &ast.ColumnSpec{Name: *tokens[i], DataType: *tokens[i+1]}, i + 2, nil
+	return &ast.ColumnSpec{Name: name, DataType: tokens[i]}, i + 1, nil
 }
 
 func tupleList(tokens []*scanner.Token, i int) ([][]ast.Expr, int, error) {
@@ -218,16 +220,16 @@ func expressionList(tokens []*scanner.Token, i int) ([]ast.Expr, int, error) {
 	return list, i, nil
 }
 
-func referenceList(tokens []*scanner.Token, i int) ([]*ast.Reference, int, error) {
-	var ref *ast.Reference
+func identifierList(tokens []*scanner.Token, i int) ([]*ast.Identifier, int, error) {
+	list := []*ast.Identifier{}
+	var name *ast.Identifier
 	var err error
-	list := []*ast.Reference{}
 	for {
-		ref, i, err = reference(tokens, i)
+		name, i, err = identifier(tokens, i)
 		if err != nil {
 			return nil, i, err
 		}
-		list = append(list, ref)
+		list = append(list, name)
 		if match(tokens, i, scanner.COMMA) {
 			i++
 		} else {
@@ -298,7 +300,7 @@ func unary(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 		if err != nil {
 			return nil, i, err
 		}
-		return &ast.Unary{Operator: *operator, Right: expr}, i, nil
+		return &ast.Unary{Operator: operator, Right: expr}, i, nil
 	}
 	return primary(tokens, i)
 }
@@ -314,7 +316,7 @@ func binary(
 		return nil, i, err
 	}
 	for match(tokens, i, operators...) {
-		operator := *tokens[i]
+		operator := tokens[i]
 		i++
 		var right ast.Expr
 		right, i, err = next(tokens, i)
@@ -338,9 +340,9 @@ func primary(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 	}
 	switch tokens[i].Type {
 	case scanner.NUMBER, scanner.STRING:
-		return &ast.Literal{Value: *tokens[i]}, i + 1, nil
+		return &ast.Literal{Value: tokens[i]}, i + 1, nil
 	case scanner.IDENTIFIER, scanner.STAR:
-		return reference(tokens, i)
+		return identifier(tokens, i)
 	case scanner.LEFT_PAREN:
 		expr, i, err = expression(tokens, i+1)
 		if err != nil {
@@ -355,19 +357,11 @@ func primary(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 	}
 }
 
-func reference(tokens []*scanner.Token, i int) (*ast.Reference, int, error) {
+func identifier(tokens []*scanner.Token, i int) (*ast.Identifier, int, error) {
 	if !match(tokens, i, scanner.IDENTIFIER, scanner.STAR) {
 		return nil, i, fmt.Errorf("unexpected token %s parsing reference", tokens[i].Type)
 	}
-	names := []*scanner.Token{tokens[i]}
-	for match(tokens, i+1, scanner.DOT) {
-		i += 2
-		if !match(tokens, i, scanner.IDENTIFIER, scanner.STAR) {
-			return nil, i, fmt.Errorf("unexpected token %s parsing reference", tokens[i].Type)
-		}
-		names = append(names, tokens[i])
-	}
-	return &ast.Reference{Names: names}, i + 1, nil
+	return &ast.Identifier{Name: tokens[i]}, i + 1, nil
 }
 
 func assertNext(tokens []*scanner.Token, i int, ttype scanner.TokenType) error {
@@ -385,12 +379,7 @@ func match(tokens []*scanner.Token, i int, types ...scanner.TokenType) bool {
 	if isAtEnd(tokens, i) {
 		return false
 	}
-	for _, ttype := range types {
-		if tokens[i].Type == ttype {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(types, tokens[i].Type)
 }
 
 func isAtEnd(tokens []*scanner.Token, i int) bool {

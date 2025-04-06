@@ -25,7 +25,7 @@ func (e *ExpressionExecutor) VisitBinaryExpr(expr *ast.Binary) (any, error) {
 	return evalBinaryExpr(expr.Operator, lhs, rhs)
 }
 
-func evalBinaryExpr(op scanner.Token, left, right any) (any, error) {
+func evalBinaryExpr(op *scanner.Token, left, right any) (any, error) {
 	switch op.Type {
 	case scanner.PLUS:
 		switch left.(type) {
@@ -49,7 +49,7 @@ func evalBinaryExpr(op scanner.Token, left, right any) (any, error) {
 	}
 }
 
-func arithmetic(op scanner.Token, left, right any) (any, error) {
+func arithmetic(op *scanner.Token, left, right any) (any, error) {
 	a, aok := left.(float64)
 	b, bok := right.(float64)
 	if !(aok && bok) {
@@ -69,7 +69,7 @@ func arithmetic(op scanner.Token, left, right any) (any, error) {
 	}
 }
 
-func compare(op scanner.Token, left, right any) (any, error) {
+func compare(op *scanner.Token, left, right any) (any, error) {
 	a, aok := left.(float64)
 	b, bok := right.(float64)
 	if !(aok && bok) {
@@ -89,7 +89,7 @@ func compare(op scanner.Token, left, right any) (any, error) {
 	}
 }
 
-func equality(op scanner.Token, left, right any) (any, error) {
+func equality(op *scanner.Token, left, right any) (any, error) {
 	switch op.Type {
 	case scanner.EQUAL_EQUAL:
 		return left == right, nil
@@ -121,10 +121,7 @@ func (e *ExpressionExecutor) VisitUnaryExpr(expr *ast.Unary) (any, error) {
 	}
 	return nil, fmt.Errorf("cannot perform operaion %s on value of type %T", expr.Operator.Type, right)
 }
-func (e *ExpressionExecutor) VisitAssignmentExpr(*ast.Assignment) (any, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-func (e *ExpressionExecutor) VisitReferenceExpr(*ast.Reference) (any, error) {
+func (e *ExpressionExecutor) VisitIdentifierExpr(*ast.Identifier) (any, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 func (e *ExpressionExecutor) VisitColumnSpecExpr(*ast.ColumnSpec) (any, error) {

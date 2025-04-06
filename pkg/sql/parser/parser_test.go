@@ -37,22 +37,20 @@ func TestParseValidPrograms(t *testing.T) {
 		`sELEct 1.23`,
 		`SELECT "hi there"`,
 		`SELECT jim`,
-		`SELECT jim.jane`,
-		`SELECT jane.goodall, 12.3, "jeremy lin"`,
+		`SELECT jim`,
+		`SELECT jane, 12.3, "jeremy lin"`,
 		`SELECT * FROM users;`,
-		`SELECT column.* FROM users.thing`,
-		`SELECT column.*, 12 FROM users.thing`,
 		`SELECT 5 + 4, "ello" FROM thing WHERE x==8`,
 		`INSERT INTO a VALUES (1, 2)`,
 		`INSERT INTO a (x, y) VALUES (1, 2)`,
 		`INSERT INTO a (x, y) VALUES (1, 2), (3, 4)`,
-		`INSERT INTO a.b (c.d) VALUES (5)`,
 		`SELECT !false`,
-		`SELECT a.false`,
 		`SELECT (1)`,
 		`CREATE TABLE derp()`,
 		`CREATE TABLE derp (cal number)`,
 		`CREATE TABLE derp(i string, cal number)`,
+		`INSERT INTO JERP VALUES (1, 2)`,
+		`INSERT INTO JERP (i, cal) VALUES (1, 2)`,
 		//`UPDATE a SET x = 4`,
 		//`UPDATE a SET x = 4, y = 5`,
 		//`UPDATE a SET x = 4, y = 5 WHERE z = 10`,
@@ -104,11 +102,10 @@ func TestParseInvalidPrograms(t *testing.T) {
 		`CREATE TABLE x`,
 	} {
 		t.Run(`Parse Invalid: `+query, func(t *testing.T) {
-			stmt, err := parser.Parse(query)
+			_, err := parser.Parse(query)
 			if err == nil {
 				t.Fatalf(`expected query "%s" to fail parse, but didn"t`, query)
 			}
-			ast.Print(stmt)
 		})
 	}
 }

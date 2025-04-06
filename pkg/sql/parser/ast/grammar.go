@@ -4,37 +4,34 @@ package ast
 
 import (
 	"fmt"
-
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
 type walkFunc func(Expr) error
+
 
 type Expr interface {
 	isExpr()
 }
 
 type ExprVisitor[T any] interface {
+	VisitIdentifierExpr(*Identifier) (T, error)
 	VisitBinaryExpr(*Binary) (T, error)
 	VisitLiteralExpr(*Literal) (T, error)
 	VisitUnaryExpr(*Unary) (T, error)
-	VisitAssignmentExpr(*Assignment) (T, error)
-	VisitReferenceExpr(*Reference) (T, error)
 	VisitColumnSpecExpr(*ColumnSpec) (T, error)
 }
 
 func VisitExpr[T any](expr Expr, visitor ExprVisitor[T]) (T, error) {
 	switch typedExpr := expr.(type) {
+	case *Identifier:
+		return visitor.VisitIdentifierExpr(typedExpr)
 	case *Binary:
 		return visitor.VisitBinaryExpr(typedExpr)
 	case *Literal:
 		return visitor.VisitLiteralExpr(typedExpr)
 	case *Unary:
 		return visitor.VisitUnaryExpr(typedExpr)
-	case *Assignment:
-		return visitor.VisitAssignmentExpr(typedExpr)
-	case *Reference:
-		return visitor.VisitReferenceExpr(typedExpr)
 	case *ColumnSpec:
 		return visitor.VisitColumnSpecExpr(typedExpr)
 	default:
@@ -42,46 +39,45 @@ func VisitExpr[T any](expr Expr, visitor ExprVisitor[T]) (T, error) {
 	}
 }
 
-type Binary struct {
-	Left     Expr
-	Operator scanner.Token
-	Right    Expr
-}
 
+type Identifier struct {
+	Name *scanner.Token
+}
+func (t *Identifier) isExpr() {}
+
+
+
+type Binary struct {
+	Left Expr
+	Operator *scanner.Token
+	Right Expr
+}
 func (t *Binary) isExpr() {}
 
-type Literal struct {
-	Value scanner.Token
-}
 
+
+type Literal struct {
+	Value *scanner.Token
+}
 func (t *Literal) isExpr() {}
 
-type Unary struct {
-	Operator scanner.Token
-	Right    Expr
-}
 
+
+type Unary struct {
+	Operator *scanner.Token
+	Right Expr
+}
 func (t *Unary) isExpr() {}
 
-type Assignment struct {
-	Name  scanner.Token
-	Value Expr
-}
 
-func (t *Assignment) isExpr() {}
-
-type Reference struct {
-	Names []*scanner.Token
-}
-
-func (t *Reference) isExpr() {}
 
 type ColumnSpec struct {
-	Name     scanner.Token
-	DataType scanner.Token
+	Name *Identifier
+	DataType *scanner.Token
 }
-
 func (t *ColumnSpec) isExpr() {}
+
+
 
 type StmtVisitor[T any] interface {
 	VisitSelectStmt(*Select) (T, error)
@@ -102,29 +98,36 @@ func VisitStmt[T any](expr Stmt, visitor StmtVisitor[T]) (T, error) {
 	}
 }
 
+
 type Select struct {
 	Terms []Expr
-	From  *Reference
+	From *Identifier
 	Where Expr
 }
-
 func (t *Select) isStmt() {}
 
-type Insert struct {
-	Table   *Reference
-	Columns []*Reference
-	Values  [][]Expr
-}
 
+
+type Insert struct {
+	Table *Identifier
+	Columns []*Identifier
+	Values [][]Expr
+}
 func (t *Insert) isStmt() {}
 
+
+
 type CreateTable struct {
-	Name    scanner.Token
+	Name *Identifier
 	Columns []*ColumnSpec
 }
-
 func (t *CreateTable) isStmt() {}
+
+
+
 
 type Stmt interface {
 	isStmt()
 }
+
+

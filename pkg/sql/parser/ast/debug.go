@@ -24,17 +24,20 @@ type stmtTreeifier struct {
 }
 
 func (t *stmtTreeifier) VisitCreateTableStmt(stmt *CreateTable) (*tree.Node, error) {
-	content := []string{"CREATE TABLE: " + stmt.Name.Lexeme}
+	content := []string{"CREATE TABLE: " + stmt.Name.Name.Lexeme}
 	if t.verbose {
 		for _, col := range stmt.Columns {
-			content = append(content, fmt.Sprintf(" - %s %s", col.Name.Lexeme, col.DataType.Lexeme))
+			content = append(content, fmt.Sprintf(" - %s %s", col.Name.Name.Lexeme, col.DataType.Lexeme))
 		}
 	}
 	return tree.NewNode(content), nil
 }
 
 func (t *stmtTreeifier) VisitSelectStmt(stmt *Select) (*tree.Node, error) {
-	content := []string{"SELECT: " + stmt.From.Names[0].Lexeme}
+	content := []string{"SELECT: "}
+	if stmt.From != nil {
+		content[0] += stmt.From.Name.Lexeme
+	}
 	if t.verbose {
 		terms := " terms: ["
 		termsArr := []string{}
@@ -58,7 +61,7 @@ func (t *stmtTreeifier) VisitSelectStmt(stmt *Select) (*tree.Node, error) {
 }
 
 func (t *stmtTreeifier) VisitInsertStmt(stmt *Insert) (*tree.Node, error) {
-	content := []string{"INSERT: " + stmt.Table.Names[0].Lexeme}
+	content := []string{"INSERT: " + stmt.Table.Name.Lexeme}
 	if t.verbose {
 		cols := " cols: ["
 		colsArr := []string{}

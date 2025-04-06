@@ -57,7 +57,7 @@ func NewTableFromStmt(stmt *ast.CreateTable) (*desc.Table, error) {
 	}
 	// TODO: primary key parsing
 	// TODO: validate primary key
-	return desc.NewTable(stmt.Name.Lexeme, columns, []string{})
+	return desc.NewTable(stmt.Name.Name.Lexeme, columns, []string{})
 }
 
 // NewColumnFromStmt is a utility function which turns a ColumnSpec into a desc.
@@ -69,18 +69,12 @@ func NewColumnFromStmt(col *ast.ColumnSpec) (*desc.Column, error) {
 		return nil, err
 	}
 
-	name, err := ast.Identifier(col.Name)
-	if err != nil {
-		return nil, err
-	}
+	name := col.Name.Name.Lexeme
 	return desc.NewColumn(name, dt), nil
 }
 
 func (p *Planner) VisitInsertStmt(stmt *ast.Insert) (Plan, error) {
-	tname, err := ast.Identifier(*stmt.Table.Names[0])
-	if err != nil {
-		return nil, err
-	}
+	tname := stmt.Table.Name.Lexeme
 
 	dt := schema.GetByName[*desc.Table](p.Schema, tname)
 	if dt == nil {
@@ -89,13 +83,9 @@ func (p *Planner) VisitInsertStmt(stmt *ast.Insert) (Plan, error) {
 
 	columns := make([]*desc.Column, len(stmt.Columns))
 	for i, col := range stmt.Columns {
-		name, err := ast.Identifier(*col.Names[0])
-		if err != nil {
-			return nil, err
-		}
-		columns[i] = dt.GetColumn(name)
+		columns[i] = dt.GetColumn(col.Name.Lexeme)
 		if columns[i] == nil {
-			return nil, fmt.Errorf("Could not find column in table %s with name %s", tname, name)
+			return nil, fmt.Errorf("Could not find column in table %s with name %s", tname, col.Name.Lexeme)
 		}
 	}
 

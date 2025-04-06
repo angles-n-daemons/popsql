@@ -13,6 +13,8 @@ import (
 
 var whitespace = []byte{' ', '\n', '\t'}
 
+var Debug = false
+
 func Scan(s string) ([]*Token, error) {
 	tokens := []*Token{}
 	i := 0
@@ -58,6 +60,25 @@ outside:
 		default:
 			return nil, fmt.Errorf("unknown character '%c'", s[i])
 		}
+	}
+	if Debug {
+		debugLexemes := []string{}
+		debugTypes := []string{}
+		for _, token := range tokens {
+			llen := len(token.Lexeme)
+			tlen := len(token.Type.String())
+			if llen <= tlen {
+				debugLexemes = append(debugLexemes, token.Lexeme+strings.Repeat(" ", tlen-llen))
+				debugTypes = append(debugTypes, token.Type.String())
+			} else {
+
+				debugLexemes = append(debugLexemes, token.Lexeme)
+				debugTypes = append(debugTypes, token.Type.String()+strings.Repeat(" ", llen-tlen))
+			}
+		}
+		fmt.Println("Tokens: ")
+		fmt.Println("[ " + strings.Join(debugLexemes, ", ") + " ]")
+		fmt.Println("[ " + strings.Join(debugTypes, ", ") + " ]")
 	}
 	return tokens, nil
 }

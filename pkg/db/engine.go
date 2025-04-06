@@ -11,6 +11,7 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser"
+	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 	"github.com/angles-n-daemons/popsql/pkg/sql/plan"
 )
 
@@ -56,6 +57,9 @@ var once sync.Once
 func GetEngine() *Engine {
 	once.Do(func() {
 		config := NewConfig(os.Getenv)
+		if config.DebugScanner {
+			scanner.Debug = true
+		}
 		if config.DebugParser {
 			parser.Debug = true
 		}
