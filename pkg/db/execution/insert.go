@@ -9,7 +9,7 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
-	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/sys"
+	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/schema"
 	"github.com/angles-n-daemons/popsql/pkg/sql/plan"
 )
 
@@ -27,7 +27,7 @@ func (e *Executor) VisitInsert(p *plan.Insert) ([]Row, error) {
 
 		// I need to do this as well if the primary key isn't internal, but still shows up
 		if primaryKeyInternal(p.Table) {
-			id, err := catalog.TableSequenceNext(e.Catalog, p.Table)
+			id, err := e.tableSequenceNext(p.Table)
 			if err != nil {
 				return nil, err
 			}
@@ -66,5 +66,14 @@ func (e *Executor) VisitInsert(p *plan.Insert) ([]Row, error) {
 }
 
 func primaryKeyInternal(t *desc.Table) bool {
-	return len(t.PrimaryKey) == 1 && t.PrimaryKey[0] == sys.ReservedInternalKeyName
+	return len(t.PrimaryKey) == 1 && t.PrimaryKey[0] == desc.ReservedInternalColumnName
+}
+
+func (e *Executor) tableSequenceNext(t *desc.Table) (uint64, error) {
+	seq := schema.GetByName[*desc.Sequence](e.Catalog.Schema, t.DefaultSequenceName())
+	if seq == nil {
+		return 0, fmt.Errorf("could not find key column for table %s", t.Name())
+	}
+
+	return catalog.SequenceNext(e.Catalog, seq)
 }

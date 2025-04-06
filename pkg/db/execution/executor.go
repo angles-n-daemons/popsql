@@ -51,6 +51,8 @@ func (e *Executor) Execute(p plan.Plan) (*Result, error) {
 	case *plan.Insert:
 		columns = []string{"count"}
 		rows = []Row{{len(rows)}}
+	case *plan.Scan:
+		columns = tp.Columns()
 	default:
 		return nil, fmt.Errorf("unable to execute plan of type %T", tp)
 	}

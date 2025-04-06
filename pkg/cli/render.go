@@ -12,7 +12,7 @@ var Reset = "\033[0m"
 var Bold = "\033[1m"
 var Green = "\033[32m"
 
-func TableRender(result *execution.Result) string {
+func Render(result *execution.Result) string {
 	rows := rowsToStrings(result.Rows)
 	lengths := make([]int, len(result.Columns))
 
@@ -73,11 +73,11 @@ func styledRow(style, styleEnd string, row []string, lengths []int) string {
 }
 
 func splitter(lengths []int) string {
-	s := "+"
-	for _, l := range lengths {
-		s += strings.Repeat("-", l+2)
+	betweens := make([]string, len(lengths))
+	for i, l := range lengths {
+		betweens[i] = strings.Repeat("-", l+2)
 	}
-	return s + "+" + "\n"
+	return "+" + strings.Join(betweens, "+") + "+" + "\n"
 }
 
 func delimiter(start, end bool) string {

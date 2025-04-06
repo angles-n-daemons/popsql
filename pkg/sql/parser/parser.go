@@ -85,7 +85,7 @@ func createStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 }
 
 func selectStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
-	terms, i, err := expressionList(tokens, i)
+	terms, i, err := identifierList(tokens, i)
 	if err != nil {
 		return nil, i, err
 	}

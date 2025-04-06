@@ -7,6 +7,7 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/schema"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/ast"
+	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
 var Debug = false
@@ -113,6 +114,19 @@ func (p *Planner) VisitInsertStmt(stmt *ast.Insert) (Plan, error) {
 }
 
 func (p *Planner) VisitSelectStmt(stmt *ast.Select) (Plan, error) {
-	// TOOD
-	return nil, errors.New("not implemented")
+	tname := stmt.From.Name.Lexeme
+
+	dt := schema.GetByName[*desc.Table](p.Schema, tname)
+	if dt == nil {
+		return nil, fmt.Errorf("Could not find table with name %s", tname)
+	}
+
+	from := &Scan{
+		Table: dt,
+	}
+
+	if len(stmt.Terms) == 1 && stmt.Terms[0].Name.Type == scanner.STAR {
+		return from, nil
+	}
+	return from, errors.New("not implemented")
 }

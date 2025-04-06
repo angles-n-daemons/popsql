@@ -36,6 +36,10 @@ func NewSequenceColumn(name string, seq string) *Column {
 	}
 }
 
+func InternalKeyColumn(seq string) *Column {
+	return NewSequenceColumn(ReservedInternalColumnName, seq)
+}
+
 func (c *Column) Equal(o *Column) bool {
 	if o == nil {
 		return false

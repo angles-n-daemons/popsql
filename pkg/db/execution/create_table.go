@@ -3,7 +3,6 @@ package execution
 import (
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
-	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/sys"
 	"github.com/angles-n-daemons/popsql/pkg/sql/plan"
 )
 
@@ -41,5 +40,5 @@ func (e *Executor) createTableSequence(t *desc.Table) (*desc.Column, error) {
 	if err != nil {
 		return nil, err
 	}
-	return desc.NewSequenceColumn(sys.ReservedInternalKeyName, seqName), nil
+	return desc.InternalKeyColumn(seqName), nil
 }

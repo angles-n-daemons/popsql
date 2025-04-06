@@ -100,7 +100,7 @@ func VisitStmt[T any](expr Stmt, visitor StmtVisitor[T]) (T, error) {
 
 
 type Select struct {
-	Terms []Expr
+	Terms []*Identifier
 	From *Identifier
 	Where Expr
 }

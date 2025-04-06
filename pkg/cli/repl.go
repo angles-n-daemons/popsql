@@ -46,7 +46,7 @@ func loop() {
 			if err != nil {
 				fmt.Println(err)
 			} else {
-				fmt.Println(TableRender(result))
+				fmt.Println(Render(result))
 			}
 			query = ""
 		}

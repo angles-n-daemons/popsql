@@ -27,6 +27,6 @@ func File(filename string) {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(TableRender(result))
+		fmt.Println(Render(result))
 	}
 }

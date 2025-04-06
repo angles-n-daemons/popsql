@@ -88,7 +88,7 @@ func isNumeric(b byte) bool {
 }
 
 func isLetter(b byte) bool {
-	return (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z')
+	return b == '_' || (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z')
 }
 
 func isAtEnd(s string, i int) bool {

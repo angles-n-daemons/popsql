@@ -20,8 +20,6 @@ const (
 
 	idCol   = "id"
 	nameCol = "name"
-
-	ReservedInternalKeyName = "__key"
 )
 
 func InitSchema() (*schema.Schema, error) {

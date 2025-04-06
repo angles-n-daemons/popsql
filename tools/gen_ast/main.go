@@ -24,7 +24,7 @@ ColumnSpec = *Identifier Name, *scanner.Token DataType
 `
 
 var stmtAST = `
-Select      = []Expr Terms, *Identifier From, Expr Where
+Select      = []*Identifier Terms, *Identifier From, Expr Where
 Insert      = *Identifier Table, []*Identifier Columns, [][]Expr Values
 CreateTable = *Identifier Name, []*ColumnSpec Columns
 `

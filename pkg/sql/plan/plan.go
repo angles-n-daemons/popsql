@@ -8,6 +8,7 @@ import (
 type PlanVisitor[T any] interface {
 	VisitCreateTable(*CreateTable) (T, error)
 	VisitInsert(*Insert) (T, error)
+	VisitScan(*Scan) (T, error)
 }
 
 func VisitPlan[T any](plan Plan, visitor PlanVisitor[T]) (T, error) {
@@ -16,6 +17,8 @@ func VisitPlan[T any](plan Plan, visitor PlanVisitor[T]) (T, error) {
 		return visitor.VisitCreateTable(typedPlan)
 	case *Insert:
 		return visitor.VisitInsert(typedPlan)
+	case *Scan:
+		return visitor.VisitScan(typedPlan)
 	default:
 		return *new(T), nil
 	}
@@ -38,3 +41,18 @@ type Insert struct {
 }
 
 func (p *Insert) isPlan() {}
+
+type Scan struct {
+	Table *desc.Table
+}
+
+func (p *Scan) isPlan() {}
+
+func (p *Scan) Columns() []string {
+	columns := p.Table.GetColumns()
+	cols := make([]string, len(columns))
+	for i, col := range columns {
+		cols[i] = col.Name
+	}
+	return cols
+}

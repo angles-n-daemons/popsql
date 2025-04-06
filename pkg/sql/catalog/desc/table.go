@@ -11,6 +11,8 @@ import (
 
 var DebugTables = false
 
+const ReservedInternalColumnName = "__key"
+
 type Table struct {
 	TID        uint64
 	TName      string
@@ -65,6 +67,17 @@ func (t *Table) GetColumn(name string) *Column {
 		}
 	}
 	return nil
+}
+
+func (t *Table) GetColumns() []*Column {
+	columns := []*Column{}
+	for _, column := range t.Columns {
+		if column.Name == ReservedInternalColumnName {
+			continue
+		}
+		columns = append(columns, column)
+	}
+	return columns
 }
 
 func (t *Table) Equal(o *Table) bool {

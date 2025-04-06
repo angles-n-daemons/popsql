@@ -19,5 +19,9 @@ func (p *PlanDebugger) VisitCreateTable(plan *CreateTable) (string, error) {
 }
 
 func (p *PlanDebugger) VisitInsert(plan *Insert) (string, error) {
-	return "Insert into: " + plan.Table.Name(), nil
+	return "Insert: " + plan.Table.Name(), nil
+}
+
+func (p *PlanDebugger) VisitScan(plan *Scan) (string, error) {
+	return "Scan: " + plan.Table.Name(), nil
 }
