@@ -1,4 +1,4 @@
-package executor
+package execution
 
 import (
 	"encoding/json"
@@ -35,6 +35,7 @@ func (e *Executor) VisitInsert(p *plan.Insert) ([]Row, error) {
 			key = key.WithID(sid)
 		}
 
+		// TODO: validate types here
 		for i, expr := range tup {
 			val, err := Eval(expr)
 			if err != nil {
@@ -53,7 +54,6 @@ func (e *Executor) VisitInsert(p *plan.Insert) ([]Row, error) {
 		keys = append(keys, key)
 	}
 
-	fmt.Println(keys)
 	// save data in the db
 	for i, row := range rows {
 		b, err := json.Marshal(row)

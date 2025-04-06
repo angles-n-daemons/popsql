@@ -1,11 +1,10 @@
 package db
 
 import (
-	"fmt"
 	"os"
 	"sync"
 
-	"github.com/angles-n-daemons/popsql/pkg/db/executor"
+	"github.com/angles-n-daemons/popsql/pkg/db/execution"
 	"github.com/angles-n-daemons/popsql/pkg/kv"
 	"github.com/angles-n-daemons/popsql/pkg/kv/store"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog"
@@ -20,23 +19,18 @@ type Engine struct {
 	Catalog *catalog.Manager
 }
 
-func (e *Engine) Query(query string, parameters []any) error {
+func (e *Engine) Query(query string, parameters []any) (*execution.Result, error) {
 	stmt, err := parser.Parse(query)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	plan, err := plan.PlanQuery(e.Catalog.Schema, stmt)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	exec := executor.New(e.Store, e.Catalog)
-	rows, err := exec.Execute(plan)
-	if err != nil {
-		return err
-	}
-	fmt.Println(rows)
-	return nil
+	exec := execution.NewExecutor(e.Store, e.Catalog)
+	return exec.Execute(plan)
 }
 
 func newEngine(debugStore bool) *Engine {

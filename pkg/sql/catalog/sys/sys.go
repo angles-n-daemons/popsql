@@ -13,7 +13,7 @@ const (
 	SequencesID = 2
 
 	Tables    = "__tables__"
-	Sequences = "__sequences___"
+	Sequences = "__sequences__"
 
 	TablesSequence    = Tables + "_seq"
 	SequencesSequence = Sequences + "_seq"

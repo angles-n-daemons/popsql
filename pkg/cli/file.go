@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -17,6 +18,15 @@ func File(filename string) {
 	queries := strings.Split(string(b), ";")
 
 	for _, query := range queries {
-		db.Query(query, nil)
+		if strings.Trim(query, " \n\t") == "" {
+			continue
+		}
+
+		fmt.Println(query)
+		result, err := db.Query(query, nil)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(TableRender(result))
 	}
 }

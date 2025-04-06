@@ -1,5 +1,8 @@
-Need:
- - Way to differentiate inserts vs updates.
+Done conditions:
+ - Transactions.
+ - Encoding which is compatible with some other database.
+ - Protocol which can be benchmarked.
+// think about this pretty heavily
 
 Want:
  - Error tracing.
@@ -14,7 +17,29 @@ Want:
  - WAL backing for the store.
 
 2025-04-06
- - Maybe switch the implementation to have no cursor.
+ - Try to implement some select, and rendering functionality
+ - Try to get selecting to work.
+
+For rendering, how should I render the header of some output?
+
+If the rows themselves are devoid of header information, how d othey render at the end? How does toydb do it?
+
+How should I render tabular result data?
+
+insert planning and execution mostly works. most of the edges of all of this are untested, and the functionality itself seems reallly shakey.
+
+that being said it looks good when it's running, so it's a positive start.
+
+In insert execution, I'm already missing some pretty basic functionality, that being the validation of column values, primary key setting (when the user hasn't set a primary key), and some other things.
+
+Debugging is getting a little hairy. There are times when I only want to debug parts, the keys in storage or the nodes of the parser. Might make debugging a bit more involved in the future.
+
+Organizing the project has been challenging, especially since lots of packages share common themes (sequence, table, create table, etc)
+
+Transactions, especially transaction execution with sequences has me a bit befuddled. I'm not sure how to all or one things in this particular layout.
+
+2025-04-06
+ - Lots of additional tests for the parser.
 
 2025-04-05
  - implement the insert functionality

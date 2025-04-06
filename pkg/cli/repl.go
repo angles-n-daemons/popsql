@@ -42,9 +42,11 @@ func loop() {
 
 		// semicolon sent
 		if len(parts) > 1 {
-			err = db.Query(query, nil)
+			result, err := db.Query(query, nil)
 			if err != nil {
 				fmt.Println(err)
+			} else {
+				fmt.Println(TableRender(result))
 			}
 			query = ""
 		}

@@ -1,4 +1,4 @@
-package executor
+package execution
 
 import (
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog"
@@ -29,7 +29,7 @@ func (e *Executor) VisitCreateTable(p *plan.CreateTable) ([]Row, error) {
 }
 
 func (e *Executor) createTableSequence(t *desc.Table) (*desc.Column, error) {
-	seqName := t.TName + "_seq"
+	seqName := t.DefaultSequenceName()
 	seq := desc.NewSequence(seqName)
 	id, err := catalog.NextDescriptorID(e.Catalog, seq)
 	seq.SID = id
