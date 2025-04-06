@@ -1,0 +1,6 @@
+github.com/jackc/pgx/v5 v5.4.3 h1:cxFyXhxlvAifxnkKKdlxv8XqUf59tDlYjnV5YYfsJJY=
+github.com/jackc/pgx/v5 v5.4.3/go.mod h1:Ig06C2Vu0t5qXC60W8sqIthScaEnFvojjj9dSljmHRA=
+github.com/jeroenrinzema/psql-wire v0.12.2 h1://ndEkibjoF3h3CV4une4wPzFtAMRom3xl11kmAdbTE=
+github.com/jeroenrinzema/psql-wire v0.12.2/go.mod h1:K5B4s4JEm3008+QC5IZOLm/OoKFEt11bIrjT2f22zOg=
+github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
+github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=

@@ -19,6 +19,25 @@ Want:
 2025-04-06
  - Try to implement some select, and rendering functionality
  - Try to get selecting to work.
+ - After watching query execution, it's worth thinking about how to do more complex operations.
+   - Projection (requires context?)
+   - Revisit scoping in general.
+ - Might not be the worst thing to have a server implemenetation.
+
+
+Handling multiple queries? Handling semicolons?
+
+Now that selecting is working, I need to begin thinking about how projection works. Rather, I need to begin thinking about scoping.
+
+I suppose scoping won't be strictly necessary, but I do need to evaluate expressions within the context of query.
+
+For example, given the query:
+
+SELECT * from foo where bar = 1;
+
+The Eval() call should be able to evaluate the expression bar = 1, within the context of the table foo.
+
+Thanks GPT
 
 For rendering, how should I render the header of some output?
 
