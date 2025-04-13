@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/angles-n-daemons/popsql/pkg/db/execution"
+	"github.com/angles-n-daemons/popsql/pkg/sql/execution"
 )
 
 var Reset = "\033[0m"

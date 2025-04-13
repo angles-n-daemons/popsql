@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/angles-n-daemons/popsql/pkg/db"
-	"github.com/angles-n-daemons/popsql/pkg/db/execution"
+	"github.com/angles-n-daemons/popsql/pkg/sql/execution"
 	wire "github.com/jeroenrinzema/psql-wire"
 	"github.com/lib/pq/oid"
 )

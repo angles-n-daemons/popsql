@@ -4,11 +4,11 @@ import (
 	"os"
 	"sync"
 
-	"github.com/angles-n-daemons/popsql/pkg/db/execution"
 	"github.com/angles-n-daemons/popsql/pkg/kv"
 	"github.com/angles-n-daemons/popsql/pkg/kv/store"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog"
 	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
+	"github.com/angles-n-daemons/popsql/pkg/sql/execution"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser"
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 	"github.com/angles-n-daemons/popsql/pkg/sql/plan"

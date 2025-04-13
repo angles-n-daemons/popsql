@@ -10,9 +10,14 @@ Want:
  - Error tracing.
  - A dedicated log package.
  - WAL backing for the store.
+ - Non-buggy, hacky implementation.
+   - I need to match types before I fuck everything up
 
 2025-04-13
  - I need to prevent users from modifying system tables. (do I?)
+   - let's say they know what they're doing, perhaps this isn't necessarily an issue.
+ - Okay, today I can choose to do joins or sqllogictest
+ - Let's do sqllogictest
 
 2025-04-12
  - Query planning (finish planning selects with filters)
