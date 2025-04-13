@@ -6,9 +6,9 @@ import (
 )
 
 type Sequence struct {
-	SID   uint64
-	SName string
-	V     uint64
+	SID   uint64 `json:"id"`
+	SName string `json:"name"`
+	V     uint64 `json:"value"`
 }
 
 func NewSequence(name string) *Sequence {

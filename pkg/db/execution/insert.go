@@ -3,7 +3,6 @@ package execution
 import (
 	"encoding/json"
 	"fmt"
-	"slices"
 	"strconv"
 
 	"github.com/angles-n-daemons/popsql/pkg/kv/keys"
@@ -14,55 +13,67 @@ import (
 )
 
 // return the rows of the new ids
-func (e *Executor) VisitInsert(p *plan.Insert) ([]Row, error) {
-	keys := []*keys.Key{}
-	rows := []map[string]any{}
-	result := []Row{}
-
-	// convert input to serializable data
-	for _, tup := range p.Values {
-		row := map[string]any{}
-		rr := Row{}
-		key := p.Table.Prefix()
-
-		// I need to do this as well if the primary key isn't internal, but still shows up
-		if primaryKeyInternal(p.Table) {
-			id, err := e.tableSequenceNext(p.Table)
-			if err != nil {
-				return nil, err
-			}
-			sid := strconv.FormatUint(id, 10)
-			key = key.WithID(sid)
-		}
-
-		// TODO: validate types here
-		for i, expr := range tup {
-			val, err := Eval(expr)
-			if err != nil {
-				return nil, err
-			}
-
-			row[p.Columns[i].Name] = val
-			rr = append(rr, val)
-
-			if slices.Contains(p.Table.PrimaryKey, p.Columns[i].Name) {
-				key = key.WithIDAddition(fmt.Sprintf("%v", val))
-			}
-		}
-		rows = append(rows, row)
-		result = append(result, rr)
-		keys = append(keys, key)
+func (e *Executor) VisitInsert(p *plan.Insert) (Row, error) {
+	tup, err := Next(e, p.Source)
+	if err != nil {
+		return nil, err
+	}
+	if tup == nil {
+		return nil, nil
 	}
 
-	// save data in the db
-	for i, row := range rows {
-		b, err := json.Marshal(row)
+	data := map[string]any{}
+	for i, val := range tup {
+		data[p.Cols[i].Name] = val
+
+	}
+
+	key, err := e.getAndValidateKey(p.Table, data, tup)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	e.Store.Put(key.Encode(), b)
+	return Row{key}, nil
+}
+
+// getAndValidate key has a few responsibilities, ultimately
+// returning the key for the row, whether it existed in the data
+// struct constructed by the executor, and any errors that may
+// have occured during this process.
+//
+// 1. If the primary key for this table is ineternal, create it.
+// 2. If the primary key fully exists within the data map, return it.
+// 3. Otherwise, return an error.
+func (e *Executor) getAndValidateKey(
+	t *desc.Table, data map[string]any, tup Row,
+) (*keys.Key, error) {
+	key := t.Prefix()
+	if primaryKeyInternal(t) {
+		id, err := e.tableSequenceNext(t)
 		if err != nil {
 			return nil, err
 		}
-		e.Store.Put(keys[i].Encode(), b)
+		// add the internal column to the data map
+		data[desc.ReservedInternalColumnName] = id
+
+		sid := strconv.FormatUint(id, 10)
+		key = key.WithID(sid)
+		return key, nil
 	}
-	return result, nil
+
+	for _, col := range t.PrimaryKey {
+		v, ok := data[col]
+		if !ok {
+			return nil, fmt.Errorf("key column '%s' missing on insert of row '%v'", col, tup)
+		}
+		key = key.WithIDAddition(fmt.Sprintf("%v", v))
+	}
+	return key, nil
 }
 
 func primaryKeyInternal(t *desc.Table) bool {

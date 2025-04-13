@@ -1,20 +1,61 @@
-Done conditions:
- - Transactions.
+Done for 2025:
+ - Transactions
  - Encoding which is compatible with some other database.
  - Protocol which can be benchmarked.
-// think about this pretty heavily
+ - No dependencies
+ // keep thinking about this
 
 Want:
+ - Sqllogictest for verifying test behavior
  - Error tracing.
- - Debug settings to log:
-   - KV calls.
-   - Query parses.
  - A dedicated log package.
- - To move the store keys from strings to bytes.
- - To think long and hard about when to use the word Key, and when to use the word ID.
- - Prettifying of keys on request.
- - A sql query planner.
  - WAL backing for the store.
+
+2025-04-13
+ - I need to prevent users from modifying system tables. (do I?)
+
+2025-04-12
+ - Query planning (finish planning selects with filters)
+ - Query execution (finish planning selects with filters)
+ - Prove selection works on system tables
+ - Prove selection works on user tables
+
+
+Do I have a rows plan type? Does it screw everything up?
+
+How do I make it work with the cursors? How do I have scans not be stateful?
+
+And what if the plans were stateful? Would I not be able to cache them?
+
+Could caching work in a way where the stateful nature of them was less of an issue?
+
+Seems like in a lot of queries, there's a notion of a source.
+
+I like the idea of iteratively executing a query plan. That for each node, there's simple "Next" functionality which can be executed individually.
+
+That being said, the insert, update usecase is a little trickier.
+
+For scanning into a put, this should be fine, but how does the executor keep track of which of the tuples it's inserted when the tuples are part of the plan?
+
+There's state the executor is responsible for, but it needs to be known within the context of a single plan node.
+
+"We're on insert 30 for this insert node."
+
+"The cursor is here for this scan node, and here for this other scan node."
+
+Plans should be reusable, and if I mutate the state on the nodes, I should be able to reuse the plan.
+
+There should be iterators, which are responsible for "doing the next" and knowing a node.
+
+This brings me to the next challenge, suppose I can create ids for the nodes in the plan. Should all node types have an id?
+
+We only need the id whenever a node should be stateful.
+
+Look into toydb, how does it manage iterating over executing a plan? Does it do it all at once? Does it execute in batch?
+
+If plan execution is stateful, how is this state managed?
+
+Insert executes all at once for toydb, but select has iterators.
 
 2025-04-06
  - Try to implement some select, and rendering functionality

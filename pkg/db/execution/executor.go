@@ -1,7 +1,6 @@
 package execution
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/angles-n-daemons/popsql/pkg/kv"
@@ -14,6 +13,7 @@ type Row []any
 type Executor struct {
 	Store   kv.Store
 	Catalog *catalog.Manager
+	State   *State
 }
 
 type Result struct {
@@ -22,14 +22,7 @@ type Result struct {
 	Duration time.Duration
 }
 
-func NewExecutor(st kv.Store, cat *catalog.Manager) *Executor {
-	return &Executor{
-		Store:   st,
-		Catalog: cat,
-	}
-}
-
-func (e *Executor) Execute(p plan.Plan) (*Result, error) {
+func Run(st kv.Store, cat *catalog.Manager, p plan.Plan) (*Result, error) {
 	start := time.Now()
 	result := func(cols []string, rows []Row) *Result {
 		return &Result{
@@ -39,22 +32,34 @@ func (e *Executor) Execute(p plan.Plan) (*Result, error) {
 		}
 	}
 
-	columns := []string{}
-	rows, err := plan.VisitPlan(p, e)
+	state, err := NewState(st, p)
 	if err != nil {
 		return nil, err
 	}
-	switch tp := p.(type) {
-	case *plan.CreateTable:
-		columns = []string{"table"}
-		rows = []Row{{tp.Table.Name()}}
-	case *plan.Insert:
-		columns = []string{"count"}
-		rows = []Row{{len(rows)}}
-	case *plan.Scan:
-		columns = tp.Columns()
-	default:
-		return nil, fmt.Errorf("unable to execute plan of type %T", tp)
+	ex := &Executor{
+		Store:   st,
+		Catalog: cat,
+		State:   state,
+	}
+
+	columns := p.Columns()
+	rows := []Row{}
+	for {
+		row, err := Next(ex, p)
+		if err != nil {
+			return nil, err
+		}
+		if row == nil {
+			break
+		}
+		rows = append(rows, row)
 	}
 	return result(columns, rows), nil
+}
+
+// Next executes the plan until the next resulting row is produced.
+// It can be called on any plan node, and is used for recursively
+// traversing the plan tree.
+func Next(e *Executor, p plan.Plan) (Row, error) {
+	return plan.VisitPlan(p, e)
 }

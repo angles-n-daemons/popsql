@@ -67,13 +67,23 @@ func (d *DebugCursor) Read(num int) ([][]byte, error) {
 func (d *DebugCursor) ReadAll() ([][]byte, error) {
 	bb, err := d.cursor.ReadAll()
 	if err != nil {
-		fmt.Printf("READ ERROR [%s, %s]: %s\n", d.start, d.end, err)
+		fmt.Printf("READ ALL ERROR [%s, %s]: %s\n", d.start, d.end, err)
 		return nil, err
 	}
 	for _, b := range bb {
-		fmt.Printf("READ [%s, %s]: %s\n", d.start, d.end, string(b))
+		fmt.Printf("READ ALL [%s, %s]: %s\n", d.start, d.end, string(b))
 	}
 	return nil, nil
+}
+
+func (d *DebugCursor) Next() ([]byte, error) {
+	b, err := d.cursor.Next()
+	if err != nil {
+		fmt.Printf("NEXT ERROR [%s, %s]: %s\n", d.start, d.end, err)
+		return nil, err
+	}
+	fmt.Printf("NEXT [%s, %s]: %s\n", d.start, d.end, string(b))
+	return b, err
 }
 
 func (d *DebugCursor) IsAtEnd() bool {

@@ -6,7 +6,11 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/sql/plan"
 )
 
-func (e *Executor) VisitCreateTable(p *plan.CreateTable) ([]Row, error) {
+func (e *Executor) VisitCreateTable(p *plan.CreateTable) (Row, error) {
+	if e.State.tableCreated {
+		return nil, nil
+	}
+
 	dt := p.Table
 	if dt.PrimaryKey == nil || len(dt.PrimaryKey) == 0 {
 		pkeyCol, err := e.createTableSequence(dt)
@@ -24,7 +28,10 @@ func (e *Executor) VisitCreateTable(p *plan.CreateTable) ([]Row, error) {
 	}
 	dt.TID = id
 	err = catalog.Create(e.Catalog, dt)
-	return nil, err
+
+	// set the state variable to prevent re-creating the table.
+	e.State.tableCreated = true
+	return Row{dt.Name()}, err
 }
 
 func (e *Executor) createTableSequence(t *desc.Table) (*desc.Column, error) {

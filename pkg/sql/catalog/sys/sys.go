@@ -25,7 +25,10 @@ const (
 func InitSchema() (*schema.Schema, error) {
 	sc := schema.NewSchema()
 	metaTable, metaTableSeq := InitSystemTable(TablesID, Tables, TablesSequence)
+
+	// setup the sequence table with the value column.
 	sequenceTable, sequenceTableSeq := InitSystemTable(SequencesID, Sequences, SequencesSequence)
+	sequenceTable.Columns = append(sequenceTable.Columns, desc.NewColumn("value", desc.STRING))
 	for _, tab := range []*desc.Table{metaTable, sequenceTable} {
 		err := schema.Add(sc, tab)
 		if err != nil {

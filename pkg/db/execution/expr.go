@@ -7,18 +7,19 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/sql/parser/scanner"
 )
 
-type ExpressionExecutor struct{}
+// The executor also acts as visitor for expressions.
+// I need to figure out scoping here, but that's for another day.
 
-func Eval(expr ast.Expr) (any, error) {
-	return ast.VisitExpr(expr, &ExpressionExecutor{})
+func Eval(e *Executor, expr ast.Expr) (any, error) {
+	return ast.VisitExpr(expr, e)
 }
 
-func (e *ExpressionExecutor) VisitBinaryExpr(expr *ast.Binary) (any, error) {
-	lhs, err := Eval(expr.Left)
+func (e *Executor) VisitBinaryExpr(expr *ast.Binary) (any, error) {
+	lhs, err := Eval(e, expr.Left)
 	if err != nil {
 		return nil, err
 	}
-	rhs, err := Eval(expr.Right)
+	rhs, err := Eval(e, expr.Right)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +74,7 @@ func compare(op *scanner.Token, left, right any) (any, error) {
 	a, aok := left.(float64)
 	b, bok := right.(float64)
 	if !(aok && bok) {
-		return nil, fmt.Errorf("cannot do arithmetic on values of type %T and %T", a, b)
+		return nil, fmt.Errorf("cannot do comparison on values of type %T and %T", a, b)
 	}
 	switch op.Type {
 	case scanner.GREATER:
@@ -99,11 +100,11 @@ func equality(op *scanner.Token, left, right any) (any, error) {
 	return nil, fmt.Errorf("unsupported equality operator: %s", op)
 }
 
-func (e *ExpressionExecutor) VisitLiteralExpr(expr *ast.Literal) (any, error) {
+func (e *Executor) VisitLiteralExpr(expr *ast.Literal) (any, error) {
 	return expr.Value.Literal, nil
 }
-func (e *ExpressionExecutor) VisitUnaryExpr(expr *ast.Unary) (any, error) {
-	right, err := Eval(expr.Right)
+func (e *Executor) VisitUnaryExpr(expr *ast.Unary) (any, error) {
+	right, err := Eval(e, expr.Right)
 	if err != nil {
 		return nil, err
 	}
@@ -121,9 +122,9 @@ func (e *ExpressionExecutor) VisitUnaryExpr(expr *ast.Unary) (any, error) {
 	}
 	return nil, fmt.Errorf("cannot perform operaion %s on value of type %T", expr.Operator.Type, right)
 }
-func (e *ExpressionExecutor) VisitIdentifierExpr(*ast.Identifier) (any, error) {
+func (e *Executor) VisitIdentifierExpr(*ast.Identifier) (any, error) {
 	return nil, fmt.Errorf("not implemented")
 }
-func (e *ExpressionExecutor) VisitColumnSpecExpr(*ast.ColumnSpec) (any, error) {
-	return nil, fmt.Errorf("not implemented")
+func (e *Executor) VisitColumnSpecExpr(spec *ast.ColumnSpec) (any, error) {
+	return nil, fmt.Errorf("the executor should not see a column spec: name '%s', type '%s'", spec.Name.Name.Lexeme, spec.DataType.Lexeme)
 }

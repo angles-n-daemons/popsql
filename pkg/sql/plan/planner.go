@@ -106,11 +106,9 @@ func (p *Planner) VisitInsertStmt(stmt *ast.Insert) (Plan, error) {
 		}
 	}
 
-	return &Insert{
-		Table:   dt,
-		Columns: columns,
-		Values:  stmt.Values,
-	}, nil
+	values := NewValues(stmt.Values)
+
+	return NewInsert(dt, columns, values), nil
 }
 
 func (p *Planner) VisitSelectStmt(stmt *ast.Select) (Plan, error) {
@@ -121,9 +119,7 @@ func (p *Planner) VisitSelectStmt(stmt *ast.Select) (Plan, error) {
 		return nil, fmt.Errorf("Could not find table with name %s", tname)
 	}
 
-	from := &Scan{
-		Table: dt,
-	}
+	from := NewScan(dt)
 
 	if len(stmt.Terms) == 1 && stmt.Terms[0].Name.Type == scanner.STAR {
 		return from, nil

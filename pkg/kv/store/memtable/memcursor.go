@@ -23,6 +23,15 @@ func (m *Memcursor) Read(num int) ([][]byte, error) {
 	return vals, nil
 }
 
+func (m *Memcursor) Next() ([]byte, error) {
+	if m.IsAtEnd() {
+		return nil, nil
+	}
+	val := m.Node.Val
+	m.Node = m.Node.Next()
+	return val, nil
+}
+
 func (m *Memcursor) IsAtEnd() bool {
 	return m.Node == nil || m.End <= m.Node.Key
 }

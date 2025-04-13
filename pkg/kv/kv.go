@@ -24,5 +24,6 @@ type Store interface {
 type Cursor interface {
 	ReadAll() ([][]byte, error)
 	Read(num int) ([][]byte, error)
+	Next() ([]byte, error)
 	IsAtEnd() bool
 }

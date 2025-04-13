@@ -162,7 +162,7 @@ func columnSpec(tokens []*scanner.Token, i int) (*ast.ColumnSpec, int, error) {
 		return nil, i, nil
 	}
 	if !match(tokens, i, scanner.DATATYPE_BOOLEAN, scanner.DATATYPE_STRING, scanner.DATATYPE_NUMBER) {
-		return nil, i, fmt.Errorf("expected data type in column spec")
+		return nil, i, fmt.Errorf("expected data type '%s' in column spec", tokens[i].Lexeme)
 	}
 
 	return &ast.ColumnSpec{Name: name, DataType: tokens[i]}, i + 1, nil

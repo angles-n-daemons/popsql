@@ -15,6 +15,7 @@ func Server() {
 	s := &server{
 		db: db.GetEngine(),
 	}
+
 	s.ListenAndServe()
 }
 
@@ -51,7 +52,7 @@ func toWireColumns(columns []string, row execution.Row) (wire.Columns, error) {
 		case bool:
 			wType = oid.T_bool
 		default:
-			return nil, fmt.Errorf("unable to create wire column for type %T", row[i])
+			return nil, fmt.Errorf("unable to create wire type for column %s, %d type %T", col, i, row[i])
 		}
 		wCols = append(wCols, wire.Column{
 			Table: 0,

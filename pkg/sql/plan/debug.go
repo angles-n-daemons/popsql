@@ -1,5 +1,7 @@
 package plan
 
+import "fmt"
+
 type PlanDebugger struct {
 	verbose bool
 	depth   int
@@ -24,4 +26,8 @@ func (p *PlanDebugger) VisitInsert(plan *Insert) (string, error) {
 
 func (p *PlanDebugger) VisitScan(plan *Scan) (string, error) {
 	return "Scan: " + plan.Table.Name(), nil
+}
+
+func (p *PlanDebugger) VisitValues(plan *Values) (string, error) {
+	return fmt.Sprintf("Values: %d rows", len(plan.Rows)), nil
 }

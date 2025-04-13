@@ -24,13 +24,13 @@ func (e *Engine) Query(query string, parameters []any) (*execution.Result, error
 	if err != nil {
 		return nil, err
 	}
+
 	plan, err := plan.PlanQuery(e.Catalog.Schema, stmt)
 	if err != nil {
 		return nil, err
 	}
 
-	exec := execution.NewExecutor(e.Store, e.Catalog)
-	return exec.Execute(plan)
+	return execution.Run(e.Store, e.Catalog, plan)
 }
 
 func newEngine(debugStore bool) *Engine {

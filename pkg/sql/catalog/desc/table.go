@@ -14,10 +14,10 @@ var DebugTables = false
 const ReservedInternalColumnName = "__key"
 
 type Table struct {
-	TID        uint64
-	TName      string
-	Columns    []*Column
-	PrimaryKey []string
+	TID        uint64    `json:"id"`
+	TName      string    `json:"name"`
+	Columns    []*Column `json:"columns"`
+	PrimaryKey []string  `json:"primary_key"`
 }
 
 func NewTable(name string, columns []*Column, pkey []string) (*Table, error) {
