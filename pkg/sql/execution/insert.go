@@ -37,8 +37,9 @@ func (e *Executor) VisitInsert(p *plan.Insert) (Row, error) {
 	if err != nil {
 		return nil, err
 	}
-	e.Store.Put(key.Encode(), b)
-	return Row{key}, nil
+	keyStr := key.Encode()
+	e.Store.Put(keyStr, b)
+	return Row{keyStr}, nil
 }
 
 // getAndValidate key has a few responsibilities, ultimately

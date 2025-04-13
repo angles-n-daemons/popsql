@@ -1,0 +1,21 @@
+statement ok
+CREATE TABLE user(a NUM, b string)
+
+statement ok
+INSERT INTO user(a, b) VALUES (1, "a"), (2, "b")
+
+query IT nosort
+SELECT *
+  FROM user
+----
+1 a
+2 b
+
+statement ok
+CREATE TABLE payment(amount num, user num)
+
+query T nosort
+INSERT INTO payment(amount, user) VALUES (1, 1), (2, 3)
+----
+4/1
+4/2
