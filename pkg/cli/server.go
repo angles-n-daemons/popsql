@@ -7,7 +7,7 @@ import (
 )
 
 func Server() {
-	srv := &wire.Server{}
+	srv := wire.NewServer()
 	err := srv.ListenAndServe(":5432")
 	if err != nil {
 		fmt.Printf("Error starting server: %v\n", err)
