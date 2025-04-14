@@ -108,10 +108,3 @@ func connInit(conn net.Conn) error {
 	}
 	return nil
 }
-
-func (srv *Server) query(conn *net.Conn, query string) ([]message.Message, error) {
-	result, err := srv.db.Query(query, nil)
-	if err != nil {
-
-	}
-}
