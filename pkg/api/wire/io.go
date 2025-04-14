@@ -7,7 +7,7 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/api/message"
 )
 
-func readMessage(r io.Reader) (message.Type, []byte, error) {
+func readMessage(r io.Reader) (message.Type, message.Buffer, error) {
 	tB := make([]byte, 1)
 	_, err := io.ReadFull(r, tB)
 	if err != nil {
@@ -19,7 +19,7 @@ func readMessage(r io.Reader) (message.Type, []byte, error) {
 	return t, msg, err
 }
 
-func readMessageRaw(r io.Reader) ([]byte, error) {
+func readMessageRaw(r io.Reader) (message.Buffer, error) {
 	lenB := make([]byte, 4)
 	_, err := io.ReadFull(r, lenB)
 	if err != nil {
@@ -27,24 +27,25 @@ func readMessageRaw(r io.Reader) ([]byte, error) {
 	}
 
 	msgLen := binary.BigEndian.Uint32(lenB) - 4
-	msg := make([]byte, msgLen)
+	data := make(message.Buffer, msgLen)
 
-	_, err = io.ReadFull(r, msg)
+	_, err = io.ReadFull(r, data)
 	if err != nil {
 		return nil, err
 	}
 
-	return msg, nil
+	return data, nil
 }
 
 func writeMessage(w io.Writer, m message.Dumpable) error {
+	data := message.Buffer{}
 	t := m.Type()
-	b := m.Dump()
-	msgLen := len(b) + 4
-	lenB := make([]byte, 4)
-	binary.BigEndian.PutUint32(lenB, uint32(msgLen))
+	body := m.Dump()
+	msgLen := len(body) + 4
 
-	data := append([]byte{byte(t)}, append(lenB, b...)...)
+	data.AddType(t)
+	data.AddUint32(msgLen)
+	data.AddBytes(body)
 	_, err := w.Write(data)
 	return err
 }

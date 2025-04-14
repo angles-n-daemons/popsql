@@ -15,7 +15,7 @@ func Main(args []string) {
 			File(args[1])
 		}
 	} else {
-		fmt.Errorf("too many arguments...")
+		fmt.Println(fmt.Errorf("too many arguments..."))
 		os.Exit(1)
 	}
 }

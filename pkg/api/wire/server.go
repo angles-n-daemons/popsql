@@ -10,6 +10,8 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/db"
 )
 
+const SSLRequestCode = 80877103 // Magic code for SSL request
+
 type Server struct {
 	db *db.Engine
 }
@@ -81,18 +83,18 @@ func connInit(conn net.Conn) error {
 	}
 
 	// Special case, check for SSL escalation request.
-	num, _ := message.NextUint32(data, 0)
-	if num == message.SSLRequestCode {
+	// If found, send a no response, and read the next message
+	// as startup.
+	num := data.PeekUint32()
+	if num == SSLRequestCode {
 		conn.Write([]byte{message.M_No})
+		data, err = readMessageRaw(conn)
+		if err != nil {
+			return err
+		}
 	}
 
-	data, err = readMessageRaw(conn)
-	if err != nil {
-		return err
-	}
-
-	startup := &message.Startup{}
-	err = startup.Load(data)
+	_, err = message.Parse[message.Startup](data)
 	if err != nil {
 		return err
 	}
