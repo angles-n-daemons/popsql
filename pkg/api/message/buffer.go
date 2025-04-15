@@ -8,13 +8,13 @@ func (m *Buffer) AddType(t Type) {
 	*m = append(*m, []byte{byte(t)}...)
 }
 
-func (m *Buffer) AddUint16(val int) {
+func (m *Buffer) AddInt16(val int) {
 	arr := make([]byte, 2)
 	binary.BigEndian.PutUint16(arr, uint16(val))
 	*m = append(*m, arr...)
 }
 
-func (m *Buffer) AddUint32(val int) {
+func (m *Buffer) AddInt32(val int) {
 	arr := make([]byte, 4)
 	binary.BigEndian.PutUint32(arr, uint32(val))
 	*m = append(*m, arr...)
@@ -39,16 +39,20 @@ func (m *Buffer) AddBytes(arrs ...[]byte) {
 	}
 }
 
-func (m *Buffer) ReadUint16() uint16 {
-	intB := binary.BigEndian.Uint16((*m)[:2])
-	*m = (*m)[2:]
-	return intB
+func (m *Buffer) AddNull() {
+	*m = append(*m, 0)
 }
 
-func (m *Buffer) ReadUint32() uint32 {
+func (m *Buffer) ReadInt16() int {
+	intB := binary.BigEndian.Uint16((*m)[:2])
+	*m = (*m)[2:]
+	return int(intB)
+}
+
+func (m *Buffer) ReadInt32() int {
 	intB := binary.BigEndian.Uint32((*m)[:4])
 	*m = (*m)[4:]
-	return intB
+	return int(intB)
 }
 
 func (m *Buffer) ReadString() string {

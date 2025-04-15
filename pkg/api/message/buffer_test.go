@@ -26,8 +26,8 @@ func (m *EmbeddedBuffer) ReadUint16() uint16 {
 
 func TestMessageBuffer(t *testing.T) {
 	m := Buffer{}
-	m.AddUint16(1)
-	m.AddUint32(2)
+	m.AddInt16(1)
+	m.AddInt32(2)
 	if len(m) != 6 {
 		t.Errorf("Expected length 6, got %d", len(m))
 	}
@@ -45,10 +45,10 @@ func BenchmarkInlineBuffer(b *testing.B) {
 			buf := Buffer{}
 			for range b.N {
 				for range int(1 * math.Pow(10, float64(e))) {
-					buf.AddUint16(1)
+					buf.AddInt16(1)
 				}
 				for range int(1 * math.Pow(10, float64(e))) {
-					buf.ReadUint16()
+					buf.ReadInt16()
 				}
 			}
 		})
