@@ -44,7 +44,7 @@ func writeMessage(w io.Writer, m message.Dumpable) error {
 	msgLen := len(body) + 4
 
 	data.AddType(t)
-	data.AddUint32(msgLen)
+	data.AddInt32(msgLen)
 	data.AddBytes(body)
 	_, err := w.Write(data)
 	return err

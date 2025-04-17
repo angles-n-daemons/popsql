@@ -16,14 +16,19 @@ import (
 var Debug = false
 
 func Parse(s string) (ast.Stmt, error) {
+	// lex the input into a set of tokens.
 	tokens, err := scanner.Scan(s)
 	if err != nil {
 		return nil, err
 	}
+
+	// parse the tokens into an ast.
 	stmt, i, err := statement(tokens, 0)
 	if err != nil {
 		return nil, err
 	}
+	// consume any trailing semicolons.
+	i = maybeConsumeSemicolon(tokens, i)
 	if !isAtEnd(tokens, i) {
 		return nil, fmt.Errorf("finished parsing without consuming all input")
 	}
@@ -362,6 +367,13 @@ func identifier(tokens []*scanner.Token, i int) (*ast.Identifier, int, error) {
 		return nil, i, fmt.Errorf("unexpected token %s parsing reference", tokens[i].Type)
 	}
 	return &ast.Identifier{Name: tokens[i]}, i + 1, nil
+}
+
+func maybeConsumeSemicolon(tokens []*scanner.Token, i int) int {
+	if match(tokens, i, scanner.SEMICOLON) {
+		return i + 1
+	}
+	return i
 }
 
 func assertNext(tokens []*scanner.Token, i int, ttype scanner.TokenType) error {

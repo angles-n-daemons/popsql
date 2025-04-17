@@ -76,9 +76,6 @@ outside:
 				debugTypes = append(debugTypes, token.Type.String()+strings.Repeat(" ", llen-tlen))
 			}
 		}
-		fmt.Println("Tokens: ")
-		fmt.Println("[ " + strings.Join(debugLexemes, ", ") + " ]")
-		fmt.Println("[ " + strings.Join(debugTypes, ", ") + " ]")
 	}
 	return tokens, nil
 }

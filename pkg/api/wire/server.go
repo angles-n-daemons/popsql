@@ -56,24 +56,7 @@ func (srv *Server) serve(conn net.Conn) error {
 		return err
 	}
 
-	for {
-		t, data, err := readMessage(conn)
-		if err != nil {
-			fmt.Println("unexpected read error", err)
-		}
-		switch t {
-		case message.M_Query:
-			fmt.Println("query", string(data))
-		case message.M_Terminate:
-			return nil
-		default:
-			fmt.Println("unknown message type", t)
-		}
-		err = writeMessage(conn, &message.ReadyForQuery{})
-		if err != nil {
-			return nil
-		}
-	}
+	return srv.loop(conn)
 }
 
 func connInit(conn net.Conn) error {
@@ -94,10 +77,8 @@ func connInit(conn net.Conn) error {
 		}
 	}
 
-	_, err = message.Parse[message.Startup](data)
-	if err != nil {
-		return err
-	}
+	// Read the startup message, ignore it for now.
+	_ = message.Parse[message.Startup](data)
 
 	err = writeMessage(conn, &message.AuthenticationOk{})
 	if err != nil {

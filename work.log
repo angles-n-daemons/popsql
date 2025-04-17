@@ -12,6 +12,12 @@ Want:
  - WAL backing for the store.
  - Non-buggy, hacky implementation.
    - I need to match types before I fuck everything up
+ 
+2025-04-14
+ - Finish out the query plumbing.
+ - Happy path
+ - Errors
+ - Remove pointers from everything.
 
 2025-04-13
  - I need to prevent users from modifying system tables. (do I?)

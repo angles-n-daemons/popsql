@@ -204,7 +204,6 @@ func (r *RowDescription) Dump() Buffer {
 
 	for i, col := range r.Columns {
 		data.AddString(col)
-		data.AddNull()
 		// skip table id
 		data.AddInt32(0)
 		// skip column offset
@@ -230,7 +229,7 @@ func (r *RowDescription) Dump() Buffer {
 		// ignore type modifiers and format.
 		data.AddInt32(-1)
 		// default to text format for the column.
-		data.AddInt32(0)
+		data.AddInt16(0)
 	}
 	return data
 }
@@ -273,7 +272,7 @@ func (d *DataRow) Dump() Buffer {
 		case float64:
 			valStr = strconv.FormatFloat(v, 'g', -1, 64)
 		case string:
-			data.AddInt32(len(v))
+			valStr = v
 		case bool:
 			if v {
 				valStr = "t"
