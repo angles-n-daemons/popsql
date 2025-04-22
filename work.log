@@ -25,6 +25,24 @@ Want:
 For sysbench to work, the database needs prepared statements.
 Might just be enough to do the sqllogictesting functionality and go from there.
 
+sysbench \
+--pgsql-host=127.0.0.1 \
+--pgsql-port=5432 \
+--db-driver=pgsql \
+--table_size=100000 \
+--tables=3  \
+--threads=3 \
+oltp_common prepare
+
+sysbench \
+--pgsql-host=127.0.0.1 \
+--pgsql-port=5432 \
+--db-driver=pgsql \
+--table_size=100000 \
+--tables=3  \
+--threads=3 \
+oltp_read_write run
+
  - Reorganize directories
 2025-04-14
  - Finish out the query plumbing.
