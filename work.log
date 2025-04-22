@@ -6,20 +6,26 @@ Done for 2025:
  // keep thinking about this
 
 Want:
- - Sqllogictest for verifying test behavior
  - Error tracing.
  - A dedicated log package.
  - WAL backing for the store.
- - Non-buggy, hacky implementation.
-   - I need to match types before I fuck everything up
 
 2025-04-21
- - Reorganize directories
  - Update to normal data types, trudging the unknown path should only be taken once the road understood is taken
  - Can I get sqllogictest and sysbench to work
    - Probably yes to sqllogictest, probably no to sysbench
    - I imagine that sysbench depends on being able to setup databases, initialize transactions etc.
+ - A makefile so that I can
+   - Install dependencies
+   - Build / run / test
+   - Generate the AST code
+   - Run sysbench
+
  
+For sysbench to work, the database needs prepared statements.
+Might just be enough to do the sqllogictesting functionality and go from there.
+
+ - Reorganize directories
 2025-04-14
  - Finish out the query plumbing.
  - Happy path
@@ -38,6 +44,12 @@ Want:
  - Prove selection works on system tables
  - Prove selection works on user tables
 
+
+  id SERIAL,
+  k INTEGER DEFAULT '0' NOT NULL,
+  c CHAR(120) DEFAULT '' NOT NULL,
+  pad CHAR(60) DEFAULT '' NOT NULL,
+  PRIMARY KEY (id)
 
 Do I have a rows plan type? Does it screw everything up?
 
