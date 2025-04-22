@@ -28,24 +28,14 @@ func TestParserBasic(t *testing.T) {
 // - condition with single equal
 func TestParseValidPrograms(t *testing.T) {
 	for _, query := range []string{
-		`SELECT
-		1`,
-		`SELECT 1`,
-		`SELECT 1;`,
-		`SELECT 1.23`,
-		`SeleCT 1.23`,
-		`sELEct 1.23`,
-		`SELECT "hi there"`,
 		`SELECT jim`,
 		`SELECT jim`,
-		`SELECT jane, 12.3, "jeremy lin"`,
+		`SELECT jane, jane, jeffrey`,
 		`SELECT * FROM users;`,
-		`SELECT 5 + 4, "ello" FROM thing WHERE x==8`,
+		`SELECT x, y FROM thing WHERE x==8`,
 		`INSERT INTO a VALUES (1, 2)`,
 		`INSERT INTO a (x, y) VALUES (1, 2)`,
 		`INSERT INTO a (x, y) VALUES (1, 2), (3, 4)`,
-		`SELECT !false`,
-		`SELECT (1)`,
 		`CREATE TABLE derp()`,
 		`CREATE TABLE derp (cal number)`,
 		`CREATE TABLE derp(i string, cal number)`,

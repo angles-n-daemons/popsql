@@ -46,8 +46,8 @@ func TestWithIDAddition(t *testing.T) {
 	key := keys.New("testTable").WithID("123")
 	addition := "123"
 	newKey := key.WithIDAddition(addition)
-	if newKey.ID != key.ID+addition {
-		t.Errorf("expected ID %s, got %s", key.ID+addition, newKey.ID)
+	if newKey.ID != key.ID+"."+addition {
+		t.Errorf("expected ID %s, got %s", key.ID+"."+addition, newKey.ID)
 	}
 	if newKey.Table != key.Table {
 		t.Errorf("expected table %s, got %s", key.Table, newKey.Table)

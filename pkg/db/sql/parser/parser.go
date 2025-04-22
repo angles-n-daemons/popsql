@@ -364,7 +364,7 @@ func primary(tokens []*scanner.Token, i int) (ast.Expr, int, error) {
 
 func identifier(tokens []*scanner.Token, i int) (*ast.Identifier, int, error) {
 	if !match(tokens, i, scanner.IDENTIFIER, scanner.STAR) {
-		return nil, i, fmt.Errorf("unexpected token %s parsing reference", tokens[i].Type)
+		return nil, i, fmt.Errorf("expected identifier at token %d", i)
 	}
 	return &ast.Identifier{Name: tokens[i]}, i + 1, nil
 }
