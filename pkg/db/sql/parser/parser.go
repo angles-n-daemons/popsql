@@ -125,12 +125,12 @@ func selectStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 }
 
 func insertStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
-	err := assertNext(tokens, i, scanner.INTO)
+	i, err := assertTypes(tokens, i, scanner.INTO)
 	if err != nil {
 		return nil, i, err
 	}
 
-	table, i, err := identifier(tokens, i+1)
+	table, i, err := identifier(tokens, i)
 	if err != nil {
 		return nil, i, err
 	}
@@ -141,19 +141,18 @@ func insertStmt(tokens []*scanner.Token, i int) (ast.Stmt, int, error) {
 		if err != nil {
 			return nil, i, err
 		}
-		err = assertNext(tokens, i, scanner.RIGHT_PAREN)
+		i, err = assertTypes(tokens, i, scanner.RIGHT_PAREN)
 		if err != nil {
 			return nil, i, err
 		}
-		i++
 	}
 
-	err = assertNext(tokens, i, scanner.VALUES)
+	i, err = assertTypes(tokens, i, scanner.VALUES)
 	if err != nil {
 		return nil, i, err
 	}
 
-	values, i, err := tupleList(tokens, i+1)
+	values, i, err := tupleList(tokens, i)
 	if err != nil {
 		return nil, i, err
 	}
@@ -169,8 +168,18 @@ func columnSpec(tokens []*scanner.Token, i int) (*ast.ColumnSpec, int, error) {
 	if !match(tokens, i, scanner.DATATYPE_BOOLEAN, scanner.DATATYPE_STRING, scanner.DATATYPE_NUMBER) {
 		return nil, i, fmt.Errorf("expected data type '%s' in column spec", tokens[i].Lexeme)
 	}
+	dt := tokens[i]
+	i++
 
-	return &ast.ColumnSpec{Name: name, DataType: tokens[i]}, i + 1, nil
+	// if there's a length specified to the string, consume it
+	if match(tokens, i-1, scanner.DATATYPE_STRING) && match(tokens, i, scanner.LEFT_PAREN) {
+		i, err = assertTypes(tokens, i+1, scanner.NUMBER, scanner.RIGHT_PAREN)
+		if err != nil {
+			return nil, i, err
+		}
+	}
+
+	return &ast.ColumnSpec{Name: name, DataType: dt}, i, nil
 }
 
 func tupleList(tokens []*scanner.Token, i int) ([][]ast.Expr, int, error) {
@@ -193,16 +202,16 @@ func tupleList(tokens []*scanner.Token, i int) ([][]ast.Expr, int, error) {
 }
 
 func tuple(tokens []*scanner.Token, i int) ([]ast.Expr, int, error) {
-	err := assertNext(tokens, i, scanner.LEFT_PAREN)
+	i, err := assertTypes(tokens, i, scanner.LEFT_PAREN)
 	if err != nil {
 		return nil, i, err
 	}
-	list, i, err := expressionList(tokens, i+1)
-	err = assertNext(tokens, i, scanner.RIGHT_PAREN)
+	list, i, err := expressionList(tokens, i)
+	i, err = assertTypes(tokens, i, scanner.RIGHT_PAREN)
 	if err != nil {
 		return nil, i, err
 	}
-	return list, i + 1, nil
+	return list, i, nil
 }
 
 // expression list requries a minimum of one element
@@ -376,15 +385,18 @@ func maybeConsumeSemicolon(tokens []*scanner.Token, i int) int {
 	return i
 }
 
-func assertNext(tokens []*scanner.Token, i int, ttype scanner.TokenType) error {
-	if isAtEnd(tokens, i) {
-		return fmt.Errorf("reached end of input looking for '%s'", ttype)
-	}
+func assertTypes(tokens []*scanner.Token, i int, ttypes ...scanner.TokenType) (int, error) {
+	for _, tt := range ttypes {
+		if isAtEnd(tokens, i) {
+			return i, fmt.Errorf("reached end of input looking for '%s'", tt)
+		}
 
-	if tokens[i].Type != ttype {
-		return fmt.Errorf("expected token '%s' but got '%s'", ttype, tokens[i].Type)
+		if tokens[i].Type != tt {
+			return i, fmt.Errorf("expected token '%s' but got '%s'", tt, tokens[i].Type)
+		}
+		i++
 	}
-	return nil
+	return i, nil
 }
 
 func match(tokens []*scanner.Token, i int, types ...scanner.TokenType) bool {

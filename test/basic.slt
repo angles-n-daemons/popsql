@@ -1,5 +1,5 @@
 statement ok
-CREATE TABLE user(a NUM, b string)
+CREATE TABLE user(a INT, b CHAR(10))
 
 statement ok
 INSERT INTO user(a, b) VALUES (1, "a"), (2, "b")
