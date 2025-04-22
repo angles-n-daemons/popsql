@@ -10,20 +10,7 @@ import (
 	"github.com/angles-n-daemons/popsql/pkg/db"
 )
 
-var banner = `
-      ┏┓┏┓┓ 
-┏┓┏┓┏┓┗┓┃┃┃ 
-┣┛┗┛┣┛┗┛┗┻┗┛
-┛   ┛       
-`
-
 func REPL() {
-	fmt.Println(banner)
-	fmt.Println("version 0.0")
-	loop()
-}
-
-func loop() {
 	db := db.GetEngine()
 	reader := bufio.NewReader(os.Stdin)
 	query := ""

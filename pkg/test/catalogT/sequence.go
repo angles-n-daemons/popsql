@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/angles-n-daemons/popsql/pkg/kv"
-	"github.com/angles-n-daemons/popsql/pkg/sql/catalog/desc"
+	"github.com/angles-n-daemons/popsql/pkg/db/kv"
+	"github.com/angles-n-daemons/popsql/pkg/db/sql/catalog/desc"
 )
 
 // Global counter to ensure each test-created table has a unique ID and (if needed) a unique name.

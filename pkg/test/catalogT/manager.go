@@ -3,8 +3,8 @@ package catalogT
 import (
 	"testing"
 
-	"github.com/angles-n-daemons/popsql/pkg/kv/store"
-	"github.com/angles-n-daemons/popsql/pkg/sql/catalog"
+	"github.com/angles-n-daemons/popsql/pkg/db/kv/store"
+	"github.com/angles-n-daemons/popsql/pkg/db/sql/catalog"
 	"github.com/angles-n-daemons/popsql/pkg/test/assert"
 )
 

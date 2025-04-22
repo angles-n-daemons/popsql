@@ -12,6 +12,13 @@ Want:
  - WAL backing for the store.
  - Non-buggy, hacky implementation.
    - I need to match types before I fuck everything up
+
+2025-04-21
+ - Reorganize directories
+ - Update to normal data types, trudging the unknown path should only be taken once the road understood is taken
+ - Can I get sqllogictest and sysbench to work
+   - Probably yes to sqllogictest, probably no to sysbench
+   - I imagine that sysbench depends on being able to setup databases, initialize transactions etc.
  
 2025-04-14
  - Finish out the query plumbing.
